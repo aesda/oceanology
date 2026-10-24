@@ -7,7 +7,17 @@ interface Props {
   defaultStyle?: 'NORTH_INDIAN' | 'SOUTH_INDIAN';
 }
 
-type VargaKey = 'd1Sign' | 'd9Sign' | 'd10Sign' | 'd2Sign' | 'd3Sign' | 'd7Sign';
+type VargaKey =
+  | 'd1Sign'
+  | 'd9Sign'
+  | 'd10Sign'
+  | 'd2Sign'
+  | 'd3Sign'
+  | 'd4Sign'
+  | 'd7Sign'
+  | 'd12Sign'
+  | 'd30Sign'
+  | 'd60Sign';
 
 const VARGA_TABS: { key: VargaKey; code: string; title: string; subtitle: string }[] = [
   { key: 'd1Sign', code: 'D1', title: 'Rashi / Cheena', subtitle: 'Root Janma Kundali' },
@@ -15,10 +25,20 @@ const VARGA_TABS: { key: VargaKey; code: string; title: string; subtitle: string
   { key: 'd10Sign', code: 'D10', title: 'Dashamsha', subtitle: 'Karma & Vocation' },
   { key: 'd2Sign', code: 'D2', title: 'Hora', subtitle: 'Sampatti (Wealth)' },
   { key: 'd3Sign', code: 'D3', title: 'Drekkana', subtitle: 'Parakrama (Courage)' },
+  { key: 'd4Sign', code: 'D4', title: 'Chaturthamsha', subtitle: 'Bhagya & Land' },
   { key: 'd7Sign', code: 'D7', title: 'Saptamsha', subtitle: 'Santana (Progeny)' },
+  { key: 'd12Sign', code: 'D12', title: 'Dwadashamsha', subtitle: 'Ancestral Lineage' },
+  { key: 'd30Sign', code: 'D30', title: 'Trimshamsha', subtitle: 'Arishta & Resilience' },
+  { key: 'd60Sign', code: 'D60', title: 'Shashtiamsha', subtitle: 'Sanchita Past Karma' },
 ];
 
-const NORTH_HOUSE_POS: { house: number; signX: number; signY: number; planetsX: number; planetsY: number }[] = [
+const NORTH_HOUSE_POS: {
+  house: number;
+  signX: number;
+  signY: number;
+  planetsX: number;
+  planetsY: number;
+}[] = [
   { house: 1, signX: 200, signY: 168, planetsX: 200, planetsY: 105 },
   { house: 2, signX: 100, signY: 75, planetsX: 100, planetsY: 42 },
   { house: 3, signX: 72, signY: 100, planetsX: 38, planetsY: 100 },
@@ -48,50 +68,57 @@ const SOUTH_SIGN_BOXES: { signIndex: number; x: number; y: number }[] = [
   { signIndex: 10, x: 0, y: 100 },
 ];
 
-export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle = 'NORTH_INDIAN' }) => {
+export const VedicKundliSvg: React.FC<Props> = ({
+  divisionalTable,
+  defaultStyle = 'NORTH_INDIAN',
+}) => {
   const [varga, setVarga] = useState<VargaKey>('d1Sign');
   const [style, setStyle] = useState<'NORTH_INDIAN' | 'SOUTH_INDIAN'>(defaultStyle);
 
-  const ascEntry = divisionalTable.find(e => e.planetId === 'Asc') || divisionalTable[0];
+  const ascEntry = divisionalTable.find((e) => e.planetId === 'Asc') || divisionalTable[0];
   const ascSignIdx = ascEntry[varga];
-  const activeVargaMeta = VARGA_TABS.find(t => t.key === varga)!;
+  const activeVargaMeta = VARGA_TABS.find((t) => t.key === varga)!;
+  const vargottamaPlanets = divisionalTable.filter(
+    (p) => p.planetId !== 'Asc' && p.isVargottama
+  );
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Varga Tabs + North/South Toggle */}
+      {/* 10-Varga Selector + North/South Toggle */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1">
-          {VARGA_TABS.map(t => (
+          {VARGA_TABS.map((t) => (
             <button
               key={t.code}
               onClick={() => setVarga(t.key)}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition ${
+              title={`${t.title} — ${t.subtitle}`}
+              className={`px-2 py-1 text-[11px] font-mono transition ${
                 varga === t.key
-                  ? 'obs-badge-brass font-semibold'
+                  ? 'obs-badge-brass font-bold'
                   : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
               }`}
             >
-              {t.code} • {t.title}
+              {t.code}
             </button>
           ))}
         </div>
 
-        <div className="flex rounded obs-panel p-0.5 text-xs">
+        <div className="flex obs-panel p-0.5 text-[11px] font-mono">
           <button
             onClick={() => setStyle('NORTH_INDIAN')}
-            className={`px-2.5 py-1 rounded transition ${
+            className={`px-2.5 py-1 transition ${
               style === 'NORTH_INDIAN'
-                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm'
+                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold'
                 : 'text-[var(--text-muted)]'
             }`}
           >
-            North / Nepal Diamond
+            North / Nepal
           </button>
           <button
             onClick={() => setStyle('SOUTH_INDIAN')}
-            className={`px-2.5 py-1 rounded transition ${
+            className={`px-2.5 py-1 transition ${
               style === 'SOUTH_INDIAN'
-                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm'
+                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold'
                 : 'text-[var(--text-muted)]'
             }`}
           >
@@ -102,7 +129,7 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
 
       {/* Kundli SVG Container */}
       <div className="flex flex-col items-center obs-panel p-4">
-        <div className="text-xs text-[var(--text-secondary)] mb-2.5 flex items-center justify-between w-full px-1">
+        <div className="text-xs text-[var(--text-secondary)] mb-2.5 flex flex-wrap items-center justify-between w-full px-1 gap-1">
           <span className="font-semibold text-[var(--text)]">
             {activeVargaMeta.code}: {activeVargaMeta.title} ({activeVargaMeta.subtitle})
           </span>
@@ -113,29 +140,44 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
 
         {style === 'NORTH_INDIAN' ? (
           <svg viewBox="0 0 400 400" className="w-full max-w-[375px] h-auto">
-            {/* Traditional Vermilion & Brass Frame */}
-            <rect x="4" y="4" width="392" height="392" rx="4" fill="var(--chart-bg)" stroke="var(--crimson)" strokeWidth="2" />
-            <rect x="10" y="10" width="380" height="380" rx="2" fill="none" stroke="var(--brass)" strokeWidth="1" strokeOpacity="0.6" />
-            {/* Diagonals */}
-            <line x1="10" y1="10" x2="390" y2="390" stroke="var(--brass)" strokeWidth="1.2" />
-            <line x1="390" y1="10" x2="10" y2="390" stroke="var(--brass)" strokeWidth="1.2" />
-            {/* Inner Diamond */}
+            <rect
+              x="4"
+              y="4"
+              width="392"
+              height="392"
+              rx="2"
+              fill="var(--chart-bg)"
+              stroke="var(--crimson)"
+              strokeWidth="1.8"
+            />
+            <rect
+              x="10"
+              y="10"
+              width="380"
+              height="380"
+              rx="1"
+              fill="none"
+              stroke="var(--brass)"
+              strokeWidth="1"
+              strokeOpacity="0.6"
+            />
+            <line x1="10" y1="10" x2="390" y2="390" stroke="var(--brass)" strokeWidth="1.1" />
+            <line x1="390" y1="10" x2="10" y2="390" stroke="var(--brass)" strokeWidth="1.1" />
             <polygon
               points="200,10 390,200 200,390 10,200"
               fill="none"
               stroke="var(--crimson)"
-              strokeWidth="1.5"
+              strokeWidth="1.4"
             />
 
-            {NORTH_HOUSE_POS.map(pos => {
+            {NORTH_HOUSE_POS.map((pos) => {
               const signIdx = (ascSignIdx + pos.house - 1) % 12;
               const occupants = divisionalTable.filter(
-                p => p.planetId !== 'Asc' && p[varga] === signIdx
+                (p) => p.planetId !== 'Asc' && p[varga] === signIdx
               );
 
               return (
                 <g key={pos.house}>
-                  {/* Rashi Number (1-12) */}
                   <text
                     x={pos.signX}
                     y={pos.signY}
@@ -149,11 +191,10 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
                     {signIdx + 1}
                   </text>
 
-                  {/* Occupant Planets */}
                   {occupants.map((p, idx) => {
                     const row = Math.floor(idx / 2);
                     const col = idx % 2;
-                    const offsetX = occupants.length === 1 ? 0 : (col === 0 ? -17 : 17);
+                    const offsetX = occupants.length === 1 ? 0 : col === 0 ? -17 : 17;
                     const offsetY = (row - (Math.ceil(occupants.length / 2) - 1) / 2) * 16;
                     return (
                       <text
@@ -166,7 +207,8 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
                         fontSize="11"
                         fontWeight="700"
                       >
-                        {p.symbol}{p.planetId.slice(0, 2)}
+                        {p.symbol}
+                        {p.planetId.slice(0, 2)}
                       </text>
                     );
                   })}
@@ -176,8 +218,25 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
           </svg>
         ) : (
           <svg viewBox="0 0 400 400" className="w-full max-w-[375px] h-auto">
-            <rect x="2" y="2" width="396" height="396" rx="4" fill="var(--chart-bg)" stroke="var(--crimson)" strokeWidth="2" />
-            <rect x="100" y="100" width="200" height="200" fill="var(--surface)" stroke="var(--brass)" strokeWidth="1.4" />
+            <rect
+              x="2"
+              y="2"
+              width="396"
+              height="396"
+              rx="2"
+              fill="var(--chart-bg)"
+              stroke="var(--crimson)"
+              strokeWidth="1.8"
+            />
+            <rect
+              x="100"
+              y="100"
+              width="200"
+              height="200"
+              fill="var(--surface)"
+              stroke="var(--brass)"
+              strokeWidth="1.3"
+            />
             <text
               x="200"
               y="182"
@@ -196,11 +255,11 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
               Lagna: {ZODIAC_SIGNS[ascSignIdx].sanskrit}
             </text>
 
-            {SOUTH_SIGN_BOXES.map(box => {
+            {SOUTH_SIGN_BOXES.map((box) => {
               const sign = ZODIAC_SIGNS[box.signIndex];
               const isAsc = box.signIndex === ascSignIdx;
               const occupants = divisionalTable.filter(
-                p => p.planetId !== 'Asc' && p[varga] === box.signIndex
+                (p) => p.planetId !== 'Asc' && p[varga] === box.signIndex
               );
 
               return (
@@ -212,7 +271,7 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
                     height="100"
                     fill={isAsc ? 'var(--brass-bg)' : 'none'}
                     stroke="var(--chart-grid)"
-                    strokeWidth="1.2"
+                    strokeWidth="1.1"
                   />
                   <text
                     x={box.x + 8}
@@ -248,7 +307,8 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
                         fontSize="11"
                         fontWeight="700"
                       >
-                        {p.symbol}{p.planetId.slice(0, 2)}
+                        {p.symbol}
+                        {p.planetId.slice(0, 2)}
                       </text>
                     );
                   })}
@@ -256,6 +316,15 @@ export const VedicKundliSvg: React.FC<Props> = ({ divisionalTable, defaultStyle 
               );
             })}
           </svg>
+        )}
+
+        {vargottamaPlanets.length > 0 && (
+          <div className="w-full mt-3 pt-2 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
+            <span className="text-[var(--text-muted)]">Vargottama (Same Rashi in D1 &amp; D9):</span>
+            <span className="text-[var(--sage)] font-semibold">
+              {vargottamaPlanets.map((vp) => `${vp.symbol} ${vp.planetName}`).join(' • ')}
+            </span>
+          </div>
         )}
       </div>
     </div>

@@ -3,102 +3,191 @@
 @tailwind utilities;
 
 :root {
-  /* Warm Alabaster / Himalayan Parchment Editorial Light Theme */
-  --bg: #F6F3EC;
-  --surface: #FDFBF7;
-  --surface-muted: #EFECE4;
-  --border: #DDD6C7;
-  --border-strong: #C2B8A3;
-  --text: #161513;
-  --text-secondary: #4A463E;
-  --text-muted: #767065;
-  --brass: #9E6B20;
-  --brass-bg: #F7EFE0;
-  --crimson: #A82E26;
-  --crimson-bg: #FBECEB;
-  --sage: #246347;
-  --sage-bg: #E9F3EE;
-  --indigo: #294366;
-  --chart-bg: #FAF7F0;
-  --chart-ring: #EFEAE0;
-  --chart-grid: #D5CCB8;
+  /* Himalayan Cotton Rag & Jaipur Marble Instrument Light Palette */
+  --bg: #F5F1E8;
+  --bg-elevated: #FAF7F0;
+  --surface: #FCFBF7;
+  --surface-muted: #EDE8DC;
+  --border: #DCD4C3;
+  --border-strong: #BFB39B;
+  --text: #171512;
+  --text-secondary: #433E37;
+  --text-muted: #70695D;
+  --brass: #94651B;
+  --brass-soft: #B8862D;
+  --brass-bg: #F4EAD4;
+  --crimson: #9E3329;
+  --crimson-bg: #F8E8E6;
+  --sage: #235E45;
+  --sage-bg: #E5F1EB;
+  --indigo: #284468;
+  --indigo-bg: #E7EEF6;
+  --chart-bg: #F9F5EC;
+  --chart-ring: #ECE5D5;
+  --chart-grid: #D2C7B0;
 }
 
 html.dark {
-  /* Obsidian Brass Observatory Dark Theme */
-  --bg: #0D0E11;
-  --surface: #14161B;
-  --surface-muted: #1B1E25;
-  --border: #282C35;
-  --border-strong: #3B404D;
-  --text: #F2EFE9;
-  --text-secondary: #B8B2A6;
-  --text-muted: #7E7970;
-  --brass: #D99B38;
-  --brass-bg: rgba(217, 155, 56, 0.12);
-  --crimson: #E05A50;
-  --crimson-bg: rgba(224, 90, 80, 0.12);
-  --sage: #48A87D;
-  --sage-bg: rgba(72, 168, 125, 0.12);
-  --indigo: #7CA1D4;
-  --chart-bg: #111318;
-  --chart-ring: #191C24;
-  --chart-grid: #2E3340;
+  /* Nocturnal Brass Astrolabe & Archival Slate Dark Palette */
+  --bg: #0B0D11;
+  --bg-elevated: #101319;
+  --surface: #131720;
+  --surface-muted: #1A1F2B;
+  --border: #252B38;
+  --border-strong: #384052;
+  --text: #F2EEE6;
+  --text-secondary: #BDB6A8;
+  --text-muted: #827C70;
+  --brass: #D9A441;
+  --brass-soft: #E5BA67;
+  --brass-bg: rgba(217, 164, 65, 0.11);
+  --crimson: #E06358;
+  --crimson-bg: rgba(224, 99, 88, 0.12);
+  --sage: #52B386;
+  --sage-bg: rgba(82, 179, 134, 0.12);
+  --indigo: #7FA5D9;
+  --indigo-bg: rgba(127, 165, 217, 0.12);
+  --chart-bg: #0F1219;
+  --chart-ring: #171C26;
+  --chart-grid: #2B3242;
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--bg);
     color: var(--text);
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    font-size: 14px;
-    line-height: 1.55;
+    font-size: 14.5px;
+    line-height: 1.6;
+    background-image: radial-gradient(rgba(148, 101, 27, 0.04) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    letter-spacing: -0.012em;
   }
 }
 
+/* Monograph & Architectural Surfaces (Clean hairline craft, zero AI pill clutter) */
 .obs-card {
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(23, 21, 18, 0.03);
 }
 
 .obs-panel {
   background-color: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 2px;
+}
+
+.folio-sheet {
+  background-color: var(--surface);
+  border-top: 2px solid var(--text);
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.editorial-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.literary-prose {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.72;
+  color: var(--text-secondary);
 }
 
 .obs-input {
   background-color: var(--surface);
   border: 1px solid var(--border-strong);
   color: var(--text);
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 2px;
+  padding: 7px 11px;
   font-size: 13px;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .obs-input:focus {
   outline: none;
   border-color: var(--brass);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brass) 16%, transparent);
 }
 
 .obs-badge-brass {
   background-color: var(--brass-bg);
   color: var(--brass);
-  border: 1px solid color-mix(in srgb, var(--brass) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brass) 32%, transparent);
+  border-radius: 2px;
 }
 
 .obs-badge-crimson {
   background-color: var(--crimson-bg);
   color: var(--crimson);
-  border: 1px solid color-mix(in srgb, var(--crimson) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--crimson) 32%, transparent);
+  border-radius: 2px;
 }
 
 .obs-badge-sage {
   background-color: var(--sage-bg);
   color: var(--sage);
-  border: 1px solid color-mix(in srgb, var(--sage) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sage) 32%, transparent);
+  border-radius: 2px;
+}
+
+.btn-editorial-primary {
+  background-color: var(--text);
+  color: var(--surface);
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-radius: 2px;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.btn-editorial-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-editorial-secondary {
+  background-color: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 2px;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.btn-editorial-secondary:hover {
+  border-color: var(--brass);
+  background-color: var(--brass-bg);
+}
+
+@keyframes slow-celestial-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-celestial-slow {
+  animation: slow-celestial-spin 180s linear infinite;
 }
 
 ::-webkit-scrollbar {
@@ -110,5 +199,15 @@ html.dark {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
-  border-radius: 3px;
+  border-radius: 0px;
+}
+
+@media print {
+  header, nav, .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
 }

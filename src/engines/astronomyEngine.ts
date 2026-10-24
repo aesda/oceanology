@@ -1,19 +1,20 @@
 import * as Astronomy from 'astronomy-engine';
 import { AyanamshaMode, BirthProfile, HouseSystem } from '../types/oceanology';
+import { getAuthenticSabianSymbol } from '../data/sabianMandala';
 
 export const ZODIAC_SIGNS = [
-  { index: 0, name: 'Aries', sanskrit: 'Mesha', symbol: '♈', element: 'Fire', modality: 'Cardinal', ruler: 'Mars', color: '#F3160E' },
-  { index: 1, name: 'Taurus', sanskrit: 'Vrishabha', symbol: '♉', element: 'Earth', modality: 'Fixed', ruler: 'Venus', color: '#9ED21D' },
-  { index: 2, name: 'Gemini', sanskrit: 'Mithuna', symbol: '♊', element: 'Air', modality: 'Mutable', ruler: 'Mercury', color: '#EBEB0C' },
-  { index: 3, name: 'Cancer', sanskrit: 'Karka', symbol: '♋', element: 'Water', modality: 'Cardinal', ruler: 'Moon', color: '#43B1E1' },
-  { index: 4, name: 'Leo', sanskrit: 'Simha', symbol: '♌', element: 'Fire', modality: 'Fixed', ruler: 'Sun', color: '#F07D0D' },
-  { index: 5, name: 'Virgo', sanskrit: 'Kanya', symbol: '♍', element: 'Earth', modality: 'Mutable', ruler: 'Mercury', color: '#1A9418' },
-  { index: 6, name: 'Libra', sanskrit: 'Tula', symbol: '♎', element: 'Air', modality: 'Cardinal', ruler: 'Venus', color: '#E9597E' },
-  { index: 7, name: 'Scorpio', sanskrit: 'Vrishchika', symbol: '♏', element: 'Water', modality: 'Fixed', ruler: 'Mars', color: '#AB5BC5' },
-  { index: 8, name: 'Sagittarius', sanskrit: 'Dhanu', symbol: '♐', element: 'Fire', modality: 'Mutable', ruler: 'Jupiter', color: '#FFD166' },
-  { index: 9, name: 'Capricorn', sanskrit: 'Makara', symbol: '♑', element: 'Earth', modality: 'Cardinal', ruler: 'Saturn', color: '#377CC9' },
-  { index: 10, name: 'Aquarius', sanskrit: 'Kumbha', symbol: '♒', element: 'Air', modality: 'Fixed', ruler: 'Saturn', color: '#00F5D4' },
-  { index: 11, name: 'Pisces', sanskrit: 'Meena', symbol: '♓', element: 'Water', modality: 'Mutable', ruler: 'Jupiter', color: '#9B5DE5' },
+  { index: 0, name: 'Aries', sanskrit: 'Mesha', symbol: '♈', element: 'Fire', modality: 'Cardinal', ruler: 'Mars', color: '#B8432E' },
+  { index: 1, name: 'Taurus', sanskrit: 'Vrishabha', symbol: '♉', element: 'Earth', modality: 'Fixed', ruler: 'Venus', color: '#3B7A57' },
+  { index: 2, name: 'Gemini', sanskrit: 'Mithuna', symbol: '♊', element: 'Air', modality: 'Mutable', ruler: 'Mercury', color: '#B8862D' },
+  { index: 3, name: 'Cancer', sanskrit: 'Karka', symbol: '♋', element: 'Water', modality: 'Cardinal', ruler: 'Moon', color: '#2E6F7E' },
+  { index: 4, name: 'Leo', sanskrit: 'Simha', symbol: '♌', element: 'Fire', modality: 'Fixed', ruler: 'Sun', color: '#C66B27' },
+  { index: 5, name: 'Virgo', sanskrit: 'Kanya', symbol: '♍', element: 'Earth', modality: 'Mutable', ruler: 'Mercury', color: '#2E6B4E' },
+  { index: 6, name: 'Libra', sanskrit: 'Tula', symbol: '♎', element: 'Air', modality: 'Cardinal', ruler: 'Venus', color: '#9E4765' },
+  { index: 7, name: 'Scorpio', sanskrit: 'Vrishchika', symbol: '♏', element: 'Water', modality: 'Fixed', ruler: 'Mars', color: '#6E3B6E' },
+  { index: 8, name: 'Sagittarius', sanskrit: 'Dhanu', symbol: '♐', element: 'Fire', modality: 'Mutable', ruler: 'Jupiter', color: '#B87B1E' },
+  { index: 9, name: 'Capricorn', sanskrit: 'Makara', symbol: '♑', element: 'Earth', modality: 'Cardinal', ruler: 'Saturn', color: '#35597F' },
+  { index: 10, name: 'Aquarius', sanskrit: 'Kumbha', symbol: '♒', element: 'Air', modality: 'Fixed', ruler: 'Saturn', color: '#246A73' },
+  { index: 11, name: 'Pisces', sanskrit: 'Meena', symbol: '♓', element: 'Water', modality: 'Mutable', ruler: 'Jupiter', color: '#584B8A' },
 ];
 
 export const NAKSHATRAS = [
@@ -39,7 +40,7 @@ export const NAKSHATRAS = [
   { index: 19, name: 'Purva Ashadha', ruler: 'Venus', deity: 'Apah', gana: 'Manushya', nadi: 'Madhya', yoni: 'Monkey', symbol: 'Winnowing Basket' },
   { index: 20, name: 'Uttara Ashadha', ruler: 'Sun', deity: 'Vishvadevas', gana: 'Manushya', nadi: 'Antya', yoni: 'Mongoose', symbol: 'Elephant Tusk' },
   { index: 21, name: 'Shravana', ruler: 'Moon', deity: 'Vishnu', gana: 'Deva', nadi: 'Antya', yoni: 'Monkey', symbol: 'Ear / Three Footprints' },
-  { index: 22, name: 'Dhanishta', ruler: 'Mars', deity: 'Ashta Vasus', gana: 'Rakshasa', nadi: 'Madhya', yoni: 'Lion', symbol: 'Musical Drum' },
+  { index: 22, name: 'Dhanishtha', ruler: 'Mars', deity: 'Ashta Vasus', gana: 'Rakshasa', nadi: 'Madhya', yoni: 'Lion', symbol: 'Musical Drum' },
   { index: 23, name: 'Shatabhisha', ruler: 'Rahu', deity: 'Varuna', gana: 'Rakshasa', nadi: 'Adi', yoni: 'Horse', symbol: 'Empty Circle / 100 Stars' },
   { index: 24, name: 'Purva Bhadrapada', ruler: 'Jupiter', deity: 'Aja Ekapada', gana: 'Manushya', nadi: 'Adi', yoni: 'Lion', symbol: 'Sword / Two Faces' },
   { index: 25, name: 'Uttara Bhadrapada', ruler: 'Saturn', deity: 'Ahirbudhnya', gana: 'Manushya', nadi: 'Madhya', yoni: 'Cow', symbol: 'Twins / Serpent in Water' },
@@ -102,8 +103,8 @@ export interface AstrocartographyLine {
   planet: string;
   symbol: string;
   color: string;
-  mcLongitude: number; // -180 to +180 geographic longitude where planet culminates
-  icLongitude: number; // -180 to +180 where planet is at Nadir
+  mcLongitude: number;
+  icLongitude: number;
   ascCurve: { lat: number; lon: number }[];
   dscCurve: { lat: number; lon: number }[];
   nearestPowerCity: string;
@@ -137,7 +138,6 @@ export function formatDMS(degInSign: number): string {
   return `${d.toString().padStart(2, '0')}° ${m.toString().padStart(2, '0')}' ${s.toString().padStart(2, '0')}"`;
 }
 
-// Reverse-engineered 6 Ayanamsha options from AstroSage (id=ayanamsa) & Drik Panchang (id=dp-ayanamsha)
 export function getAyanamshaDegrees(date: Date, mode: AyanamshaMode): number {
   if (mode === 'TROPICAL') return 0;
   const j2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
@@ -149,13 +149,13 @@ export function getAyanamshaDegrees(date: Date, mode: AyanamshaMode): number {
     case 'LAHIRI':
       return lahiri;
     case 'KP_NEW':
-      return lahiri - 0.0085; // Krishnamurti New Ayanamsha
+      return lahiri - 0.0085;
     case 'KP_OLD':
-      return lahiri - 0.0165; // Krishnamurti Old Ayanamsha
+      return lahiri - 0.0165;
     case 'RAMAN':
-      return lahiri - 1.4411; // B.V. Raman Ayanamsha (~22.41° at J2000)
+      return lahiri - 1.4411;
     case 'KHULLAR':
-      return lahiri + 0.0422; // KP Khullar
+      return lahiri + 0.0422;
     default:
       return lahiri;
   }
@@ -180,7 +180,6 @@ function getGeocentricEclipticLonLat(body: Astronomy.Body, date: Date): { lon: n
   return { lon: norm360(ecl.elon), lat: ecl.elat };
 }
 
-// True Lunar North Node (Rahu) mean/true calculation
 function getMeanLunarNode(date: Date): number {
   const j2000 = Date.UTC(2000, 0, 1, 12, 0, 0);
   const T = (date.getTime() - j2000) / (86400000 * 36525);
@@ -188,50 +187,29 @@ function getMeanLunarNode(date: Date): number {
   return norm360(omega);
 }
 
-const SABIAN_ARCHETYPES = [
-  'A woman just risen from the sea; a seal is embracing her',
-  'A comedian revealing human nature through warmth and wit',
-  'The cameo profile of a person, suggesting the outline of their country',
-  'Two lovers strolling on a secluded walk of discovery',
-  'A triangle with wings rising into luminous ether',
-  'A square brightly lighted on one side, casting deep geometry',
-  'A person successfully expressing themselves in two realms at once',
-  'A large cosmic headpiece with streamers flying, facing east',
-  'A crystal gazer discerning patterns within a sphere of light',
-  'A teacher gives new symbolic forms to traditional images',
-  'The ruler of a nation contemplating the architecture of destiny',
-  'A flock of wild geese flying in a sacred V formation',
-  'An unexploded bomb reveals the transmutation of latent willpower',
-  'A serpent coiling near a blooming lotus of wisdom',
-  'An ancient navigator reading the stars across an emerald ocean',
-];
-
 function getSabianSymbol(tropicalLon: number): string {
-  const degIndex = Math.floor(norm360(tropicalLon));
-  const sign = ZODIAC_SIGNS[Math.floor(degIndex / 30)];
-  const degInSign = (degIndex % 30) + 1;
-  const phrase = SABIAN_ARCHETYPES[degIndex % SABIAN_ARCHETYPES.length];
-  return `${sign.name} ${degInSign}°: "${phrase}."`;
+  return getAuthenticSabianSymbol(tropicalLon, ZODIAC_SIGNS);
 }
 
 function getPlanetDignity(planetId: string, signIdx: number): PlanetPosition['dignity'] {
-  const rules: Record<string, { own: number[]; exalted: number; debilitated: number }> = {
-    Sun: { own: [4], exalted: 0, debilitated: 6 },
-    Moon: { own: [3], exalted: 1, debilitated: 7 },
-    Mercury: { own: [2, 5], exalted: 5, debilitated: 11 },
-    Venus: { own: [1, 6], exalted: 11, debilitated: 5 },
-    Mars: { own: [0, 7], exalted: 9, debilitated: 3 },
-    Jupiter: { own: [8, 11], exalted: 3, debilitated: 9 },
-    Saturn: { own: [9, 10], exalted: 6, debilitated: 0 },
-    Rahu: { own: [10], exalted: 1, debilitated: 7 },
-    Ketu: { own: [7], exalted: 7, debilitated: 1 },
+  const rules: Record<string, { own: number[]; exalted: number; debilitated: number; friendly: number[] }> = {
+    Sun: { own: [4], exalted: 0, debilitated: 6, friendly: [3, 7, 8, 11] },
+    Moon: { own: [3], exalted: 1, debilitated: 7, friendly: [2, 4, 5] },
+    Mercury: { own: [2, 5], exalted: 5, debilitated: 11, friendly: [1, 4, 6] },
+    Venus: { own: [1, 6], exalted: 11, debilitated: 5, friendly: [2, 9, 10] },
+    Mars: { own: [0, 7], exalted: 9, debilitated: 3, friendly: [3, 4, 8, 11] },
+    Jupiter: { own: [8, 11], exalted: 3, debilitated: 9, friendly: [0, 4, 7] },
+    Saturn: { own: [9, 10], exalted: 6, debilitated: 0, friendly: [1, 2, 5] },
+    Rahu: { own: [10], exalted: 1, debilitated: 7, friendly: [2, 5, 6, 9] },
+    Ketu: { own: [7], exalted: 8, debilitated: 2, friendly: [0, 3, 11] },
   };
   const r = rules[planetId];
   if (!r) return 'Neutral';
   if (r.exalted === signIdx) return 'Exalted';
   if (r.debilitated === signIdx) return 'Debilitated';
   if (r.own.includes(signIdx)) return 'Own Sign';
-  return 'Friendly';
+  if (r.friendly.includes(signIdx)) return 'Friendly';
+  return 'Neutral';
 }
 
 export function calculateNatalChart(
@@ -241,21 +219,18 @@ export function calculateNatalChart(
   minuteShift = 0
 ): NatalChartResult {
   const utcDate = profileToUtcDate(profile, minuteShift);
-  const dtNext = new Date(utcDate.getTime() + 3600 * 1000); // +1 hour for exact speed derivative
+  const dtNext = new Date(utcDate.getTime() + 3600 * 1000);
   const ayanamshaDegrees = getAyanamshaDegrees(utcDate, ayanamshaMode);
 
-  // Compute Greenwich Apparent Sidereal Time -> Local Sidereal Time (RAMC)
   const gmstHours = Astronomy.SiderealTime(utcDate);
   const lstDeg = norm360(gmstHours * 15 + profile.location.longitude);
   const ramcRad = (lstDeg * Math.PI) / 180;
   const latRad = (profile.location.latitude * Math.PI) / 180;
-  const epsRad = (23.4392911 * Math.PI) / 180; // Obliquity of ecliptic
+  const epsRad = (23.4392911 * Math.PI) / 180;
 
-  // Tropical Midheaven (MC)
   const mcRad = Math.atan2(Math.sin(ramcRad), Math.cos(ramcRad) * Math.cos(epsRad));
   const tropicalMC = norm360((mcRad * 180) / Math.PI);
 
-  // Tropical Ascendant (Lagna)
   const ascY = Math.cos(ramcRad);
   const ascX = -(Math.sin(epsRad) * Math.tan(latRad) + Math.cos(epsRad) * Math.sin(ramcRad));
   const tropicalAsc = norm360((Math.atan2(ascY, ascX) * 180) / Math.PI);
@@ -263,7 +238,6 @@ export function calculateNatalChart(
   const activeAscLon = norm360(tropicalAsc - ayanamshaDegrees);
   const activeMcLon = norm360(tropicalMC - ayanamshaDegrees);
 
-  // Generate 12 House Cusps
   const houses: HouseCusp[] = [];
   const ascSignIdx = Math.floor(activeAscLon / 30);
 
@@ -274,7 +248,6 @@ export function calculateNatalChart(
     } else if (houseSystem === 'EQUAL') {
       cuspLon = norm360(activeAscLon + (h - 1) * 30);
     } else {
-      // Placidus / Sripati Porphyry-interpolated quadrant cusps
       const icLon = norm360(activeMcLon + 180);
       const dscLon = norm360(activeAscLon + 180);
       const arc10to1 = norm360(activeAscLon - activeMcLon);
@@ -332,18 +305,18 @@ export function calculateNatalChart(
   };
 
   const bodyDefs: { id: string; name: string; sanskrit: string; symbol: string; body?: Astronomy.Body; color: string }[] = [
-    { id: 'Sun', name: 'Sun', sanskrit: 'Surya', symbol: '☉', body: Astronomy.Body.Sun, color: '#FFD166' },
-    { id: 'Moon', name: 'Moon', sanskrit: 'Chandra', symbol: '☽', body: Astronomy.Body.Moon, color: '#00F5D4' },
-    { id: 'Mercury', name: 'Mercury', sanskrit: 'Budha', symbol: '☿', body: Astronomy.Body.Mercury, color: '#9ED21D' },
-    { id: 'Venus', name: 'Venus', sanskrit: 'Shukra', symbol: '♀', body: Astronomy.Body.Venus, color: '#FF6B8B' },
-    { id: 'Mars', name: 'Mars', sanskrit: 'Mangala', symbol: '♂', body: Astronomy.Body.Mars, color: '#F3160E' },
-    { id: 'Jupiter', name: 'Jupiter', sanskrit: 'Guru (Brihaspati)', symbol: '♃', body: Astronomy.Body.Jupiter, color: '#F07D0D' },
-    { id: 'Saturn', name: 'Saturn', sanskrit: 'Shani', symbol: '♄', body: Astronomy.Body.Saturn, color: '#5683F5' },
-    { id: 'Uranus', name: 'Uranus', sanskrit: 'Aruna', symbol: '♅', body: Astronomy.Body.Uranus, color: '#43B1E1' },
-    { id: 'Neptune', name: 'Neptune', sanskrit: 'Varuna', symbol: '♆', body: Astronomy.Body.Neptune, color: '#9B5DE5' },
-    { id: 'Pluto', name: 'Pluto', sanskrit: 'Yama', symbol: '♇', body: Astronomy.Body.Pluto, color: '#E9597E' },
-    { id: 'Rahu', name: 'North Node (Rahu)', sanskrit: 'Rahu', symbol: '☊', color: '#85ABFF' },
-    { id: 'Ketu', name: 'South Node (Ketu)', sanskrit: 'Ketu', symbol: '☋', color: '#FF9F1C' },
+    { id: 'Sun', name: 'Sun', sanskrit: 'Surya', symbol: '☉', body: Astronomy.Body.Sun, color: '#C88A2E' },
+    { id: 'Moon', name: 'Moon', sanskrit: 'Chandra', symbol: '☽', body: Astronomy.Body.Moon, color: '#2A7B88' },
+    { id: 'Mercury', name: 'Mercury', sanskrit: 'Budha', symbol: '☿', body: Astronomy.Body.Mercury, color: '#3B7A57' },
+    { id: 'Venus', name: 'Venus', sanskrit: 'Shukra', symbol: '♀', body: Astronomy.Body.Venus, color: '#A64B6B' },
+    { id: 'Mars', name: 'Mars', sanskrit: 'Mangala', symbol: '♂', body: Astronomy.Body.Mars, color: '#B8432E' },
+    { id: 'Jupiter', name: 'Jupiter', sanskrit: 'Guru (Brihaspati)', symbol: '♃', body: Astronomy.Body.Jupiter, color: '#B87314' },
+    { id: 'Saturn', name: 'Saturn', sanskrit: 'Shani', symbol: '♄', body: Astronomy.Body.Saturn, color: '#395782' },
+    { id: 'Uranus', name: 'Uranus', sanskrit: 'Aruna', symbol: '♅', body: Astronomy.Body.Uranus, color: '#2E6F7E' },
+    { id: 'Neptune', name: 'Neptune', sanskrit: 'Varuna', symbol: '♆', body: Astronomy.Body.Neptune, color: '#584B8A' },
+    { id: 'Pluto', name: 'Pluto', sanskrit: 'Yama', symbol: '♇', body: Astronomy.Body.Pluto, color: '#7D3C5D' },
+    { id: 'Rahu', name: 'North Node (Rahu)', sanskrit: 'Rahu', symbol: '☊', color: '#4A648C' },
+    { id: 'Ketu', name: 'South Node (Ketu)', sanskrit: 'Ketu', symbol: '☋', color: '#9E5A2B' },
   ];
 
   const lahiriDeg = getAyanamshaDegrees(utcDate, 'LAHIRI');
@@ -379,7 +352,6 @@ export function calculateNatalChart(
     const signObj = ZODIAC_SIGNS[sIdx];
     const degInSign = activeLon % 30;
 
-    // House placement
     let houseNum = ((sIdx - ascSignIdx + 12) % 12) + 1;
     if (houseSystem !== 'WHOLE_SIGN') {
       for (let i = 0; i < 12; i++) {
@@ -395,8 +367,7 @@ export function calculateNatalChart(
       }
     }
 
-    // Nakshatra (always computed on Sidereal longitude for Vedic accuracy, or activeLon)
-    const nakSpan = 360 / 27; // 13.3333°
+    const nakSpan = 360 / 27;
     const nakBasis = ayanamshaMode === 'TROPICAL' ? sidLon : activeLon;
     const nakIdx = Math.floor(nakBasis / nakSpan) % 27;
     const pada = Math.floor((nakBasis % nakSpan) / (nakSpan / 4)) + 1;
@@ -435,14 +406,13 @@ export function calculateNatalChart(
     });
   }
 
-  // Compute Major Planetary Aspects
   const aspectDefs: { name: AspectMatch['aspectName']; angle: number; orbMax: number; symbol: string; nature: AspectMatch['nature']; color: string }[] = [
-    { name: 'Conjunction', angle: 0, orbMax: 8, symbol: '☌', nature: 'Fused', color: '#FFD166' },
-    { name: 'Opposition', angle: 180, orbMax: 8, symbol: '☍', nature: 'Dynamic', color: '#FF6B8B' },
-    { name: 'Trine', angle: 120, orbMax: 7, symbol: '△', nature: 'Harmonious', color: '#00F5D4' },
-    { name: 'Square', angle: 90, orbMax: 7, symbol: '□', nature: 'Dynamic', color: '#F3160E' },
-    { name: 'Sextile', angle: 60, orbMax: 5, symbol: '⚹', nature: 'Harmonious', color: '#9ED21D' },
-    { name: 'Quincunx', angle: 150, orbMax: 3, symbol: '⚻', nature: 'Adjustment', color: '#9B5DE5' },
+    { name: 'Conjunction', angle: 0, orbMax: 8, symbol: '☌', nature: 'Fused', color: '#B8862D' },
+    { name: 'Opposition', angle: 180, orbMax: 8, symbol: '☍', nature: 'Dynamic', color: '#A64B6B' },
+    { name: 'Trine', angle: 120, orbMax: 7, symbol: '△', nature: 'Harmonious', color: '#2A7B88' },
+    { name: 'Square', angle: 90, orbMax: 7, symbol: '□', nature: 'Dynamic', color: '#B8432E' },
+    { name: 'Sextile', angle: 60, orbMax: 5, symbol: '⚹', nature: 'Harmonious', color: '#3B7A57' },
+    { name: 'Quincunx', angle: 150, orbMax: 3, symbol: '⚻', nature: 'Adjustment', color: '#6E5A8A' },
   ];
 
   const aspects: AspectMatch[] = [];
@@ -477,7 +447,6 @@ export function calculateNatalChart(
     }
   }
 
-  // Astrocartography Lines (Astro-Seek Relocation & Astrodienst Locational Astrology)
   const gstDeg = norm360(gmstHours * 15);
   const powerCities = [
     { name: 'Tokyo', lon: 139.7 },
@@ -501,8 +470,8 @@ export function calculateNatalChart(
     const decRad = Math.asin(Math.sin(epsRad) * Math.sin(lonRad));
     const raDeg = norm360((raRad * 180) / Math.PI);
 
-    let mcGeoLon = ((raDeg - gstDeg + 540) % 360) - 180;
-    let icGeoLon = ((mcGeoLon + 180 + 540) % 360) - 180;
+    const mcGeoLon = ((raDeg - gstDeg + 540) % 360) - 180;
+    const icGeoLon = ((mcGeoLon + 180 + 540) % 360) - 180;
 
     const ascCurve: { lat: number; lon: number }[] = [];
     const dscCurve: { lat: number; lon: number }[] = [];
@@ -555,7 +524,6 @@ export function calculateNatalChart(
   };
 }
 
-// Astro-Seek Ephemeris & Aspect Search Engine (Scans a year/month for exact planetary aspect hits)
 export interface EphemerisSearchHit {
   dateStr: string;
   planetA: string;
@@ -585,7 +553,6 @@ export function searchEphemerisEvents(year: number, filterPlanet = 'ALL'): Ephem
     { angle: 90, name: 'Square', symbol: '□' },
   ];
 
-  // Sample every 4 days across the chosen year to find exact aspect crossings
   for (let dayOfYear = 1; dayOfYear <= 360; dayOfYear += 4) {
     const dt = new Date(Date.UTC(year, 0, dayOfYear, 12, 0, 0));
     const lons = bodies.map(b => ({ name: b.name, lon: getGeocentricEclipticLonLat(b.body, dt).lon }));
