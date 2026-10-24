@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Warm Alabaster / Himalayan Parchment Editorial Light Theme */
+  --bg: #F6F3EC;
+  --surface: #FDFBF7;
+  --surface-muted: #EFECE4;
+  --border: #DDD6C7;
+  --border-strong: #C2B8A3;
+  --text: #161513;
+  --text-secondary: #4A463E;
+  --text-muted: #767065;
+  --brass: #9E6B20;
+  --brass-bg: #F7EFE0;
+  --crimson: #A82E26;
+  --crimson-bg: #FBECEB;
+  --sage: #246347;
+  --sage-bg: #E9F3EE;
+  --indigo: #294366;
+  --chart-bg: #FAF7F0;
+  --chart-ring: #EFEAE0;
+  --chart-grid: #D5CCB8;
+}
+
+html.dark {
+  /* Obsidian Brass Observatory Dark Theme */
+  --bg: #0D0E11;
+  --surface: #14161B;
+  --surface-muted: #1B1E25;
+  --border: #282C35;
+  --border-strong: #3B404D;
+  --text: #F2EFE9;
+  --text-secondary: #B8B2A6;
+  --text-muted: #7E7970;
+  --brass: #D99B38;
+  --brass-bg: rgba(217, 155, 56, 0.12);
+  --crimson: #E05A50;
+  --crimson-bg: rgba(224, 90, 80, 0.12);
+  --sage: #48A87D;
+  --sage-bg: rgba(72, 168, 125, 0.12);
+  --indigo: #7CA1D4;
+  --chart-bg: #111318;
+  --chart-ring: #191C24;
+  --chart-grid: #2E3340;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+}
+
+.obs-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.obs-panel {
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.obs-input {
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  transition: border-color 0.15s ease;
+}
+
+.obs-input:focus {
+  outline: none;
+  border-color: var(--brass);
+}
+
+.obs-badge-brass {
+  background-color: var(--brass-bg);
+  color: var(--brass);
+  border: 1px solid color-mix(in srgb, var(--brass) 35%, transparent);
+}
+
+.obs-badge-crimson {
+  background-color: var(--crimson-bg);
+  color: var(--crimson);
+  border: 1px solid color-mix(in srgb, var(--crimson) 35%, transparent);
+}
+
+.obs-badge-sage {
+  background-color: var(--sage-bg);
+  color: var(--sage);
+  border: 1px solid color-mix(in srgb, var(--sage) 35%, transparent);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
