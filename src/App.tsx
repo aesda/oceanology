@@ -58,6 +58,7 @@ import {
 import {
   LandingPage,
   ObservatoryStudioTab,
+  SeedOfLifeMark,
   WebsiteDestination,
 } from './components/LandingPage';
 import { PersonalReportReader } from './components/PersonalReportReader';
@@ -124,7 +125,16 @@ function AppWorkspace() {
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [expandedDashaLord, setExpandedDashaLord] = useState<string | null>(null);
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return window.localStorage.getItem('oceanology_dark_mode') !== '0';
+      } catch {
+        return true;
+      }
+    }
+    return true;
+  });
   const [floralMotion, setFloralMotion] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -167,6 +177,11 @@ function AppWorkspace() {
     const root = document.documentElement;
     if (darkMode) root.classList.add('dark');
     else root.classList.remove('dark');
+    try {
+      window.localStorage.setItem('oceanology_dark_mode', darkMode ? '1' : '0');
+    } catch {
+      // ignore storage errors
+    }
   }, [darkMode]);
 
   useEffect(() => {
@@ -492,28 +507,22 @@ function AppWorkspace() {
   const SidebarNavContent = () => (
     <div className="flex flex-col h-full justify-between p-4">
       <div className="space-y-6">
-        {/* Brand Header */}
+        {/* Brand Header — Unified Superconscious Seed-of-Life & Wordmark */}
         <div className="flex items-center justify-between px-2 pt-1">
           <button
             type="button"
             onClick={() => handleNavigate('HOME')}
-            className="flex items-center gap-2.5 text-left"
+            className="flex items-center gap-2.5 text-left group"
           >
-            <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shadow-sm shrink-0">
-              <SacredFlowerIcon
-                variety="lotus"
-                primaryHex="#FDE68A"
-                secondaryHex="#FFFFFF"
-                size={21}
-                animated={floralMotion}
-              />
+            <div className="w-9 h-9 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] flex items-center justify-center shadow-[0_0_20px_rgba(151,128,255,0.22)] shrink-0">
+              <SeedOfLifeMark size={24} animated={floralMotion} tone="adaptive" />
             </div>
             <div>
-              <div className="font-display font-bold text-base tracking-tight text-[var(--text)] leading-none">
-                Oceanology
+              <div className="font-scDisplay font-semibold text-[18px] tracking-[-0.04em] text-[var(--text)] leading-none">
+                oceanology
               </div>
-              <div className="text-xs text-[var(--text-muted)] mt-0.5">
-                {t('Horoscope & Horai', 'ज्योतिष र होरा')}
+              <div className="text-[11px] text-[var(--text-muted)] mt-0.5 tracking-tight">
+                {t('Cosmic Jyotish & Horai', 'ज्योतिष र होरा')}
               </div>
             </div>
           </button>
@@ -574,10 +583,10 @@ function AppWorkspace() {
                   key={item.key}
                   type="button"
                   onClick={item.onClick}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-xl text-[13.5px] font-medium border transition ${
                     item.isActive
-                      ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
-                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]'
+                      ? 'bg-[var(--accent-bg)] text-[var(--accent)] border-[var(--border-strong)] font-semibold shadow-[0_0_20px_rgba(123,92,224,0.16)]'
+                      : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]'
                   }`}
                 >
                   <span className="inline-flex items-center gap-2.5 truncate">
@@ -585,7 +594,7 @@ function AppWorkspace() {
                     <span className="truncate">{item.label}</span>
                   </span>
                   {item.badgeText && (
-                    <span className="px-2 py-0.5 obs-badge-brass text-[11px] font-semibold">
+                    <span className="px-1.5 py-0.5 obs-badge-brass text-[10.5px] font-semibold shrink-0">
                       {item.badgeText}
                     </span>
                   )}
@@ -643,12 +652,12 @@ function AppWorkspace() {
   );
 
   return (
-    <div className="min-h-screen flex bg-transparent text-[var(--text)] relative">
-      <FloatingPetalsBackdrop enabled={floralMotion} />
-      <InteractivePetalBurst enabled={floralMotion} />
+    <div className="sc-workspace-shell min-h-screen flex text-[var(--text)] relative">
+      <FloatingPetalsBackdrop enabled={floralMotion && !darkMode} />
+      <InteractivePetalBurst enabled={floralMotion && !darkMode} />
 
       {/* ==================== DESKTOP LEFT SIDEBAR ==================== */}
-      <aside className="hidden lg:block w-[268px] shrink-0 border-r border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-md sticky top-0 h-screen overflow-y-auto z-20">
+      <aside className="hidden lg:block w-[280px] shrink-0 border-r border-[var(--border)] bg-[var(--bg-elevated)]/88 backdrop-blur-xl sticky top-0 h-screen overflow-y-auto z-20">
         <SidebarNavContent />
       </aside>
 
@@ -656,10 +665,10 @@ function AppWorkspace() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/65 backdrop-blur-xs"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className="relative w-[276px] max-w-[85vw] bg-[var(--surface)] border-r border-[var(--border)] h-full overflow-y-auto z-10">
+          <aside className="relative w-[276px] max-w-[85vw] bg-[var(--bg-elevated)] border-r border-[var(--border)] h-full overflow-y-auto z-10">
             <SidebarNavContent />
           </aside>
         </div>
@@ -668,7 +677,7 @@ function AppWorkspace() {
       {/* ==================== MAIN CONTENT COLUMN ==================== */}
       <div className="flex-1 min-w-0 flex flex-col relative z-10">
         {/* Sticky Global Context Topbar */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-3.5 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-3">
+        <header className="sticky top-0 z-30 h-16 bg-[var(--bg)]/82 backdrop-blur-xl border-b border-[var(--border)] px-3.5 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
@@ -680,14 +689,14 @@ function AppWorkspace() {
             </button>
 
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-sm sm:text-base font-bold text-[var(--text)] truncate">
+              <span className="font-scDisplay text-sm sm:text-base font-semibold tracking-[-0.02em] text-[var(--text)] truncate">
                 {currentViewLabel}
               </span>
               <button
                 type="button"
                 onClick={() => handleNavigate('HORAI')}
                 title="Open Live 24-Petal Horai Sacred Clock"
-                className="hidden xl:inline-flex items-center gap-1.5 h-8 px-3 rounded-lg floral-banner-glow border border-[var(--border)] text-xs font-semibold text-[var(--text)] hover:border-[var(--accent)] transition tabular-nums whitespace-nowrap shrink-0"
+                className="hidden xl:inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] text-xs font-semibold text-[var(--text)] hover:border-[var(--accent)] transition tabular-nums whitespace-nowrap shrink-0"
               >
                 <SacredFlowerIcon
                   variety={panchangReport.activeHorai.sacredFlower.variety}
@@ -998,7 +1007,7 @@ function AppWorkspace() {
                   </div>
 
                   {/* Plain-Language Personal Summary Card */}
-                  <div className="obs-card p-6 space-y-4">
+                  <div className="sc-hero-card p-6 space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
                       <div>
                         <div className="text-sm font-semibold text-[var(--accent)]">
@@ -2075,7 +2084,7 @@ function AppWorkspace() {
             className="fixed inset-0 bg-black/55 backdrop-blur-xs"
             onClick={() => setShowProfileModal(false)}
           />
-          <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto obs-card p-6 sm:p-7 shadow-xl space-y-5">
+          <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto sc-hero-card p-6 sm:p-7 space-y-5">
             <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
               <div>
                 <h2 className="text-xl font-bold text-[var(--text)]">

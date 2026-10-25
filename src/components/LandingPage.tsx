@@ -99,13 +99,17 @@ const HERO_PREVIEW_ACTIONS = [
 
 /* ==================== SACRED GEOMETRY & COSMIC ART PRIMITIVES ==================== */
 
-const SeedOfLifeMark: React.FC<{ size?: number; animated?: boolean; className?: string }> = ({
-  size = 32,
-  animated = false,
-  className = '',
-}) => {
+export const SeedOfLifeMark: React.FC<{
+  size?: number;
+  animated?: boolean;
+  tone?: 'cosmic' | 'adaptive';
+  className?: string;
+}> = ({ size = 32, animated = false, tone = 'cosmic', className = '' }) => {
   const r = 10;
   const ringAngles = [0, 60, 120, 180, 240, 300];
+  const outerStroke = tone === 'adaptive' ? 'var(--border-strong)' : 'rgba(221,181,252,0.35)';
+  const centerStroke = tone === 'adaptive' ? 'var(--text)' : 'rgba(255,255,255,0.88)';
+  const petalStroke = tone === 'adaptive' ? 'var(--accent)' : 'rgba(237,197,252,0.82)';
   return (
     <svg
       width={size}
@@ -114,8 +118,8 @@ const SeedOfLifeMark: React.FC<{ size?: number; animated?: boolean; className?: 
       aria-hidden="true"
       className={`inline-block shrink-0 ${animated ? 'sc-animate-orbit' : ''} ${className}`}
     >
-      <circle cx="0" cy="0" r="23" fill="none" stroke="rgba(221,181,252,0.35)" strokeWidth="1" />
-      <circle cx="0" cy="0" r={r} fill="none" stroke="rgba(255,255,255,0.88)" strokeWidth="1.05" />
+      <circle cx="0" cy="0" r="23" fill="none" stroke={outerStroke} strokeWidth="1" />
+      <circle cx="0" cy="0" r={r} fill="none" stroke={centerStroke} strokeWidth="1.05" />
       {ringAngles.map((deg) => {
         const rad = (deg * Math.PI) / 180;
         const cx = Math.cos(rad) * r;
@@ -127,7 +131,7 @@ const SeedOfLifeMark: React.FC<{ size?: number; animated?: boolean; className?: 
             cy={cy.toFixed(2)}
             r={r}
             fill="none"
-            stroke="rgba(237,197,252,0.82)"
+            stroke={petalStroke}
             strokeWidth="0.95"
           />
         );
@@ -713,25 +717,32 @@ export const LandingPage: React.FC<Props> = ({
 
             {/* Bottom Hero Floating Pods (Flanking on XL, Cleanly Stacked Below on Mobile/Tablet) */}
             <div className="mt-8 xl:mt-0 xl:absolute xl:bottom-0 xl:inset-x-0 z-30 flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4 pointer-events-none">
-              {/* Left Pod: Live Planetary Hora & Nalla Neram */}
-              <div className="sc-dock-pod pointer-events-auto p-4 sm:px-5 sm:py-4 max-w-md w-full md:w-auto">
-                <div className="flex items-center gap-2 text-xs font-semibold text-white tabular-nums">
-                  <span className="relative flex h-2.5 w-2.5 shrink-0">
-                    <span
-                      className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${horaiDotClasses.ping}`}
-                    />
-                    <span
-                      className={`relative inline-flex rounded-full h-2.5 w-2.5 ${horaiDotClasses.dot}`}
-                    />
-                  </span>
-                  <span className="text-white/75">
-                    {t(`Live in ${cityDisplay}:`, `${cityDisplay} मा प्रत्यक्ष होरा:`)}
-                  </span>
-                  <span className="text-[#EDC5FC] font-bold">
-                    {lang === 'ne'
-                      ? `${activeHoraiDisp.horaiName} (${activeHoraiDisp.lordLabel})`
-                      : `${activeHoraiDisp.lordLabel} Hora (${activeHoraiDisp.horaiName})`}
-                  </span>
+              {/* Left Pod: Live Planetary Hora & Nalla Neram (Interactive -> Opens Live Horai Studio) */}
+              <button
+                type="button"
+                onClick={() => onNavigate('HORAI')}
+                className="sc-dock-pod group pointer-events-auto text-left p-4 sm:px-5 sm:py-4 max-w-md w-full md:w-auto hover:border-[#DDB5FC]/45 hover:shadow-[0_22px_56px_rgba(123,92,224,0.28)] transition-all"
+              >
+                <div className="flex items-center justify-between gap-3 text-xs font-semibold text-white tabular-nums">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="relative flex h-2.5 w-2.5 shrink-0">
+                      <span
+                        className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${horaiDotClasses.ping}`}
+                      />
+                      <span
+                        className={`relative inline-flex rounded-full h-2.5 w-2.5 ${horaiDotClasses.dot}`}
+                      />
+                    </span>
+                    <span className="text-white/75 shrink-0">
+                      {t(`Live in ${cityDisplay}:`, `${cityDisplay} मा प्रत्यक्ष होरा:`)}
+                    </span>
+                    <span className="text-[#EDC5FC] font-bold truncate">
+                      {lang === 'ne'
+                        ? `${activeHoraiDisp.horaiName} (${activeHoraiDisp.lordLabel})`
+                        : `${activeHoraiDisp.lordLabel} Hora (${activeHoraiDisp.horaiName})`}
+                    </span>
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-white/45 group-hover:text-[#EDC5FC] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/65 tabular-nums">
                   <span>
@@ -745,7 +756,7 @@ export const LandingPage: React.FC<Props> = ({
                     {panchangReport.nallaNeram[0].endTime}
                   </span>
                 </div>
-              </div>
+              </button>
 
               {/* Right Pod: Signature Superconscious Floating CTA Pod */}
               <div className="sc-dock-pod pointer-events-auto p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-lg w-full md:w-auto">

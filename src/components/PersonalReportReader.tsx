@@ -57,6 +57,7 @@ import {
 } from '../engines/pdfReportGenerator';
 import { VedicKundliSvg } from './VedicKundliSvg';
 import { NatalWheelSvg } from './NatalWheelSvg';
+import { SeedOfLifeMark } from './LandingPage';
 import { StatusBadge } from './ui/DashboardPrimitives';
 import { LotusVineDivider, SacredFlowerIcon } from './ui/FloralAnimations';
 
@@ -254,11 +255,11 @@ export const PersonalReportReader: React.FC<Props> = ({
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-14 animate-bloom-in">
       {/* ==================== TOP PRODUCT DOSSIER HERO & SCORECARD ==================== */}
-      <section className="obs-card p-5 sm:p-8 space-y-6 border-t-4 border-t-[var(--accent)]">
+      <section className="sc-hero-card p-5 sm:p-8 space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2 min-w-0">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 obs-badge-brass text-xs font-semibold">
-              <SacredFlowerIcon variety="lotus" primaryHex="#4F46E5" secondaryHex="#E0E7FF" size={16} />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] text-[var(--accent)] text-xs font-semibold">
+              <SeedOfLifeMark size={16} tone="adaptive" />
               <span>
                 {t(
                   'Comprehensive Personal Life Dossier • Classical Jyotish + Numerology',
@@ -267,7 +268,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight leading-tight">
+            <h1 className="font-scDisplay text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-[-0.03em] leading-tight">
               {profile.firstName} {profile.middleName} {profile.lastName}
             </h1>
 
@@ -348,14 +349,14 @@ export const PersonalReportReader: React.FC<Props> = ({
             {deepReport.domainScorecard.map((dom) => (
               <div
                 key={dom.id}
-                className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] p-3.5 flex flex-col justify-between gap-2.5 min-w-0"
+                className="obs-panel p-3.5 flex flex-col justify-between gap-2.5 min-w-0"
               >
                 <div className="space-y-2 min-w-0">
                   <div className="text-xs font-semibold text-[var(--text-secondary)] truncate">
                     {dom.title}
                   </div>
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-2xl font-bold text-[var(--text)] tabular-nums leading-none">
+                    <span className="font-scDisplay text-2xl font-bold text-[var(--text)] tabular-nums leading-none">
                       {dom.score}
                       <span className="text-xs font-medium text-[var(--text-muted)]">/100</span>
                     </span>
@@ -364,10 +365,10 @@ export const PersonalReportReader: React.FC<Props> = ({
                     <div
                       className={`h-full rounded-full ${
                         dom.tone === 'optimal'
-                          ? 'bg-[var(--sage)]'
+                          ? 'bg-gradient-to-r from-[#10B981] via-[#34D399] to-[#A7F3D0]'
                           : dom.tone === 'favorable'
-                          ? 'bg-[var(--accent)]'
-                          : 'bg-[var(--amber)]'
+                          ? 'bg-gradient-to-r from-[#7B5CE0] via-[#9780FF] to-[#EDC5FC]'
+                          : 'bg-gradient-to-r from-[#D97706] via-[#FBBF24] to-[#FDE68A]'
                       }`}
                       style={{ width: `${dom.score}%` }}
                     />

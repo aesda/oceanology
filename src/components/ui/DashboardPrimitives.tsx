@@ -620,7 +620,7 @@ export function SegmentedTabs<T extends string>({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="inline-flex flex-wrap gap-1 p-1 max-w-full rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)]"
+      className="inline-flex flex-wrap gap-1 p-1 max-w-full rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)]"
     >
       {items.map((item) => {
         const active = item.id === value;
@@ -631,16 +631,16 @@ export function SegmentedTabs<T extends string>({
             type="button"
             aria-selected={active}
             onClick={() => onChange(item.id)}
-            className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition inline-flex items-center gap-1.5 min-h-[38px] max-w-full ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition inline-flex items-center gap-1.5 min-h-[38px] max-w-full ${
               active
-                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm border border-[var(--border)]'
+                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm border border-[var(--border-strong)]'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
             }`}
           >
             <span>{item.label}</span>
             {item.count !== undefined && (
               <span
-                className={`px-2 py-0.5 rounded text-xs tabular-nums ${
+                className={`px-2 py-0.5 rounded-full text-xs tabular-nums ${
                   active
                     ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-bold'
                     : 'bg-[var(--surface)] text-[var(--text-muted)]'
@@ -663,13 +663,13 @@ export const WorkspacePageHeader: React.FC<{
   actions?: React.ReactNode;
 }> = ({ title, subtitle, eyebrow, actions }) => (
   <div className="flex flex-wrap items-start justify-between gap-4 pb-1 min-w-0">
-    <div className="space-y-1.5 max-w-3xl min-w-0">
+    <div className="space-y-2 max-w-3xl min-w-0">
       {eyebrow && (
-        <div className="inline-flex items-center gap-2 px-3 py-1 max-w-full rounded-md bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold border border-[var(--accent)]/20">
+        <div className="inline-flex items-center gap-2 px-3 py-1 max-w-full rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold border border-[var(--border-strong)]">
           {eyebrow}
         </div>
       )}
-      <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-[var(--text)] leading-tight">
+      <h1 className="font-scDisplay text-2xl sm:text-[28px] font-bold tracking-[-0.03em] text-[var(--text)] leading-tight">
         {title}
       </h1>
       {subtitle && (

@@ -255,7 +255,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
       />
 
       {/* ==================== HERO LIVE HORAI BANNER ==================== */}
-      <div className="obs-card p-6 sm:p-7">
+      <div className="sc-hero-card p-6 sm:p-7">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           <div className="lg:col-span-7 space-y-3">
             <div className="flex flex-wrap items-center gap-2.5">
