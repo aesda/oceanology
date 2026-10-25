@@ -543,29 +543,29 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
             {/* TAB 1: OVERVIEW (NATAL PORTRAITS, KUTAS & ORACLE) */}
             {detailTab === 'OVERVIEW' && (
               <div className="space-y-5">
-                <div className="obs-panel p-4 space-y-1.5">
-                  <div className="text-xs font-bold text-[var(--accent)]">
-                    Natal Moon in {activeTreatise.name} (Janma Chandra)
+                <div className="obs-panel p-5 space-y-2">
+                  <div className="text-sm font-bold text-[var(--accent)]">
+                    Moon in {activeTreatise.name} (Birth Star Emotional Nature)
                   </div>
-                  <p className="text-sm text-[var(--text)] leading-relaxed">
+                  <p className="text-base text-[var(--text)] leading-relaxed">
                     {activeTreatise.moonPortrait}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="obs-panel p-4 space-y-1.5">
-                    <div className="text-xs font-bold text-[var(--text)]">
-                      Ascendant (Lagna) Rising
+                  <div className="obs-panel p-5 space-y-2">
+                    <div className="text-sm font-bold text-[var(--text)]">
+                      Rising Sign (Ascendant) in {activeTreatise.name}
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {activeTreatise.ascendantPortrait}
                     </p>
                   </div>
-                  <div className="obs-panel p-4 space-y-1.5">
-                    <div className="text-xs font-bold text-[var(--text)]">
-                      Natal Sun (Surya) Expression
+                  <div className="obs-panel p-5 space-y-2">
+                    <div className="text-sm font-bold text-[var(--text)]">
+                      Natal Sun in {activeTreatise.name}
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {activeTreatise.sunPortrait}
                     </p>
                   </div>
@@ -573,22 +573,22 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
 
                 {/* Gaze & Lost Object Detail */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="obs-panel p-4 space-y-1.5">
-                    <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
-                      <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
+                  <div className="obs-panel p-5 space-y-2">
+                    <div className="text-sm font-bold text-[var(--text)] flex items-center gap-1.5">
+                      <Compass className="w-4 h-4 text-[var(--accent)]" />
                       <span>Directional Gaze: {activeTreatise.mukhaGaze}</span>
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {activeTreatise.mukhaConsequence}
                     </p>
                   </div>
 
-                  <div className="obs-panel p-4 space-y-1.5">
-                    <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-[var(--accent)]" />
-                      <span>Lost-Object Prashna: {activeTreatise.lochanaEye}</span>
+                  <div className="obs-panel p-5 space-y-2">
+                    <div className="text-sm font-bold text-[var(--text)] flex items-center gap-1.5">
+                      <Eye className="w-4 h-4 text-[var(--accent)]" />
+                      <span>Lost-Object Question: {activeTreatise.lochanaEye}</span>
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {activeTreatise.lostObjectVerdict}
                     </p>
                   </div>
@@ -644,13 +644,13 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
             {detailTab === 'PADAS' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeTreatise.padas.map((p) => (
-                  <div key={p.pada} className="obs-panel p-4 space-y-2.5">
+                  <div key={p.pada} className="obs-panel p-5 space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm font-bold text-[var(--text)]">
+                      <div className="text-base font-bold text-[var(--text)]">
                         Pada {p.pada} — {p.navamshaSign} Navamsha
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-[var(--accent-bg)] text-[var(--accent)] font-mono text-xs font-semibold">
-                        Syllable: {p.bijaSound}
+                      <span className="px-2.5 py-0.5 rounded bg-[var(--accent-bg)] text-[var(--accent)] font-mono text-xs font-semibold">
+                        Sound: {p.bijaSound}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-muted)]">
@@ -659,7 +659,7 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                       <span>D9 Ruler: {p.navamshaRuler}</span>
                       {p.specialTag && <StatusBadge tone="info" label={p.specialTag} />}
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {p.expression}
                     </p>
                   </div>
@@ -670,19 +670,20 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
             {/* TAB 3: ACTION & CONSEQUENCE MATRIX */}
             {detailTab === 'ACTIONS' && (
               <div className="space-y-5">
-                <p className="text-xs text-[var(--text-secondary)]">
-                  Classical electional rulings when initiating actions while the Moon transits{' '}
-                  <strong>{activeTreatise.name}</strong> ({activeTreatise.natureExplanation}):
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                  What happens when you start important activities while the Moon is in{' '}
+                  <strong className="text-[var(--text)]">{activeTreatise.name}</strong> (
+                  {activeTreatise.natureExplanation}):
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {activeTreatise.actionMatrix.map((ac) => (
-                    <div key={ac.domain} className="obs-panel p-4 space-y-2">
+                    <div key={ac.domain} className="obs-panel p-5 space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-[var(--text)]">{ac.domain}</span>
+                        <span className="text-sm font-bold text-[var(--text)]">{ac.domain}</span>
                         <StatusBadge tone={verdictBadgeTone(ac.verdict)} label={ac.verdict} />
                       </div>
-                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                         {ac.ifPerformed}
                       </p>
                     </div>
@@ -690,28 +691,28 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[var(--border)]">
-                  <div className="obs-panel p-4 space-y-2">
-                    <div className="text-xs font-bold text-[var(--sage)]">
-                      Recommended Undertakings (Shubha Karya)
+                  <div className="obs-panel p-5 space-y-2.5">
+                    <div className="text-sm font-bold text-[var(--sage)]">
+                      Best Activities Under This Star
                     </div>
-                    <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
+                    <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
                       {activeTreatise.auspiciousWorks.map((w, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[var(--sage)] shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-4 h-4 text-[var(--sage)] shrink-0 mt-0.5" />
                           <span>{w}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="obs-panel p-4 space-y-2">
-                    <div className="text-xs font-bold text-[var(--crimson)]">
-                      Actions to Postpone (Varjya Karya)
+                  <div className="obs-panel p-5 space-y-2.5">
+                    <div className="text-sm font-bold text-[var(--crimson)]">
+                      Activities Best Postponed
                     </div>
-                    <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
+                    <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
                       {activeTreatise.inauspiciousWorks.map((w, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <XCircle className="w-3.5 h-3.5 text-[var(--crimson)] shrink-0 mt-0.5" />
+                          <XCircle className="w-4 h-4 text-[var(--crimson)] shrink-0 mt-0.5" />
                           <span>{w}</span>
                         </li>
                       ))}
@@ -726,57 +727,57 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
               <div className="space-y-5">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-[var(--text)]">
-                      Taittiriya Brahmana Shakti &amp; Sacred Mythos
+                    <h3 className="text-base font-bold text-[var(--text)]">
+                      Spiritual Gift (Shakti) &amp; Sacred Story
                     </h3>
                     <StatusBadge tone="info" label={activeTreatise.shaktiName} />
                   </div>
-                  <p className="literary-prose text-sm">{activeTreatise.sacredMythos}</p>
+                  <p className="literary-prose text-base">{activeTreatise.sacredMythos}</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="obs-panel p-4 space-y-1.5">
-                    <div className="text-xs font-bold text-[var(--accent)]">
-                      Upari Shakti (Above)
+                    <div className="text-sm font-bold text-[var(--accent)]">
+                      Higher Impulse (Above)
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {activeTreatise.upariShakti}
                     </p>
                   </div>
                   <div className="obs-panel p-4 space-y-1.5">
-                    <div className="text-xs font-bold text-[var(--accent)]">
-                      Adho Shakti (Below)
+                    <div className="text-sm font-bold text-[var(--accent)]">
+                      Earthly Grounding (Below)
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {activeTreatise.adhoShakti}
                     </p>
                   </div>
                   <div className="obs-panel p-4 space-y-1.5">
-                    <div className="text-xs font-bold text-[var(--sage)]">
-                      Cosmic Phala (Result)
+                    <div className="text-sm font-bold text-[var(--sage)]">
+                      Core Life Fruit
                     </div>
-                    <p className="text-xs text-[var(--text)] font-medium leading-relaxed">
+                    <p className="text-sm text-[var(--text)] font-medium leading-relaxed">
                       {activeTreatise.shaktiPhala}
                     </p>
                   </div>
                 </div>
 
-                <blockquote className="obs-panel p-4 border-l-4 border-l-[var(--accent)] italic font-serif text-sm text-[var(--text)]">
+                <blockquote className="obs-panel p-5 border-l-4 border-l-[var(--accent)] italic font-serif text-base text-[var(--text)]">
                   {activeTreatise.taittiriyaBoon}
                 </blockquote>
 
-                <div className="obs-panel p-4 space-y-2">
-                  <div className="text-xs font-bold text-[var(--sage)] flex items-center gap-1.5">
+                <div className="obs-panel p-5 space-y-2">
+                  <div className="text-sm font-bold text-[var(--sage)] flex items-center gap-1.5">
                     <Trees className="w-4 h-4" />
-                    <span>Sacred Botanical Tree, Mantra &amp; Daily Upaya</span>
+                    <span>Sacred Tree, Mantra &amp; Practical Daily Habit</span>
                   </div>
-                  <div className="text-xs text-[var(--text)] font-semibold">
+                  <div className="text-sm text-[var(--text)] font-semibold">
                     Sacred Tree: {activeTreatise.sacredTree}
                   </div>
-                  <div className="text-xs font-mono text-[var(--accent)]">
+                  <div className="text-sm font-mono text-[var(--accent)]">
                     {activeTreatise.vedicMantra}
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                     {activeTreatise.behavioralUpaya}
                   </p>
                 </div>

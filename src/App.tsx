@@ -10,7 +10,6 @@ import {
   Clock,
   ChevronDown,
   ChevronRight,
-  Printer,
   MapPin,
   BookOpen,
   HeartHandshake,
@@ -21,6 +20,9 @@ import {
   X,
   ArrowLeft,
   Activity,
+  Download,
+  FileText,
+  Type,
 } from 'lucide-react';
 import {
   AyanamshaMode,
@@ -36,12 +38,19 @@ import { calculatePanchang } from './engines/panchangEngine';
 import { calculateNumerology } from './engines/numerologyEngine';
 import { generateCosmicSynthesis } from './engines/synthesisEngine';
 import { gregorianToBikramSambat } from './engines/locationAtlas';
+import { downloadDetailedPdfReport } from './engines/pdfReportGenerator';
 import { PLANET_TREATISES } from './data/classicalCompendium';
+import {
+  buildPlainEnglishPersonalSummary,
+  DASHA_PLAIN_GUIDE,
+  HOUSE_PLAIN_GUIDE,
+} from './data/plainEnglishGuide';
 import {
   LandingPage,
   ObservatoryStudioTab,
   WebsiteDestination,
 } from './components/LandingPage';
+import { PersonalReportReader } from './components/PersonalReportReader';
 import { NakshatraEncyclopedia } from './components/NakshatraEncyclopedia';
 import { ActionConsequenceLab } from './components/ActionConsequenceLab';
 import { NatalWheelSvg } from './components/NatalWheelSvg';
@@ -85,11 +94,22 @@ export function App() {
     'DASHA' | 'ASHTAKAVARGA_JAIMINI' | 'KP_SUBLORDS'
   >('DASHA');
 
-  // UI Shell states
+  // UI Shell & Reading Comfort states
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [expandedDashaLord, setExpandedDashaLord] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [largeText, setLargeText] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return window.localStorage.getItem('oceanology_large_text') === '1';
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+  const [pdfExporting, setPdfExporting] = useState<boolean>(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -97,7 +117,18 @@ export function App() {
     else root.classList.remove('dark');
   }, [darkMode]);
 
-  // Keyboard Escape handler for modal & mobile drawer (WCAG 2.1 AA)
+  useEffect(() => {
+    const root = document.documentElement;
+    if (largeText) root.classList.add('font-large');
+    else root.classList.remove('font-large');
+    try {
+      window.localStorage.setItem('oceanology_large_text', largeText ? '1' : '0');
+    } catch {
+      // ignore storage errors in private mode
+    }
+  }, [largeText]);
+
+  // Keyboard Escape handler for modal & mobile drawer
   useEffect(() => {
     const onKeyDown = (ev: KeyboardEvent) => {
       if (ev.key === 'Escape') {
@@ -166,6 +197,19 @@ export function App() {
     [profile, natalChart, vedicReport, panchangReport, numerologyReport]
   );
 
+  const plainSummary = useMemo(
+    () =>
+      buildPlainEnglishPersonalSummary(
+        profile,
+        natalChart,
+        vedicReport,
+        panchangReport,
+        numerologyReport,
+        synthesisReport
+      ),
+    [profile, natalChart, vedicReport, panchangReport, numerologyReport, synthesisReport]
+  );
+
   const birthBsDate = useMemo(
     () => gregorianToBikramSambat(profile.year, profile.month, profile.day),
     [profile.year, profile.month, profile.day]
@@ -214,6 +258,24 @@ export function App() {
     return `UTC${sign}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   };
 
+  const handleGlobalDownloadPdf = async () => {
+    try {
+      setPdfExporting(true);
+      await downloadDetailedPdfReport({
+        profile,
+        natalChart,
+        vedicReport,
+        panchangReport,
+        numerologyReport,
+        synthesisReport,
+        ayanamsha,
+        houseSystem,
+      });
+    } finally {
+      setPdfExporting(false);
+    }
+  };
+
   // ==================== MODE 1: CLEAN MARKETING LANDING PAGE ====================
   if (activeDest === 'HOME') {
     return (
@@ -226,6 +288,9 @@ export function App() {
         numerologyReport={numerologyReport}
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode(!darkMode)}
+        largeText={largeText}
+        onToggleLargeText={() => setLargeText(!largeText)}
+        onDownloadPdf={handleGlobalDownloadPdf}
         onNavigate={handleNavigate}
       />
     );
@@ -243,18 +308,25 @@ export function App() {
     }[];
   }[] = [
     {
-      groupLabel: 'Decisions & Daily Sky',
+      groupLabel: 'Personal Reading & PDF',
       items: [
         {
+          key: 'easy-report',
+          label: 'Easy Report & PDF',
+          icon: <FileText className="w-4 h-4" />,
+          isActive: activeDest === 'FULL_REPORT',
+          onClick: () => handleNavigate('FULL_REPORT'),
+        },
+        {
           key: 'overview',
-          label: 'Overview',
+          label: 'Dashboard Overview',
           icon: <Compass className="w-4 h-4" />,
           isActive: activeDest === 'OBSERVATORY' && studioTab === 'SYNTHESIS',
           onClick: () => handleNavigate('OBSERVATORY', { studioTab: 'SYNTHESIS' }),
         },
         {
           key: 'action-timing',
-          label: 'Action Timing',
+          label: 'Best Dates & Timing',
           icon: <Scale className="w-4 h-4" />,
           isActive: activeDest === 'WHAT_HAPPENS_IF',
           onClick: () => handleNavigate('WHAT_HAPPENS_IF'),
@@ -273,14 +345,14 @@ export function App() {
       items: [
         {
           key: 'natal-wheel',
-          label: 'Natal & Ephemeris',
+          label: 'Natal Sky & Planets',
           icon: <Sun className="w-4 h-4" />,
           isActive: activeDest === 'OBSERVATORY' && studioTab === 'WESTERN',
           onClick: () => handleNavigate('OBSERVATORY', { studioTab: 'WESTERN' }),
         },
         {
           key: 'vedic-sav',
-          label: 'Vedic, SAV & KP',
+          label: 'Vedic Kundali & SAV',
           icon: <Moon className="w-4 h-4" />,
           isActive: activeDest === 'OBSERVATORY' && studioTab === 'VEDIC_KP',
           onClick: () => handleNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' }),
@@ -309,18 +381,18 @@ export function App() {
       ],
     },
     {
-      groupLabel: 'Classical Reference',
+      groupLabel: 'Reference Guides',
       items: [
         {
           key: 'nakshatras',
-          label: '28 Nakshatras',
+          label: '28 Birth Stars',
           icon: <Sparkles className="w-4 h-4" />,
           isActive: activeDest === 'NAKSHATRAS',
           onClick: () => handleNavigate('NAKSHATRAS'),
         },
         {
           key: 'library',
-          label: 'Source Library',
+          label: 'Classical Library',
           icon: <BookOpen className="w-4 h-4" />,
           isActive: activeDest === 'CANON',
           onClick: () => handleNavigate('CANON'),
@@ -342,14 +414,14 @@ export function App() {
             onClick={() => handleNavigate('HOME')}
             className="flex items-center gap-2.5 text-left"
           >
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center font-bold text-base shadow-sm">
               ☉
             </div>
             <div>
               <div className="font-display font-bold text-base tracking-tight text-[var(--text)] leading-none">
                 Oceanology
               </div>
-              <div className="text-[11px] text-[var(--text-muted)] mt-0.5">Workspace</div>
+              <div className="text-xs text-[var(--text-muted)] mt-0.5">Personal Horoscope</div>
             </div>
           </button>
 
@@ -359,7 +431,7 @@ export function App() {
             aria-label="Close navigation menu"
             className="lg:hidden p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)]"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -367,7 +439,7 @@ export function App() {
         <nav className="space-y-5" aria-label="Workspace modules">
           {sidebarGroups.map((group) => (
             <div key={group.groupLabel} className="space-y-1">
-              <div className="px-2.5 text-[11px] font-semibold text-[var(--text-muted)]">
+              <div className="px-2.5 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                 {group.groupLabel}
               </div>
               {group.items.map((item) => (
@@ -375,7 +447,7 @@ export function App() {
                   key={item.key}
                   type="button"
                   onClick={item.onClick}
-                  className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                     item.isActive
                       ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]'
@@ -390,32 +462,41 @@ export function App() {
         </nav>
       </div>
 
-      {/* Sidebar Bottom Natal Card + Back to Landing */}
+      {/* Sidebar Bottom Natal Card + PDF Quick Download + Back */}
       <div className="space-y-2.5 pt-4 border-t border-[var(--border)]">
         <button
           type="button"
           onClick={() => setShowProfileModal(true)}
-          className="w-full p-3 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--accent)] text-left transition space-y-1"
+          className="w-full p-3.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--accent)] text-left transition space-y-1"
         >
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-sm">
             <span className="font-bold text-[var(--text)] truncate">
               {profile.firstName} {profile.lastName}
             </span>
-            <Sliders className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
+            <Sliders className="w-4 h-4 text-[var(--accent)] shrink-0" />
           </div>
-          <div className="text-[11px] font-mono text-[var(--text-muted)] truncate">
-            {natalChart.ascendant.signSymbol} {natalChart.ascendant.signName} Asc •{' '}
-            {moonPlanet.nakshatraName}
+          <div className="text-xs font-mono text-[var(--text-muted)] truncate">
+            {natalChart.ascendant.signName} Rising • {moonPlanet.nakshatraName}
           </div>
         </button>
 
         <button
           type="button"
-          onClick={() => handleNavigate('HOME')}
-          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
+          disabled={pdfExporting}
+          onClick={handleGlobalDownloadPdf}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-semibold transition disabled:opacity-60"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Landing Page</span>
+          <Download className="w-4 h-4" />
+          <span>{pdfExporting ? 'Building PDF…' : 'Download PDF Report'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleNavigate('HOME')}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home Page</span>
         </button>
       </div>
     </div>
@@ -424,7 +505,7 @@ export function App() {
   return (
     <div className="min-h-screen flex bg-[var(--bg)] text-[var(--text)]">
       {/* ==================== DESKTOP LEFT SIDEBAR ==================== */}
-      <aside className="hidden lg:block w-[248px] shrink-0 border-r border-[var(--border)] bg-[var(--surface)] sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden lg:block w-[264px] shrink-0 border-r border-[var(--border)] bg-[var(--surface)] sticky top-0 h-screen overflow-y-auto">
         <SidebarNavContent />
       </aside>
 
@@ -435,7 +516,7 @@ export function App() {
             className="fixed inset-0 bg-black/50 backdrop-blur-xs"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className="relative w-[264px] max-w-[85vw] bg-[var(--surface)] border-r border-[var(--border)] h-full overflow-y-auto z-10">
+          <aside className="relative w-[276px] max-w-[85vw] bg-[var(--surface)] border-r border-[var(--border)] h-full overflow-y-auto z-10">
             <SidebarNavContent />
           </aside>
         </div>
@@ -444,7 +525,7 @@ export function App() {
       {/* ==================== MAIN CONTENT COLUMN ==================== */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Sticky Global Context Topbar */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/90 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
@@ -452,20 +533,20 @@ export function App() {
               aria-label="Open navigation menu"
               className="lg:hidden p-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text)]"
             >
-              <Menu className="w-4 h-4" />
+              <Menu className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-sm font-bold text-[var(--text)] truncate">
+              <span className="text-base font-bold text-[var(--text)] truncate">
                 {currentViewLabel}
               </span>
               {isSampleProfile && (
                 <button
                   type="button"
                   onClick={() => setShowProfileModal(true)}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-medium hover:underline"
+                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold hover:underline"
                 >
-                  <span>Sample profile • Set your birth data</span>
+                  <span>Sample profile • Enter your birth details</span>
                 </button>
               )}
             </div>
@@ -476,9 +557,9 @@ export function App() {
             <button
               type="button"
               onClick={() => setShowProfileModal(true)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--accent)] text-xs font-medium transition"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--accent)] text-sm font-medium transition"
             >
-              <MapPin className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <MapPin className="w-4 h-4 text-[var(--accent)]" />
               <span className="hidden md:inline text-[var(--text)]">
                 {profile.firstName} • {profile.location.name.split(' ')[0]}
               </span>
@@ -489,7 +570,7 @@ export function App() {
               aria-label="Zodiac Ayanamsha mode"
               value={ayanamsha}
               onChange={(e) => setAyanamsha(e.target.value as AyanamshaMode)}
-              className="obs-input py-1.5 px-2.5 text-xs font-mono hidden sm:block w-auto"
+              className="obs-input py-1.5 px-2.5 text-sm font-mono hidden xl:block w-auto min-h-[38px]"
             >
               <option value="LAHIRI">Lahiri Sidereal</option>
               <option value="TROPICAL">Tropical (0°)</option>
@@ -498,6 +579,21 @@ export function App() {
               <option value="RAMAN">B.V. Raman</option>
               <option value="KHULLAR">KP Khullar</option>
             </select>
+
+            <button
+              type="button"
+              onClick={() => setLargeText(!largeText)}
+              aria-label="Toggle larger text size"
+              title="Toggle Larger Reading Text"
+              className={`px-2.5 py-2 rounded-lg border text-sm font-semibold transition inline-flex items-center gap-1.5 ${
+                largeText
+                  ? 'border-[var(--accent)] bg-[var(--accent-bg)] text-[var(--accent)]'
+                  : 'border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
+              }`}
+            >
+              <Type className="w-4 h-4" />
+              <span className="hidden sm:inline">{largeText ? 'Large Text' : 'Aa'}</span>
+            </button>
 
             <button
               type="button"
@@ -510,17 +606,39 @@ export function App() {
 
             <button
               type="button"
-              onClick={() => window.print()}
-              aria-label="Print current view"
-              className="hidden sm:inline-flex p-2 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)] transition"
+              disabled={pdfExporting}
+              onClick={handleGlobalDownloadPdf}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-semibold transition disabled:opacity-60"
             >
-              <Printer className="w-4 h-4" />
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {pdfExporting ? 'Building…' : 'PDF Report'}
+              </span>
             </button>
           </div>
         </header>
 
         {/* Workspace Page Body */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1360px] w-full mx-auto">
+          {/* ==================== ROUTE: EASY PERSONAL REPORT & PDF ==================== */}
+          {activeDest === 'FULL_REPORT' && (
+            <PersonalReportReader
+              profile={profile}
+              natalChart={natalChart}
+              vedicReport={vedicReport}
+              panchangReport={panchangReport}
+              numerologyReport={numerologyReport}
+              synthesisReport={synthesisReport}
+              ayanamsha={ayanamsha}
+              houseSystem={houseSystem}
+              onEditProfile={() => setShowProfileModal(true)}
+              onOpenActionTiming={(actId) =>
+                handleNavigate('WHAT_HAPPENS_IF', actId ? { actionId: actId } : undefined)
+              }
+              onInspectNakshatra={(idx) => handleNavigate('NAKSHATRAS', { nakIdx: idx })}
+            />
+          )}
+
           {/* ==================== ROUTE: 28 NAKSHATRAS ==================== */}
           {activeDest === 'NAKSHATRAS' && (
             <NakshatraEncyclopedia
@@ -558,153 +676,179 @@ export function App() {
                 <div className="space-y-6">
                   {/* Page Header */}
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+                    <div className="space-y-1">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight">
                         {profile.firstName} {profile.lastName} — Personal Overview
                       </h1>
-                      <p className="text-sm text-[var(--text-secondary)]">
-                        {natalChart.ascendant.signSymbol} {natalChart.ascendant.signName}{' '}
-                        {natalChart.ascendant.formattedDMS} Ascendant • Birth Star:{' '}
-                        {moonPlanet.nakshatraName} (Pada {moonPlanet.nakshatraPada}) • B.S.{' '}
+                      <p className="text-base text-[var(--text-secondary)]">
+                        {natalChart.ascendant.signSymbol} {natalChart.ascendant.signName} Rising (
+                        {natalChart.ascendant.formattedDMS}) • Birth Star:{' '}
+                        {moonPlanet.nakshatraName} (Pada {moonPlanet.nakshatraPada}) • Nepali B.S.{' '}
                         {birthBsDate.formattedEn}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       <button
                         type="button"
-                        onClick={() => handleNavigate('WHAT_HAPPENS_IF')}
-                        className="btn-editorial-primary text-xs py-2 px-3.5 inline-flex items-center gap-1.5"
+                        onClick={() => handleNavigate('FULL_REPORT')}
+                        className="btn-editorial-primary text-sm inline-flex items-center gap-2"
                       >
-                        <Scale className="w-3.5 h-3.5" />
-                        <span>Check Action Timing</span>
+                        <FileText className="w-4 h-4" />
+                        <span>Read Easy Report &amp; PDF</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleNavigate('CANON')}
-                        className="btn-editorial-secondary text-xs py-2 px-3.5 inline-flex items-center gap-1.5"
+                        onClick={() => handleNavigate('WHAT_HAPPENS_IF')}
+                        className="btn-editorial-secondary text-sm inline-flex items-center gap-2"
                       >
-                        <BookOpen className="w-3.5 h-3.5 text-[var(--accent)]" />
-                        <span>Natal Readings</span>
+                        <Scale className="w-4 h-4 text-[var(--accent)]" />
+                        <span>Check Best Dates</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Row 1: 4 Contextual KPI Stat Cards */}
+                  {/* Row 1: 4 Contextual KPI Stat Cards with Plain-English Hints */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <KpiStatCard
-                      label="4-System Concordance"
+                      label="Overall Chart Alignment"
                       value={`${synthesisReport.overallResonanceScore}/100`}
+                      plainHint="Combined harmony across Western, Vedic, Panchang & Numerology"
                       benchmarkText={synthesisReport.resonanceTier}
                       status={{
                         tone:
                           synthesisReport.overallResonanceScore >= 75 ? 'optimal' : 'favorable',
-                        label: 'Aligned',
+                        label: 'Strong Alignment',
                       }}
                       icon={<Activity className="w-4 h-4" />}
                     />
 
                     <KpiStatCard
-                      label="Active Vimshottari Dasha"
+                      label="Current Life Chapter (Dasha)"
                       value={`${vedicReport.activeMahadasha.lord} – ${vedicReport.activeAntardasha.lord}`}
+                      plainHint={
+                        DASHA_PLAIN_GUIDE[vedicReport.activeMahadasha.lord]?.chapterTitle ||
+                        'Active planetary life period'
+                      }
                       benchmarkText={`${vedicReport.activeMahadasha.progressPercent}% of ${vedicReport.activeMahadasha.years}y cycle`}
                       status={{ tone: 'info', label: `Until ${vedicReport.activeMahadasha.endDate}` }}
                       icon={<Moon className="w-4 h-4" />}
-                      actionLabel="Explore Dasha timeline"
+                      actionLabel="Explore full life timeline"
                       onAction={() => setStudioTab('VEDIC_KP')}
                     />
 
                     <KpiStatCard
-                      label="Strongest SAV House"
+                      label="Strongest Life Area"
                       value={`House ${topSavHouse.house}`}
-                      subvalue={`${topSavHouse.bindus} bindus`}
-                      benchmarkText={`+${topSavHouse.bindus - 28} vs 28 house average`}
+                      subvalue={`${topSavHouse.bindus} pts`}
+                      plainHint={
+                        HOUSE_PLAIN_GUIDE[topSavHouse.house]?.shortTitle || topSavHouse.signName
+                      }
+                      benchmarkText={`+${topSavHouse.bindus - 28} above 28 average`}
                       status={{ tone: 'optimal', label: topSavHouse.signName }}
                       icon={<Sparkles className="w-4 h-4" />}
-                      actionLabel="View 12-house SAV chart"
+                      actionLabel="See all 12 life areas"
                       onAction={() => setStudioTab('VEDIC_KP')}
                     />
 
                     <KpiStatCard
                       label="Personal Year & Life Path"
                       value={`Year ${numerologyReport.personalYear.final}`}
-                      subvalue={`LP #${numerologyReport.lifePath.final}`}
+                      subvalue={`Life Path #${numerologyReport.lifePath.final}`}
+                      plainHint={numerologyReport.personalYear.meaning.split('.')[0]}
                       benchmarkText={`Month ${numerologyReport.personalMonth.singleDigit} • Day ${numerologyReport.personalDay.singleDigit}`}
                       status={{ tone: 'favorable', label: numSystem }}
                       icon={<Hash className="w-4 h-4" />}
-                      actionLabel="25-year ColorChart"
+                      actionLabel="Open 25-year forecast"
                       onAction={() => setStudioTab('NUMEROLOGY')}
                     />
                   </div>
 
-                  {/* Executive Summary Card */}
-                  <div className="obs-card p-5 flex flex-wrap items-center justify-between gap-4">
-                    <div className="space-y-1 max-w-4xl">
-                      <div className="text-xs font-semibold text-[var(--accent)]">
-                        Cross-System Executive Summary
+                  {/* Plain-English Personal Summary Card */}
+                  <div className="obs-card p-6 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
+                      <div>
+                        <div className="text-sm font-semibold text-[var(--accent)]">
+                          In Plain English — What Your Chart Means Right Now
+                        </div>
+                        <h2 className="text-lg sm:text-xl font-bold text-[var(--text)] mt-0.5">
+                          {plainSummary.currentChapterTitle}
+                        </h2>
                       </div>
-                      <p className="text-sm sm:text-base font-medium text-[var(--text)] leading-relaxed">
-                        {synthesisReport.synthesisSummary}
-                      </p>
+
+                      <SegmentedTabs
+                        ariaLabel="Overview sections"
+                        value={synthesisSubTab}
+                        onChange={setSynthesisSubTab}
+                        items={[
+                          { id: 'OVERVIEW', label: 'Summary & Charts' },
+                          { id: 'TIMELINE_12YR', label: '12-Year Outlook', count: 12 },
+                          {
+                            id: 'DOSSIER_QA',
+                            label: 'Common Questions',
+                            count: synthesisReport.aiCopilotPrompts.length,
+                          },
+                        ]}
+                      />
                     </div>
 
-                    <SegmentedTabs
-                      ariaLabel="Overview sections"
-                      value={synthesisSubTab}
-                      onChange={setSynthesisSubTab}
-                      items={[
-                        { id: 'OVERVIEW', label: 'Charts & 4 Pillars' },
-                        { id: 'TIMELINE_12YR', label: '12-Year Horizon', count: 12 },
-                        {
-                          id: 'DOSSIER_QA',
-                          label: 'Synthesis Q&A',
-                          count: synthesisReport.aiCopilotPrompts.length,
-                        },
-                      ]}
-                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-base text-[var(--text-secondary)] leading-relaxed">
+                      <div className="obs-panel p-4 space-y-1.5">
+                        <div className="text-sm font-bold text-[var(--text)]">
+                          Your Personality Blueprint
+                        </div>
+                        <p>{plainSummary.bigThreeParagraph}</p>
+                      </div>
+                      <div className="obs-panel p-4 space-y-1.5">
+                        <div className="text-sm font-bold text-[var(--text)]">
+                          Your Active Focus &amp; Today’s Best Window
+                        </div>
+                        <p>{plainSummary.todayGuidanceParagraph}</p>
+                      </div>
+                    </div>
                   </div>
 
                   {synthesisSubTab === 'OVERVIEW' && (
                     <div className="space-y-6">
                       {/* Dual Visual Charts Band */}
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-7 obs-card p-5 space-y-3">
+                        <div className="lg:col-span-7 obs-card p-5 sm:p-6 space-y-3">
                           <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
                             <div>
-                              <h2 className="text-base font-bold text-[var(--text)]">
-                                Ecliptic Natal Wheel
+                              <h2 className="text-lg font-bold text-[var(--text)]">
+                                360° Natal Sky Wheel
                               </h2>
-                              <p className="text-xs text-[var(--text-muted)]">
+                              <p className="text-sm text-[var(--text-muted)]">
                                 {ayanamsha} zodiac • {houseSystem} houses
                               </p>
                             </div>
                             <button
                               type="button"
                               onClick={() => setStudioTab('WESTERN')}
-                              className="text-xs font-semibold text-[var(--accent)] hover:underline"
+                              className="text-sm font-semibold text-[var(--accent)] hover:underline"
                             >
-                              Full ephemeris →
+                              Planet table →
                             </button>
                           </div>
                           <NatalWheelSvg chart={natalChart} />
                         </div>
 
-                        <div className="lg:col-span-5 obs-card p-5 space-y-3">
+                        <div className="lg:col-span-5 obs-card p-5 sm:p-6 space-y-3">
                           <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
                             <div>
-                              <h2 className="text-base font-bold text-[var(--text)]">
-                                Divisional Kundali (D1–D60)
+                              <h2 className="text-lg font-bold text-[var(--text)]">
+                                Vedic Divisional Kundali (D1–D60)
                               </h2>
-                              <p className="text-xs text-[var(--text-muted)]">
-                                Switch across 10 Parashari Vargas
+                              <p className="text-sm text-[var(--text-muted)]">
+                                Switch across Rashi (D1), Marriage (D9) &amp; Career (D10)
                               </p>
                             </div>
                             <button
                               type="button"
                               onClick={() => setStudioTab('VEDIC_KP')}
-                              className="text-xs font-semibold text-[var(--accent)] hover:underline"
+                              className="text-sm font-semibold text-[var(--accent)] hover:underline"
                             >
-                              SAV &amp; KP →
+                              House scores →
                             </button>
                           </div>
                           <VedicKundliSvg divisionalTable={vedicReport.divisionalTable} />
@@ -716,11 +860,11 @@ export function App() {
                         {synthesisReport.pillars.map((p) => (
                           <div
                             key={p.domain}
-                            className="obs-card p-5 flex flex-col justify-between gap-3"
+                            className="obs-card p-5 flex flex-col justify-between gap-3.5"
                           >
                             <div className="space-y-2">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-xs font-medium text-[var(--text-muted)]">
+                                <span className="text-sm font-semibold text-[var(--text-muted)]">
                                   {p.domain}
                                 </span>
                                 <StatusBadge
@@ -728,12 +872,12 @@ export function App() {
                                   label={`${p.score}%`}
                                 />
                               </div>
-                              <h3 className="text-base font-bold text-[var(--text)]">
+                              <h3 className="text-base sm:text-lg font-bold text-[var(--text)]">
                                 {p.headline}
                               </h3>
-                              <p className="text-xs text-[var(--text-secondary)]">{p.subheadline}</p>
+                              <p className="text-sm text-[var(--text-secondary)]">{p.subheadline}</p>
                             </div>
-                            <p className="text-xs text-[var(--text-muted)] pt-2.5 border-t border-[var(--border)] leading-relaxed">
+                            <p className="text-sm text-[var(--text-secondary)] pt-3 border-t border-[var(--border)] leading-relaxed">
                               {p.keyInsight}
                             </p>
                           </div>
@@ -743,51 +887,51 @@ export function App() {
                   )}
 
                   {synthesisSubTab === 'TIMELINE_12YR' && (
-                    <div className="obs-card p-5 space-y-4">
+                    <div className="obs-card p-6 space-y-4">
                       <div>
-                        <h2 className="text-base font-bold text-[var(--text)]">
-                          12-Year Synchronized Dasha, Personal Year &amp; Transit Horizon
+                        <h2 className="text-lg font-bold text-[var(--text)]">
+                          12-Year Year-by-Year Personal Outlook
                         </h2>
-                        <p className="text-xs text-[var(--text-muted)]">
-                          Combined annual outlook uniting Vimshottari Dasha lords, Decoz Personal
-                          Years, and outer-planet transits
+                        <p className="text-sm text-[var(--text-muted)]">
+                          Combines your Vedic planetary periods, Personal Year numbers, and major
+                          transits
                         </p>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                         {synthesisReport.unifiedTimeline.map((item) => {
                           const isCurrentYear = item.year === new Date().getFullYear();
                           return (
                             <div
                               key={item.year}
-                              className={`p-4 rounded-lg border transition space-y-2 ${
+                              className={`p-5 rounded-xl border transition space-y-2.5 ${
                                 isCurrentYear
                                   ? 'border-[var(--accent)] bg-[var(--accent-bg)]/40'
                                   : 'border-[var(--border)] bg-[var(--bg-elevated)]'
                               }`}
                             >
                               <div className="flex items-center justify-between font-mono">
-                                <span className="font-bold text-[var(--text)] text-sm">
+                                <span className="font-bold text-[var(--text)] text-base">
                                   {item.year}
                                 </span>
                                 <span className="text-[var(--text-muted)]">Age {item.age}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <span
-                                  className="w-5 h-5 rounded flex items-center justify-center font-mono font-bold text-slate-950 text-xs"
+                                  className="w-6 h-6 rounded flex items-center justify-center font-mono font-bold text-slate-950 text-xs"
                                   style={{ backgroundColor: item.numerologyColor }}
                                 >
                                   {item.numerologyPersonalYear}
                                 </span>
-                                <span className="text-[var(--text)] font-medium">
-                                  PY {item.numerologyPersonalYear} • Pinnacle{' '}
+                                <span className="text-[var(--text)] font-semibold">
+                                  Personal Year {item.numerologyPersonalYear} • Pinnacle{' '}
                                   {item.numerologyPinnacle}
                                 </span>
                               </div>
-                              <div className="text-xs text-[var(--accent)] font-semibold">
+                              <div className="text-sm text-[var(--accent)] font-semibold">
                                 {item.vedicDashaLord}
                               </div>
-                              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                                 {item.westernTransitTheme}
                               </p>
                             </div>
@@ -798,23 +942,23 @@ export function App() {
                   )}
 
                   {synthesisSubTab === 'DOSSIER_QA' && (
-                    <div className="obs-card p-5 space-y-4">
+                    <div className="obs-card p-6 space-y-4">
                       <div>
-                        <h2 className="text-base font-bold text-[var(--text)]">
-                          Grounded Synthesis Q&amp;A
+                        <h2 className="text-lg font-bold text-[var(--text)]">
+                          Common Personal Questions Answered from Your Chart
                         </h2>
-                        <p className="text-xs text-[var(--text-muted)]">
-                          Answers synthesized directly from your computed ephemeris, Ashtakavarga,
-                          and numerology cycles
+                        <p className="text-sm text-[var(--text-muted)]">
+                          Synthesized directly from your birth positions, house strengths, and active
+                          cycles
                         </p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {synthesisReport.aiCopilotPrompts.map((item, i) => (
-                          <div key={i} className="obs-panel p-4 space-y-1.5">
-                            <h3 className="text-sm font-bold text-[var(--text)]">
+                          <div key={i} className="obs-panel p-5 space-y-2">
+                            <h3 className="text-base font-bold text-[var(--text)]">
                               {item.question}
                             </h3>
-                            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
                               {item.groundedAnswer}
                             </p>
                           </div>
@@ -830,12 +974,12 @@ export function App() {
                 <div className="space-y-6">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-                        Natal Wheel, Ephemeris &amp; 360° Sabian Symbols
+                      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight">
+                        Natal Sky Wheel, Planetary Positions &amp; Degree Meanings
                       </h1>
-                      <p className="text-sm text-[var(--text-secondary)]">
-                        Geocentric longitudes, daily speeds, birth-time rectification, and exact
-                        aspect orbs.
+                      <p className="text-base text-[var(--text-secondary)]">
+                        Exact planetary degrees, plain-English house meanings, birth-time
+                        fine-tuning, and Sabian degree symbols.
                       </p>
                     </div>
                   </div>
@@ -843,8 +987,9 @@ export function App() {
                   {/* Row 1: 4 Contextual KPIs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <KpiStatCard
-                      label="Ascendant (Lagna)"
+                      label="Rising Sign (Ascendant)"
                       value={`${natalChart.ascendant.signSymbol} ${natalChart.ascendant.signName}`}
+                      plainHint="How you approach life & first impressions"
                       benchmarkText={natalChart.ascendant.formattedDMS}
                       status={{ tone: 'info', label: houseSystem }}
                       icon={<Compass className="w-4 h-4" />}
@@ -853,26 +998,29 @@ export function App() {
                       label="Natal Sun"
                       value={`${sunPlanet.signSymbol} ${sunPlanet.signName}`}
                       subvalue={`House ${sunPlanet.house}`}
+                      plainHint={`Core drive in ${HOUSE_PLAIN_GUIDE[sunPlanet.house]?.shortTitle}`}
                       benchmarkText={`${sunPlanet.formattedDMS} • ${sunPlanet.nakshatraName}`}
                       status={{ tone: 'favorable', label: sunPlanet.dignity }}
                       icon={<Sun className="w-4 h-4" />}
                     />
                     <KpiStatCard
-                      label="Natal Moon"
+                      label="Natal Moon & Birth Star"
                       value={`${moonPlanet.signSymbol} ${moonPlanet.signName}`}
                       subvalue={`House ${moonPlanet.house}`}
+                      plainHint="Emotional heart, instincts & inner comfort"
                       benchmarkText={`${moonPlanet.nakshatraName} Pada ${moonPlanet.nakshatraPada}`}
-                      status={{ tone: 'optimal', label: 'Janma Star' }}
+                      status={{ tone: 'optimal', label: 'Birth Star' }}
                       icon={<Moon className="w-4 h-4" />}
-                      actionLabel="Inspect Moon star"
+                      actionLabel="Read Birth Star guide"
                       onAction={() =>
                         handleNavigate('NAKSHATRAS', { nakIdx: moonPlanet.nakshatraIndex })
                       }
                     />
                     <KpiStatCard
-                      label="Active Aspects"
+                      label="Planetary Aspects"
                       value={natalChart.aspects.length}
-                      benchmarkText={`Rectification: ${
+                      plainHint="Active geometric angles between your planets"
+                      benchmarkText={`Time shift: ${
                         minuteShift >= 0 ? `+${minuteShift}m` : `${minuteShift}m`
                       }`}
                       status={{ tone: 'neutral', label: ayanamsha }}
@@ -881,25 +1029,25 @@ export function App() {
 
                   {/* Row 2: Wheel + Ephemeris Table */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <div className="lg:col-span-5 obs-card p-5 space-y-4">
+                    <div className="lg:col-span-5 obs-card p-5 sm:p-6 space-y-4">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-base font-bold text-[var(--text)]">
-                          Interactive Wheel &amp; Rectification
+                        <h2 className="text-lg font-bold text-[var(--text)]">
+                          Interactive Wheel &amp; Birth-Time Slider
                         </h2>
                         {minuteShift !== 0 && (
                           <button
                             type="button"
                             onClick={() => setMinuteShift(0)}
-                            className="text-xs font-semibold text-[var(--accent)] hover:underline"
+                            className="text-sm font-semibold text-[var(--accent)] hover:underline"
                           >
                             Reset 0m
                           </button>
                         )}
                       </div>
 
-                      <div className="obs-panel p-3 flex items-center justify-between gap-3 text-xs">
+                      <div className="obs-panel p-3.5 flex items-center justify-between gap-3 text-sm">
                         <span className="text-[var(--text-secondary)] font-medium whitespace-nowrap">
-                          Shift time:
+                          Adjust birth time:
                         </span>
                         <input
                           type="range"
@@ -918,75 +1066,63 @@ export function App() {
                       <NatalWheelSvg chart={natalChart} />
                     </div>
 
-                    <div className="lg:col-span-7 obs-card p-5 space-y-3">
+                    <div className="lg:col-span-7 obs-card p-5 sm:p-6 space-y-3">
                       <div>
-                        <h2 className="text-base font-bold text-[var(--text)]">
-                          Planetary Ephemeris Table
+                        <h2 className="text-lg font-bold text-[var(--text)]">
+                          Planetary Positions &amp; Life Areas
                         </h2>
-                        <p className="text-xs text-[var(--text-muted)]">
-                          Click any Nakshatra link to inspect its 4 Navamsha Padas and action rules
+                        <p className="text-sm text-[var(--text-muted)]">
+                          Click any Birth Star (Nakshatra) to read its full meaning
                         </p>
                       </div>
 
                       <div className="overflow-x-auto">
-                        <table className="w-full text-xs text-left border-collapse">
+                        <table className="w-full text-sm text-left border-collapse">
                           <thead>
-                            <tr className="border-b border-[var(--border-strong)] text-[var(--text-muted)] font-mono">
-                              <th className="py-2.5 px-2">Body</th>
-                              <th className="py-2.5 px-2">Sign &amp; DMS</th>
-                              <th className="py-2.5 px-2">House</th>
-                              <th className="py-2.5 px-2">Nakshatra</th>
-                              <th className="py-2.5 px-2">Speed</th>
-                              <th className="py-2.5 px-2">Dignity</th>
+                            <tr className="border-b-2 border-[var(--border-strong)] text-[var(--text-secondary)]">
+                              <th className="py-3 px-2.5">Planet</th>
+                              <th className="py-3 px-2.5">Sign &amp; Degree</th>
+                              <th className="py-3 px-2.5">Life Area (House)</th>
+                              <th className="py-3 px-2.5">Star (Pada)</th>
+                              <th className="py-3 px-2.5">Strength</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[var(--border)]">
                             <tr className="bg-[var(--bg-elevated)] font-semibold">
-                              <td className="py-2 px-2 text-[var(--accent)]">ASC (Lagna)</td>
-                              <td className="py-2 px-2 font-mono text-[var(--text)]">
+                              <td className="py-2.5 px-2.5 text-[var(--accent)]">
+                                Rising (Ascendant)
+                              </td>
+                              <td className="py-2.5 px-2.5 font-mono text-[var(--text)]">
                                 {natalChart.ascendant.signSymbol} {natalChart.ascendant.signName}{' '}
                                 {natalChart.ascendant.formattedDMS}
                               </td>
-                              <td className="py-2 px-2 font-mono">H1</td>
-                              <td className="py-2 px-2 text-[var(--text-muted)]">—</td>
-                              <td className="py-2 px-2 font-mono text-[var(--text-muted)]">
-                                Horizon
-                              </td>
-                              <td className="py-2 px-2 text-[var(--text-secondary)]">Angle</td>
-                            </tr>
-                            <tr className="bg-[var(--bg-elevated)] font-semibold">
-                              <td className="py-2 px-2 text-[var(--accent)]">MC (Midheaven)</td>
-                              <td className="py-2 px-2 font-mono text-[var(--text)]">
-                                {natalChart.midheaven.signSymbol} {natalChart.midheaven.signName}{' '}
-                                {natalChart.midheaven.formattedDMS}
-                              </td>
-                              <td className="py-2 px-2 font-mono">H10</td>
-                              <td className="py-2 px-2 text-[var(--text-muted)]">—</td>
-                              <td className="py-2 px-2 font-mono text-[var(--text-muted)]">
-                                Meridian
-                              </td>
-                              <td className="py-2 px-2 text-[var(--text-secondary)]">Zenith</td>
+                              <td className="py-2.5 px-2.5">H1 — Self &amp; Vitality</td>
+                              <td className="py-2.5 px-2.5 text-[var(--text-muted)]">—</td>
+                              <td className="py-2.5 px-2.5 text-[var(--text-secondary)]">Angle</td>
                             </tr>
                             {natalChart.planets.map((p) => (
                               <tr key={p.id} className="hover:bg-[var(--bg-elevated)]/60">
-                                <td className="py-2.5 px-2 font-semibold text-[var(--text)] whitespace-nowrap">
+                                <td className="py-3 px-2.5 font-semibold text-[var(--text)] whitespace-nowrap">
                                   <span className="mr-1.5" style={{ color: p.color }}>
                                     {p.symbol}
                                   </span>
-                                  {p.name}
+                                  {p.name
+                                    .replace('North Node (Rahu)', 'Rahu')
+                                    .replace('South Node (Ketu)', 'Ketu')}
                                   {p.isRetrograde && (
-                                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-[var(--amber-bg)] text-[var(--amber)] text-[10px] font-mono">
+                                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-[var(--amber-bg)] text-[var(--amber)] text-xs font-mono">
                                       R
                                     </span>
                                   )}
                                 </td>
-                                <td className="py-2.5 px-2 font-mono text-[var(--text)] whitespace-nowrap">
+                                <td className="py-3 px-2.5 font-mono text-[var(--text)] whitespace-nowrap">
                                   {p.signSymbol} {p.signName} {p.formattedDMS}
                                 </td>
-                                <td className="py-2.5 px-2 font-mono text-[var(--accent)] font-semibold">
-                                  H{p.house}
+                                <td className="py-3 px-2.5 text-[var(--text-secondary)]">
+                                  <strong className="text-[var(--accent)]">H{p.house}</strong> —{' '}
+                                  {HOUSE_PLAIN_GUIDE[p.house]?.shortTitle}
                                 </td>
-                                <td className="py-2.5 px-2">
+                                <td className="py-3 px-2.5">
                                   <button
                                     type="button"
                                     onClick={() =>
@@ -997,15 +1133,10 @@ export function App() {
                                     <span>
                                       {p.nakshatraName} (P{p.nakshatraPada})
                                     </span>
-                                    <ArrowUpRight className="w-3 h-3" />
+                                    <ArrowUpRight className="w-3.5 h-3.5" />
                                   </button>
                                 </td>
-                                <td className="py-2.5 px-2 font-mono text-[var(--text-muted)] tabular-nums">
-                                  {p.speedDegPerDay >= 0
-                                    ? `+${p.speedDegPerDay.toFixed(2)}°`
-                                    : `${p.speedDegPerDay.toFixed(2)}°`}
-                                </td>
-                                <td className="py-2.5 px-2">
+                                <td className="py-3 px-2.5">
                                   <StatusBadge
                                     tone={
                                       p.dignity === 'Exalted' || p.dignity === 'Own Sign'
@@ -1026,7 +1157,7 @@ export function App() {
                   </div>
 
                   {/* Row 3: Progressive Disclosure (Aspects vs 360° Sabian Symbols) */}
-                  <div className="obs-card p-5 space-y-4">
+                  <div className="obs-card p-6 space-y-4">
                     <div className="border-b border-[var(--border)] pb-4">
                       <SegmentedTabs
                         ariaLabel="Aspects and Sabian symbols"
@@ -1048,11 +1179,11 @@ export function App() {
                     </div>
 
                     {westernSubTab === 'ASPECTS' && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                         {natalChart.aspects.map((asp, i) => (
                           <div
                             key={i}
-                            className="obs-panel px-3.5 py-2.5 flex items-center justify-between gap-2"
+                            className="obs-panel px-4 py-3 flex items-center justify-between gap-2"
                           >
                             <div>
                               <span className="font-semibold text-[var(--text)]">
@@ -1065,8 +1196,8 @@ export function App() {
                                 {asp.symbolB} {asp.planetB}
                               </span>
                             </div>
-                            <span className="font-mono text-[var(--text-muted)] tabular-nums">
-                              {asp.orb.toFixed(2)}° {asp.applying ? 'App' : 'Sep'}
+                            <span className="font-mono text-xs text-[var(--text-muted)] tabular-nums">
+                              {asp.orb.toFixed(2)}°
                             </span>
                           </div>
                         ))}
@@ -1074,16 +1205,16 @@ export function App() {
                     )}
 
                     {westernSubTab === 'SABIAN' && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-sm">
                         {natalChart.planets.map((p) => (
-                          <div key={p.id} className="obs-panel p-3.5 space-y-1">
+                          <div key={p.id} className="obs-panel p-4 space-y-1.5">
                             <div className="font-bold text-[var(--text)] flex items-center gap-1.5">
                               <span style={{ color: p.color }}>{p.symbol}</span>
                               <span>
                                 {p.name} — {p.signName} {p.formattedDMS}
                               </span>
                             </div>
-                            <p className="text-[var(--text-secondary)] font-serif italic text-sm leading-relaxed">
+                            <p className="text-[var(--text-secondary)] font-serif italic text-base leading-relaxed">
                               {p.sabianSymbol}
                             </p>
                           </div>
@@ -1098,51 +1229,55 @@ export function App() {
               {studioTab === 'VEDIC_KP' && (
                 <div className="space-y-6">
                   <div>
-                    <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-                      Vedic Kundali, Sarvashtakavarga &amp; KP Sub-Lords
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight">
+                      Vedic Kundali, 12-House Strength Scores &amp; Life Periods
                     </h1>
-                    <p className="text-sm text-[var(--text-secondary)]">
-                      10 Shodashvarga harmonics, 337-bindu house strength benchmarks, Jaimini
-                      Karakas, and Krishnamurti Paddhati.
+                    <p className="text-base text-[var(--text-secondary)]">
+                      Inspect your divisional Kundali charts (D1–D60), 12-house Ashtakavarga strength
+                      scores, Vimshottari Dasha chapters, and KP sub-lords.
                     </p>
                   </div>
 
                   {/* Row 1: 4 Contextual KPIs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <KpiStatCard
-                      label="Active Vimshottari Period"
+                      label="Current Life Chapter (Dasha)"
                       value={`${vedicReport.activeMahadasha.lord} – ${vedicReport.activeAntardasha.lord}`}
+                      plainHint={DASHA_PLAIN_GUIDE[vedicReport.activeMahadasha.lord]?.chapterTitle}
                       benchmarkText={`Ends ${vedicReport.activeMahadasha.endDate}`}
                       status={{
                         tone: 'info',
-                        label: `${vedicReport.activeMahadasha.progressPercent}% elapsed`,
+                        label: `${vedicReport.activeMahadasha.progressPercent}% complete`,
                       }}
                       icon={<Clock className="w-4 h-4" />}
                     />
 
                     {atmakaraka && (
                       <KpiStatCard
-                        label="Atmakaraka (Soul Planet)"
+                        label="Soul Indicator (Atmakaraka)"
                         value={`${atmakaraka.symbol} ${atmakaraka.planetName}`}
                         subvalue={atmakaraka.degreeInSign}
-                        benchmarkText={`Karakamsha (D9): ${atmakaraka.navamshaSignName}`}
+                        plainHint="Planet at highest degree—shows your deepest soul lesson"
+                        benchmarkText={`D9 Sign: ${atmakaraka.navamshaSignName}`}
                         status={{ tone: 'optimal', label: 'Jaimini AK' }}
                         icon={<Sparkles className="w-4 h-4" />}
                       />
                     )}
 
                     <KpiStatCard
-                      label="Peak SAV House"
+                      label="Strongest House (SAV)"
                       value={`House ${topSavHouse.house}`}
-                      subvalue={`${topSavHouse.bindus} bindus`}
-                      benchmarkText={`Canonical total: ${totalSavBindus} bindus`}
+                      subvalue={`${topSavHouse.bindus} pts`}
+                      plainHint={HOUSE_PLAIN_GUIDE[topSavHouse.house]?.shortTitle}
+                      benchmarkText={`Total chart points: ${totalSavBindus}`}
                       status={{ tone: 'optimal', label: topSavHouse.signName }}
                       icon={<Activity className="w-4 h-4" />}
                     />
 
                     <KpiStatCard
-                      label="Detected Classical Yogas"
+                      label="Special Chart Yogas"
                       value={vedicReport.yogas.length}
+                      plainHint="Notable planetary combinations active in your chart"
                       benchmarkText="Parashara & Phaladeepika"
                       status={{ tone: 'favorable', label: 'Active Combinations' }}
                       icon={<BookOpen className="w-4 h-4" />}
@@ -1153,30 +1288,30 @@ export function App() {
 
                   {/* Row 2: Visual Kundali + 12-House SAV Benchmark Bar Chart */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                    <div className="lg:col-span-5 obs-card p-5 space-y-3">
+                    <div className="lg:col-span-5 obs-card p-5 sm:p-6 space-y-3">
                       <div>
-                        <h2 className="text-base font-bold text-[var(--text)]">
-                          Shodashvarga Divisional Kundali
+                        <h2 className="text-lg font-bold text-[var(--text)]">
+                          Divisional Kundali Charts (D1–D60)
                         </h2>
-                        <p className="text-xs text-[var(--text-muted)]">
-                          Inspect D1 Rashi, D9 Navamsha, D10 Dashamsha &amp; 7 more Vargas
+                        <p className="text-sm text-[var(--text-muted)]">
+                          D1 = Root Life • D9 = Marriage &amp; Soul • D10 = Career
                         </p>
                       </div>
                       <VedicKundliSvg divisionalTable={vedicReport.divisionalTable} />
                     </div>
 
-                    <div className="lg:col-span-7 obs-card p-5 flex flex-col justify-between space-y-4">
+                    <div className="lg:col-span-7 obs-card p-5 sm:p-6 flex flex-col justify-between space-y-4">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          <h2 className="text-base font-bold text-[var(--text)]">
-                            12-House Sarvashtakavarga Strength vs 28-Bindu Benchmark
+                          <h2 className="text-lg font-bold text-[var(--text)]">
+                            12-House Strength Scores vs. 28-Point Average
                           </h2>
-                          <p className="text-xs text-[var(--text-muted)]">
-                            Houses scoring 30+ bindus (green) carry strong transit support; houses
-                            below 25 (red) require extra discipline.
+                          <p className="text-sm text-[var(--text-muted)]">
+                            Green bars (30+) indicate natural ease; red bars (&lt;25) indicate areas
+                            that reward patience and steady habits.
                           </p>
                         </div>
-                        <StatusBadge tone="info" label={`Total ${totalSavBindus} Bindus`} />
+                        <StatusBadge tone="info" label={`Total ${totalSavBindus} Points`} />
                       </div>
 
                       <BenchmarkBarChart
@@ -1188,25 +1323,25 @@ export function App() {
                         ariaLabel="12-house Sarvashtakavarga bindu comparison bar chart"
                       />
 
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--text-secondary)] pt-2 border-t border-[var(--border)]">
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--text-secondary)] pt-2 border-t border-[var(--border)]">
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-sm bg-[var(--sage)] inline-block" />
-                          30+ Bindus (High Tailwind)
+                          <span className="w-3 h-3 rounded-sm bg-[var(--sage)] inline-block" />
+                          30+ Points (Strong Natural Support)
                         </span>
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-sm bg-[var(--accent)] inline-block" />
-                          25–29 Bindus (Balanced)
+                          <span className="w-3 h-3 rounded-sm bg-[var(--accent)] inline-block" />
+                          25–29 Points (Balanced)
                         </span>
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-sm bg-[var(--crimson)] inline-block" />
-                          &lt;25 Bindus (High Effort)
+                          <span className="w-3 h-3 rounded-sm bg-[var(--crimson)] inline-block" />
+                          &lt;25 Points (Steady Effort Needed)
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Row 3: Progressive Disclosure Tabs (Dashas | Full BAV & Jaimini | KP Sub-Lords) */}
-                  <div className="obs-card p-5 space-y-5">
+                  {/* Row 3: Progressive Disclosure Tabs */}
+                  <div className="obs-card p-5 sm:p-6 space-y-5">
                     <div className="border-b border-[var(--border)] pb-4">
                       <SegmentedTabs
                         ariaLabel="Vedic detail tables"
@@ -1215,33 +1350,34 @@ export function App() {
                         items={[
                           {
                             id: 'DASHA',
-                            label: 'Vimshottari Dashas',
+                            label: 'Life Chapters (Vimshottari Dashas)',
                             count: vedicReport.dashas.length,
                           },
                           {
                             id: 'ASHTAKAVARGA_JAIMINI',
-                            label: '7-Planet BAV Matrix & Jaimini Karakas',
+                            label: 'Planet-by-Planet Scores & Soul Roles',
                             count: 7,
                           },
                           {
                             id: 'KP_SUBLORDS',
-                            label: 'KP Sub-Lords & 1–249 Horary',
+                            label: 'KP Sub-Lords & Horary (1–249)',
                           },
                         ]}
                       />
                     </div>
 
                     {vedicSubTab === 'DASHA' && (
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         {vedicReport.dashas.map((d) => {
                           const isOpen =
                             expandedDashaLord === d.lord ||
                             (expandedDashaLord === null && d.isCurrent);
+                          const plainGuide = DASHA_PLAIN_GUIDE[d.lord];
                           const dashaFruit = PLANET_TREATISES[d.lord]?.dashaGeneralFruit;
                           return (
                             <div
                               key={d.lord}
-                              className={`rounded-lg border transition ${
+                              className={`rounded-xl border transition ${
                                 d.isCurrent
                                   ? 'border-[var(--accent)] bg-[var(--accent-bg)]/25'
                                   : 'border-[var(--border)] bg-[var(--bg-elevated)]'
@@ -1250,41 +1386,57 @@ export function App() {
                               <button
                                 type="button"
                                 onClick={() => setExpandedDashaLord(isOpen ? 'NONE' : d.lord)}
-                                className="w-full px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs"
+                                className="w-full px-4 py-3.5 flex flex-wrap items-center justify-between gap-2 text-sm"
                               >
-                                <div className="flex items-center gap-2.5">
+                                <div className="flex flex-wrap items-center gap-2.5 text-left">
                                   {isOpen ? (
                                     <ChevronDown className="w-4 h-4 text-[var(--accent)]" />
                                   ) : (
                                     <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
                                   )}
-                                  <span className="font-bold text-[var(--text)] text-sm">
-                                    {d.lord} Mahadasha ({d.years} Years)
+                                  <span className="font-bold text-[var(--text)] text-base">
+                                    {d.lord} Chapter ({d.years} Years)
                                   </span>
+                                  {plainGuide && (
+                                    <span className="text-[var(--text-secondary)]">
+                                      — {plainGuide.chapterTitle}
+                                    </span>
+                                  )}
                                   {d.isCurrent && (
                                     <StatusBadge
                                       tone="optimal"
-                                      label={`Current (${d.progressPercent}%)`}
+                                      label={`Active Now (${d.progressPercent}%)`}
                                     />
                                   )}
                                 </div>
-                                <span className="font-mono text-[var(--text-secondary)]">
+                                <span className="font-mono text-sm text-[var(--text-secondary)]">
                                   {d.startDate} → {d.endDate}
                                 </span>
                               </button>
 
                               {isOpen && (
-                                <div className="px-4 pb-4 pt-2 border-t border-[var(--border)] space-y-3 text-xs">
-                                  {dashaFruit && (
-                                    <p className="text-[var(--text-secondary)] bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] leading-relaxed">
-                                      <strong>Classical Period Theme:</strong> {dashaFruit}
-                                    </p>
+                                <div className="px-4 pb-4 pt-3 border-t border-[var(--border)] space-y-3 text-sm">
+                                  {plainGuide && (
+                                    <div className="bg-[var(--surface)] p-4 rounded-lg border border-[var(--border)] space-y-1.5 leading-relaxed">
+                                      <p className="text-[var(--text)] font-medium">
+                                        {plainGuide.plainMeaning}
+                                      </p>
+                                      <p className="text-[var(--text-secondary)]">
+                                        <strong>Best Focus:</strong> {plainGuide.bestFocus} •{' '}
+                                        <strong>Watch Out For:</strong> {plainGuide.watchOutFor}
+                                      </p>
+                                      {dashaFruit && (
+                                        <p className="text-[var(--text-muted)] text-xs pt-1">
+                                          Classical Note: {dashaFruit}
+                                        </p>
+                                      )}
+                                    </div>
                                   )}
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                                     {d.antardashas.map((antar) => (
                                       <div
                                         key={antar.lord}
-                                        className={`p-2.5 rounded-lg border ${
+                                        className={`p-3 rounded-lg border ${
                                           antar.isCurrent
                                             ? 'border-[var(--accent)] bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
                                             : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)]'
@@ -1295,10 +1447,12 @@ export function App() {
                                             {d.lord} – {antar.lord}
                                           </span>
                                           {antar.isCurrent && (
-                                            <span className="text-[10px] font-mono">ACTIVE</span>
+                                            <span className="text-xs font-mono font-bold">
+                                              ACTIVE
+                                            </span>
                                           )}
                                         </div>
-                                        <div className="text-[11px] font-mono opacity-80 mt-0.5">
+                                        <div className="text-xs font-mono opacity-85 mt-1">
                                           {antar.startDate} to {antar.endDate}
                                         </div>
                                       </div>
@@ -1315,17 +1469,17 @@ export function App() {
                     {vedicSubTab === 'ASHTAKAVARGA_JAIMINI' && (
                       <div className="space-y-6">
                         <div className="overflow-x-auto">
-                          <table className="w-full text-xs border-collapse text-center font-mono">
+                          <table className="w-full text-sm border-collapse text-center font-mono">
                             <thead>
-                              <tr className="border-b border-[var(--border-strong)] text-[var(--text-muted)]">
-                                <th className="py-2 px-2 text-left font-sans">Planet BAV</th>
+                              <tr className="border-b-2 border-[var(--border-strong)] text-[var(--text-secondary)]">
+                                <th className="py-2.5 px-2 text-left font-sans">Planet BAV</th>
                                 {ZODIAC_SIGNS.map((z) => (
-                                  <th key={z.index} className="py-2 px-1.5" title={z.sanskrit}>
+                                  <th key={z.index} className="py-2.5 px-1.5" title={z.sanskrit}>
                                     <div>{z.symbol}</div>
-                                    <div className="text-[10px]">{z.name.slice(0, 3)}</div>
+                                    <div className="text-xs">{z.name.slice(0, 3)}</div>
                                   </th>
                                 ))}
-                                <th className="py-2 px-2 text-[var(--accent)]">Total</th>
+                                <th className="py-2.5 px-2 text-[var(--accent)]">Total</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[var(--border)]">
@@ -1334,13 +1488,13 @@ export function App() {
                                   const rowSum = arr.reduce((a, b) => a + b, 0);
                                   return (
                                     <tr key={planetName} className="hover:bg-[var(--bg-elevated)]">
-                                      <td className="py-2 px-2 text-left font-sans font-semibold text-[var(--text)]">
+                                      <td className="py-2.5 px-2 text-left font-sans font-semibold text-[var(--text)]">
                                         {planetName}
                                       </td>
                                       {arr.map((val, sIdx) => (
                                         <td
                                           key={sIdx}
-                                          className={`py-2 px-1.5 tabular-nums ${
+                                          className={`py-2.5 px-1.5 tabular-nums ${
                                             val >= 5
                                               ? 'text-[var(--sage)] font-bold'
                                               : val <= 2
@@ -1351,7 +1505,7 @@ export function App() {
                                           {val}
                                         </td>
                                       ))}
-                                      <td className="py-2 px-2 font-bold text-[var(--text)] tabular-nums">
+                                      <td className="py-2.5 px-2 font-bold text-[var(--text)] tabular-nums">
                                         {rowSum}
                                       </td>
                                     </tr>
@@ -1360,7 +1514,7 @@ export function App() {
                               )}
 
                               <tr className="bg-[var(--bg-elevated)] border-t-2 border-[var(--border-strong)] font-bold">
-                                <td className="py-2.5 px-2 text-left font-sans text-[var(--accent)]">
+                                <td className="py-3 px-2 text-left font-sans text-[var(--accent)]">
                                   Total SAV
                                 </td>
                                 {ZODIAC_SIGNS.map((z) => {
@@ -1371,7 +1525,7 @@ export function App() {
                                   return (
                                     <td
                                       key={z.index}
-                                      className={`py-2.5 px-1.5 tabular-nums ${
+                                      className={`py-3 px-1.5 tabular-nums ${
                                         pts >= 30
                                           ? 'text-[var(--sage)]'
                                           : pts < 25
@@ -1380,13 +1534,13 @@ export function App() {
                                       }`}
                                     >
                                       <div>{pts}</div>
-                                      <div className="text-[9px] text-[var(--text-muted)]">
+                                      <div className="text-[11px] text-[var(--text-muted)]">
                                         H{savEntry?.house}
                                       </div>
                                     </td>
                                   );
                                 })}
-                                <td className="py-2.5 px-2 text-[var(--accent)] tabular-nums">
+                                <td className="py-3 px-2 text-[var(--accent)] tabular-nums">
                                   {totalSavBindus}
                                 </td>
                               </tr>
@@ -1395,12 +1549,12 @@ export function App() {
                         </div>
 
                         <div className="space-y-3 pt-2 border-t border-[var(--border)]">
-                          <h3 className="text-sm font-bold text-[var(--text)]">
-                            Seven Jaimini Chara Karakas
+                          <h3 className="text-base font-bold text-[var(--text)]">
+                            Seven Jaimini Soul Significators (Chara Karakas)
                           </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
                             {vedicReport.charaKarakas.map((ck) => (
-                              <div key={ck.karakaCode} className="obs-panel p-3.5 space-y-1.5">
+                              <div key={ck.karakaCode} className="obs-panel p-4 space-y-1.5">
                                 <div className="flex items-center justify-between text-xs font-mono">
                                   <StatusBadge
                                     tone={ck.karakaCode === 'AK' ? 'optimal' : 'info'}
@@ -1410,13 +1564,13 @@ export function App() {
                                     {ck.degreeInSign}
                                   </span>
                                 </div>
-                                <div className="text-sm font-bold text-[var(--text)]">
+                                <div className="text-base font-bold text-[var(--text)]">
                                   {ck.symbol} {ck.planetName} — {ck.karakaName}
                                 </div>
                                 <div className="text-xs font-mono text-[var(--text-secondary)]">
                                   D1: {ck.signName} • D9: <strong>{ck.navamshaSignName}</strong>
                                 </div>
-                                <p className="text-xs text-[var(--text-muted)]">{ck.domain}</p>
+                                <p className="text-sm text-[var(--text-secondary)]">{ck.domain}</p>
                               </div>
                             ))}
                           </div>
@@ -1427,36 +1581,36 @@ export function App() {
                     {vedicSubTab === 'KP_SUBLORDS' && (
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         <div className="lg:col-span-7 overflow-x-auto">
-                          <table className="w-full text-xs text-left border-collapse">
+                          <table className="w-full text-sm text-left border-collapse">
                             <thead>
-                              <tr className="border-b border-[var(--border-strong)] text-[var(--text-muted)] font-mono">
-                                <th className="py-2 px-2">Planet</th>
-                                <th className="py-2 px-2">Sidereal DMS</th>
-                                <th className="py-2 px-2">Sign Lord</th>
-                                <th className="py-2 px-2">Star Lord</th>
-                                <th className="py-2 px-2 text-[var(--accent)]">KP Sub-Lord</th>
-                                <th className="py-2 px-2">Sub-Sub</th>
+                              <tr className="border-b-2 border-[var(--border-strong)] text-[var(--text-secondary)] font-mono">
+                                <th className="py-2.5 px-2">Planet</th>
+                                <th className="py-2.5 px-2">Sidereal DMS</th>
+                                <th className="py-2.5 px-2">Sign Lord</th>
+                                <th className="py-2.5 px-2">Star Lord</th>
+                                <th className="py-2.5 px-2 text-[var(--accent)]">KP Sub-Lord</th>
+                                <th className="py-2.5 px-2">Sub-Sub</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[var(--border)]">
                               {vedicReport.kpPlanets.map((row) => (
                                 <tr key={row.label} className="hover:bg-[var(--bg-elevated)]">
-                                  <td className="py-2 px-2 font-semibold text-[var(--text)]">
+                                  <td className="py-2.5 px-2 font-semibold text-[var(--text)]">
                                     {row.symbol} {row.label}
                                   </td>
-                                  <td className="py-2 px-2 font-mono text-[var(--text-secondary)]">
+                                  <td className="py-2.5 px-2 font-mono text-[var(--text-secondary)]">
                                     {row.longitudeDMS}
                                   </td>
-                                  <td className="py-2 px-2 text-[var(--text-secondary)]">
+                                  <td className="py-2.5 px-2 text-[var(--text-secondary)]">
                                     {row.signLord}
                                   </td>
-                                  <td className="py-2 px-2 text-[var(--text)] font-medium">
+                                  <td className="py-2.5 px-2 text-[var(--text)] font-medium">
                                     {row.starLord}
                                   </td>
-                                  <td className="py-2 px-2 font-bold text-[var(--accent)]">
+                                  <td className="py-2.5 px-2 font-bold text-[var(--accent)]">
                                     {row.subLord}
                                   </td>
-                                  <td className="py-2 px-2 text-[var(--text-muted)]">
+                                  <td className="py-2.5 px-2 text-[var(--text-muted)]">
                                     {row.subSubLord}
                                   </td>
                                 </tr>
@@ -1465,10 +1619,10 @@ export function App() {
                           </table>
                         </div>
 
-                        <div className="lg:col-span-5 obs-panel p-4 space-y-3">
+                        <div className="lg:col-span-5 obs-panel p-5 space-y-3">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-bold text-[var(--text)]">
-                              KP Horary Prashna (Seed 1–249)
+                            <span className="text-sm font-bold text-[var(--text)]">
+                              KP Horary Question (Pick 1–249)
                             </span>
                             <input
                               type="number"
@@ -1485,11 +1639,11 @@ export function App() {
                                   ),
                                 })
                               }
-                              className="w-20 obs-input py-1 font-mono font-bold text-center text-xs"
+                              className="w-24 obs-input py-1 font-mono font-bold text-center text-sm"
                             />
                           </div>
-                          <div className="text-base font-bold text-[var(--text)]">
-                            Horary #{vedicReport.kpHorary.horaryNumber} →{' '}
+                          <div className="text-lg font-bold text-[var(--text)]">
+                            Number #{vedicReport.kpHorary.horaryNumber} →{' '}
                             {vedicReport.kpHorary.ascendantSign} ({vedicReport.kpHorary.ascendantDMS}
                             )
                           </div>
@@ -1507,7 +1661,7 @@ export function App() {
                               label={`Sub: ${vedicReport.kpHorary.subLord}`}
                             />
                           </div>
-                          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                             {vedicReport.kpHorary.verdict}
                           </p>
                         </div>
@@ -1567,14 +1721,14 @@ export function App() {
             className="fixed inset-0 bg-black/55 backdrop-blur-xs"
             onClick={() => setShowProfileModal(false)}
           />
-          <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto obs-card p-6 shadow-xl space-y-5">
+          <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto obs-card p-6 sm:p-7 shadow-xl space-y-5">
             <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
               <div>
-                <h2 className="text-lg font-bold text-[var(--text)]">
-                  Birth Profile &amp; Horizon Settings
+                <h2 className="text-xl font-bold text-[var(--text)]">
+                  Birth Profile &amp; Calculation Settings
                 </h2>
-                <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
-                  Bikram Sambat: {birthBsDate.formattedEn} ({birthBsDate.formattedNp}) •{' '}
+                <p className="text-sm text-[var(--text-muted)] font-mono mt-0.5">
+                  Nepali Bikram Sambat: {birthBsDate.formattedEn} ({birthBsDate.formattedNp}) •{' '}
                   {formatUtcOffset(profile.location.timezoneOffsetHours)}
                 </p>
               </div>
@@ -1584,11 +1738,11 @@ export function App() {
                 aria-label="Close modal"
                 className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)]"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
               <div>
                 <label className="text-[var(--text-secondary)] font-medium block mb-1">
                   First name
@@ -1636,7 +1790,7 @@ export function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div>
                 <label className="text-[var(--text-secondary)] font-medium block mb-1">
                   Birth date (YYYY / MM / DD)
@@ -1736,15 +1890,15 @@ export function App() {
               onChange={(loc) => setProfile({ ...profile, location: loc })}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[var(--border)] text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[var(--border)] text-sm">
               <label className="flex items-center gap-2 text-[var(--text-secondary)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={profile.unknownTime}
                   onChange={(e) => setProfile({ ...profile, unknownTime: e.target.checked })}
-                  className="accent-[var(--accent)]"
+                  className="accent-[var(--accent)] w-4 h-4"
                 />
-                <span>Unknown birth time (Chandra / Solar chart mode)</span>
+                <span>Unknown exact birth time (Solar / Moon chart mode)</span>
               </label>
 
               <div className="flex items-center gap-2 sm:justify-end">
@@ -1752,7 +1906,7 @@ export function App() {
                 <select
                   value={houseSystem}
                   onChange={(e) => setHouseSystem(e.target.value as HouseSystem)}
-                  className="obs-input py-1.5 text-xs w-auto"
+                  className="obs-input py-1.5 text-sm w-auto"
                 >
                   <option value="PLACIDUS">Placidus</option>
                   <option value="WHOLE_SIGN">Whole Sign (Rashi)</option>
@@ -1762,11 +1916,23 @@ export function App() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-[var(--border)]">
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-[var(--border)]">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfileModal(false);
+                  handleNavigate('FULL_REPORT');
+                }}
+                className="btn-editorial-secondary text-sm inline-flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4 text-[var(--accent)]" />
+                <span>Apply &amp; Open Easy Report</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setShowProfileModal(false)}
-                className="btn-editorial-primary text-xs px-5"
+                className="btn-editorial-primary text-sm px-6"
               >
                 Save &amp; Apply
               </button>

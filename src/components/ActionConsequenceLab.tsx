@@ -411,20 +411,20 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                   {report.action.shortPrompt}
                 </h3>
 
-                <div className="obs-panel p-3.5 space-y-1.5">
-                  <div className="text-xs font-semibold text-[var(--text)]">
-                    Expected Outcome If Initiated Now
+                <div className="obs-panel p-4 space-y-1.5">
+                  <div className="text-sm font-bold text-[var(--text)]">
+                    What Happens If You Do This Today
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                     {report.whatHappensIfDoneNow}
                   </p>
                 </div>
 
-                <div className="obs-panel p-3.5 space-y-1.5">
-                  <div className="text-xs font-semibold text-[var(--sage)]">
-                    Timing Recommendation
+                <div className="obs-panel p-4 space-y-1.5">
+                  <div className="text-sm font-bold text-[var(--sage)]">
+                    Practical Timing Advice
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                     {report.whatHappensIfDelayed}
                   </p>
                 </div>
@@ -475,13 +475,13 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                   return (
                     <div
                       key={idx}
-                      className="py-3.5 first:pt-0 last:pb-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start"
+                      className="py-4 first:pt-0 last:pb-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start"
                     >
                       <div className="md:col-span-3 flex items-center gap-2.5">
                         <StatusBadge tone={st.tone} label={st.label} />
-                        <span className="text-xs font-semibold text-[var(--text)]">{f.factor}</span>
+                        <span className="text-sm font-semibold text-[var(--text)]">{f.factor}</span>
                       </div>
-                      <div className="md:col-span-6 text-xs text-[var(--text-secondary)] leading-relaxed">
+                      <div className="md:col-span-6 text-sm text-[var(--text-secondary)] leading-relaxed">
                         {f.detail}
                       </div>
                       <div className="md:col-span-3 md:text-right text-xs font-mono text-[var(--text-muted)]">

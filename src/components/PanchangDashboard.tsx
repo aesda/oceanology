@@ -81,9 +81,14 @@ export const PanchangDashboard: React.FC<Props> = ({
       {/* ==================== ROW 1: 4 CONTEXTUAL KPI STAT CARDS ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiStatCard
-          label="Lunar Tithi"
+          label="Lunar Day (Tithi)"
           value={panchang.tithi.name}
           subvalue={panchang.tithi.paksha.split(' ')[0]}
+          plainHint={
+            panchang.tithi.isRikta
+              ? 'Good for clearing debts/clutter; wait on major new starts'
+              : 'Supportive lunar phase for constructive daily work'
+          }
           benchmarkText={`${panchang.tithi.hoursRemaining} remaining (${panchang.tithi.progressPercent}%)`}
           status={{
             tone: panchang.tithi.isRikta ? 'mixed' : 'favorable',
@@ -93,25 +98,27 @@ export const PanchangDashboard: React.FC<Props> = ({
         />
 
         <KpiStatCard
-          label="Transit Nakshatra"
+          label="Today’s Moon Star (Nakshatra)"
           value={panchang.nakshatra.name}
           subvalue={`Pada ${panchang.nakshatra.pada}`}
+          plainHint={`Overall day temperament: ${panchang.nakshatra.natureGroup}`}
           benchmarkText={`${panchang.nakshatra.hoursRemaining} remaining`}
           status={{
             tone: 'info',
             label: panchang.nakshatra.natureGroup.split(' ')[0],
           }}
           icon={<Sparkles className="w-4 h-4" />}
-          actionLabel={onInspectNakshatra ? 'Inspect Nakshatra' : undefined}
+          actionLabel={onInspectNakshatra ? 'Read about this star' : undefined}
           onAction={
             onInspectNakshatra ? () => onInspectNakshatra(panchang.nakshatra.zeroIndex) : undefined
           }
         />
 
         <KpiStatCard
-          label="Personal Tarabala"
-          value={`Tara #${panchang.personalTarabala.taraNumber}`}
-          subvalue={panchang.personalTarabala.taraName.split(' ')[0]}
+          label="Your Star Harmony (Tarabala)"
+          value={panchang.personalTarabala.isAuspicious ? 'Supportive' : 'Pace Carefully'}
+          subvalue={`Tara #${panchang.personalTarabala.taraNumber}`}
+          plainHint="How today’s Moon harmonizes with your Birth Star"
           benchmarkText={`Moon in House ${panchang.personalTarabala.chandrabalaHouse}`}
           status={{
             tone: panchang.personalTarabala.isChandrashtama
@@ -120,21 +127,22 @@ export const PanchangDashboard: React.FC<Props> = ({
               ? 'optimal'
               : 'mixed',
             label: panchang.personalTarabala.isChandrashtama
-              ? 'Chandrashtama (8th)'
+              ? 'Moon in 8th (Rest)'
               : panchang.personalTarabala.isAuspicious
-              ? 'Supportive'
-              : 'Use Parihara',
+              ? 'Favorable'
+              : 'Use Best Hours',
           }}
           icon={<Compass className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Travel & Panchaka"
+          label="Travel & Sky Caution"
           value={`Avoid ${panchang.dishashoola.forbiddenDirection}`}
+          plainHint="Direction with extra travel friction today"
           benchmarkText={`Daylight: ${panchang.dinamanaHours}`}
           status={{
             tone: panchang.panchaka.isActive ? 'avoid' : 'favorable',
-            label: panchang.panchaka.isActive ? 'Panchaka Active' : 'Panchaka Clear',
+            label: panchang.panchaka.isActive ? 'Panchaka Active' : 'Sky Clear',
           }}
           icon={<ShieldAlert className="w-4 h-4" />}
         />
@@ -207,7 +215,7 @@ export const PanchangDashboard: React.FC<Props> = ({
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[var(--text)]">{m.name}</span>
+                        <span className="text-sm font-bold text-[var(--text)]">{m.name}</span>
                         <StatusBadge
                           tone={
                             m.category === 'Auspicious'
@@ -219,7 +227,7 @@ export const PanchangDashboard: React.FC<Props> = ({
                           label={m.category}
                         />
                       </div>
-                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                         {m.description}
                       </p>
                     </div>
@@ -391,20 +399,20 @@ export const PanchangDashboard: React.FC<Props> = ({
         {activeTab === 'ALERTS' && (
           <div className="space-y-4">
             {/* Personal Tarabala Full Verdict */}
-            <div className="obs-panel p-4 flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-1 max-w-3xl">
-                <div className="text-xs font-bold text-[var(--text)]">
-                  Personal Transit-to-Natal Verdict: Tara #{panchang.personalTarabala.taraNumber} (
+            <div className="obs-panel p-5 flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-1.5 max-w-3xl">
+                <div className="text-base font-bold text-[var(--text)]">
+                  Personal Star Harmony Verdict: Tara #{panchang.personalTarabala.taraNumber} (
                   {panchang.personalTarabala.taraName})
                 </div>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
                   {panchang.personalTarabala.verdict}
                 </p>
               </div>
               <StatusBadge
                 tone={panchang.personalTarabala.isAuspicious ? 'optimal' : 'mixed'}
                 label={
-                  panchang.personalTarabala.isAuspicious ? 'Shubha Tarabala' : 'Parihara Advised'
+                  panchang.personalTarabala.isAuspicious ? 'Supportive Today' : 'Use Best Hours'
                 }
               />
             </div>

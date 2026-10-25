@@ -159,27 +159,26 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
             </div>
 
             {/* Specific 1-of-108 Planet-in-House Ruling */}
-            <div className="obs-panel p-4 space-y-2">
-              <div className="text-xs font-bold text-[var(--accent)]">
-                Classical Placement Interpretation — {activePlanet.name} in House{' '}
-                {activePlanet.house} ({planetHouseTreatise.sanskrit.split('•')[0].trim()})
+            <div className="obs-panel p-5 space-y-2.5">
+              <div className="text-sm font-bold text-[var(--accent)]">
+                What {activePlanet.name} in House {activePlanet.house} Means for You
               </div>
-              <p className="text-sm text-[var(--text)] leading-relaxed">
+              <p className="text-base text-[var(--text)] leading-relaxed">
                 {exactBhavaRuling ||
                   `Occupying ${planetHouseTreatise.name} (${planetHouseTreatise.trikonaType}), ${activePlanet.name} channels its planetary archetype directly into ${planetHouseTreatise.bphsSummary}`}
               </p>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed pt-2 border-t border-[var(--border)]">
-                <strong>Psychological Domain:</strong> {planetHouseTreatise.westernDepth}
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed pt-2.5 border-t border-[var(--border)]">
+                <strong>Psychological Perspective:</strong> {planetHouseTreatise.westernDepth}
               </p>
             </div>
 
             {/* Nakshatra Bridge */}
-            <div className="obs-panel p-4 flex flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1 max-w-xl">
-                <div className="text-xs font-bold text-[var(--text)]">
-                  Nakshatra Root: {activePlanetNak.name} ({activePlanetNak.shaktiName})
+            <div className="obs-panel p-5 flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-xl">
+                <div className="text-sm font-bold text-[var(--text)]">
+                  Star Placement: {activePlanetNak.name} ({activePlanetNak.shaktiName})
                 </div>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                   <strong>Pada {activePlanet.nakshatraPada}</strong> (
                   {activePlanetNak.padas[activePlanet.nakshatraPada - 1]?.navamshaSign} Navamsha):{' '}
                   {activePlanetNak.padas[activePlanet.nakshatraPada - 1]?.expression}
@@ -189,35 +188,35 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => onInspectNakshatra(activePlanet.nakshatraIndex)}
-                  className="btn-editorial-secondary text-xs py-1.5 px-3 min-h-[34px] inline-flex items-center gap-1.5"
+                  className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
                 >
-                  <span>Inspect {activePlanetNak.name}</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <span>Read {activePlanetNak.name}</span>
+                  <ArrowUpRight className="w-4 h-4" />
                 </button>
               )}
             </div>
 
             {/* Parashara vs Psychological Synthesis */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="obs-panel p-4 space-y-2">
-                <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
-                  <ScrollText className="w-3.5 h-3.5 text-[var(--accent)]" />
-                  <span>Parashara Karaka &amp; Dharma</span>
+              <div className="obs-panel p-5 space-y-2">
+                <div className="text-sm font-bold text-[var(--text)] flex items-center gap-1.5">
+                  <ScrollText className="w-4 h-4 text-[var(--accent)]" />
+                  <span>Life Areas &amp; Growth Lesson</span>
                 </div>
-                <p className="text-xs text-[var(--text)] leading-relaxed">
-                  <strong>Significations:</strong> {treatise.parasharaBphsKaraka}
+                <p className="text-sm text-[var(--text)] leading-relaxed">
+                  <strong>Governs:</strong> {treatise.parasharaBphsKaraka}
                 </p>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                  <strong>Soul Lesson:</strong> {treatise.vedicSoulLesson}
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                  <strong>Growth Lesson:</strong> {treatise.vedicSoulLesson}
                 </p>
               </div>
 
-              <div className="obs-panel p-4 space-y-2">
-                <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
-                  <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
-                  <span>Depth Psychological Archetype</span>
+              <div className="obs-panel p-5 space-y-2">
+                <div className="text-sm font-bold text-[var(--text)] flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-[var(--accent)]" />
+                  <span>Inner Psychology</span>
                 </div>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                   {treatise.westernPsychologicalArchetype}
                 </p>
               </div>
@@ -290,9 +289,9 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
 
             <div className="space-y-3">
               {vedic.yogas.map((y) => (
-                <div key={y.name} className="obs-panel p-4 space-y-1.5">
+                <div key={y.name} className="obs-panel p-5 space-y-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-sm font-bold text-[var(--text)]">
+                    <h3 className="text-base font-bold text-[var(--text)]">
                       {y.name}{' '}
                       <span className="text-xs font-mono text-[var(--text-muted)] font-normal">
                         ({y.sanskrit})
@@ -310,11 +309,11 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                     />
                   </div>
                   {y.sourceText && (
-                    <div className="text-[11px] font-mono text-[var(--text-muted)]">
+                    <div className="text-xs font-mono text-[var(--text-muted)]">
                       Source: {y.sourceText}
                     </div>
                   )}
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
                     {y.description}
                   </p>
                 </div>

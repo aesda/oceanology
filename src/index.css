@@ -3,33 +3,33 @@
 @tailwind utilities;
 
 :root {
-  /* Crisp Architectural Slate & Pure White Light Mode (WCAG 2.1 AA >= 4.5:1) */
+  /* High-Legibility Slate & Pure White Light Mode (WCAG AAA / AA+ Contrast) */
   --bg: #F8FAFC;
   --bg-elevated: #F1F5F9;
   --surface: #FFFFFF;
   --surface-muted: #F8FAFC;
-  --border: #E2E8F0;
-  --border-strong: #CBD5E1;
+  --border: #CBD5E1;
+  --border-strong: #94A3B8;
   --text: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
+  --text-secondary: #334155;
+  --text-muted: #475569;
 
   /* Disciplined Indigo Accent + Color-Blind Safe Semantic Tokens */
-  --accent: #4F46E5;
-  --accent-hover: #4338CA;
+  --accent: #4338CA;
+  --accent-hover: #3730A3;
   --accent-bg: #EEF2FF;
 
-  /* Harmonized chart & legacy aliases */
-  --brass: #4F46E5;
-  --brass-soft: #6366F1;
+  /* Harmonized chart & semantic aliases */
+  --brass: #4338CA;
+  --brass-soft: #4F46E5;
   --brass-bg: #EEF2FF;
-  --sage: #059669;
+  --sage: #047857;
   --sage-bg: #ECFDF5;
   --amber: #B45309;
   --amber-bg: #FFFBEB;
-  --crimson: #E11D48;
+  --crimson: #BE123C;
   --crimson-bg: #FFF1F2;
-  --indigo: #4F46E5;
+  --indigo: #4338CA;
   --indigo-bg: #EEF2FF;
 
   --chart-bg: #F8FAFC;
@@ -38,55 +38,67 @@
 }
 
 html.dark {
-  /* Deep Linear / Datadog Obsidian Dark Mode (WCAG 2.1 AA >= 4.5:1) */
+  /* High-Contrast Obsidian Dark Mode (WCAG AAA / AA+ Contrast) */
   --bg: #09090B;
   --bg-elevated: #111318;
-  --surface: #13161E;
-  --surface-muted: #191D28;
-  --border: #232836;
-  --border-strong: #32394C;
+  --surface: #141821;
+  --surface-muted: #1B202C;
+  --border: #2A3142;
+  --border-strong: #3F4961;
   --text: #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
+  --text-secondary: #E2E8F0;
+  --text-muted: #CBD5E1;
 
   --accent: #818CF8;
   --accent-hover: #6366F1;
-  --accent-bg: rgba(129, 140, 248, 0.14);
+  --accent-bg: rgba(129, 140, 248, 0.16);
 
   --brass: #818CF8;
   --brass-soft: #A5B4FC;
-  --brass-bg: rgba(129, 140, 248, 0.14);
+  --brass-bg: rgba(129, 140, 248, 0.16);
   --sage: #34D399;
-  --sage-bg: rgba(52, 211, 153, 0.14);
+  --sage-bg: rgba(52, 211, 153, 0.16);
   --amber: #FBBF24;
-  --amber-bg: rgba(251, 191, 36, 0.14);
+  --amber-bg: rgba(251, 191, 36, 0.16);
   --crimson: #FB7185;
-  --crimson-bg: rgba(251, 113, 133, 0.14);
+  --crimson-bg: rgba(251, 113, 133, 0.16);
   --indigo: #818CF8;
-  --indigo-bg: rgba(129, 140, 248, 0.14);
+  --indigo-bg: rgba(129, 140, 248, 0.16);
 
   --chart-bg: #0E1117;
-  --chart-ring: #151923;
-  --chart-grid: #293040;
+  --chart-ring: #161B26;
+  --chart-grid: #2E3648;
 }
 
 @layer base {
   html {
+    font-size: 16px;
     scroll-behavior: smooth;
+  }
+
+  /* Optional 1-click Large Text comfort mode (+12.5% across all rem units) */
+  html.font-large {
+    font-size: 18px;
   }
 
   body {
     background-color: var(--bg);
     color: var(--text);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-size: 14px;
-    line-height: 1.55;
+    font-size: 1rem;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4 {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  p {
+    line-height: 1.68;
   }
 
   button:focus-visible,
@@ -98,34 +110,34 @@ html.dark {
   }
 }
 
-/* Clean Product Surfaces — 8px Spatial System, Subtle Elevation, Zero Box Soup */
+/* Clean Product Surfaces — Spacious 8px Spatial System, Clear Borders */
 .obs-card,
 .folio-sheet {
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .obs-panel {
   background-color: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .editorial-eyebrow {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 .literary-prose {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.9375rem;
-  line-height: 1.65;
+  font-size: 1.02rem;
+  line-height: 1.72;
   color: var(--text-secondary);
 }
 
@@ -133,59 +145,59 @@ html.dark {
   background-color: var(--surface);
   border: 1px solid var(--border-strong);
   color: var(--text);
-  border-radius: 7px;
-  padding: 8px 12px;
-  font-size: 13px;
-  min-height: 38px;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 0.9375rem;
+  min-height: 42px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .obs-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 /* Accessible Semantic Badges */
 .obs-badge-brass {
   background-color: var(--accent-bg);
   color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   border-radius: 6px;
 }
 
 .obs-badge-crimson {
   background-color: var(--crimson-bg);
   color: var(--crimson);
-  border: 1px solid color-mix(in srgb, var(--crimson) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--crimson) 30%, transparent);
   border-radius: 6px;
 }
 
 .obs-badge-sage {
   background-color: var(--sage-bg);
   color: var(--sage);
-  border: 1px solid color-mix(in srgb, var(--sage) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sage) 30%, transparent);
   border-radius: 6px;
 }
 
 .obs-badge-amber {
   background-color: var(--amber-bg);
   color: var(--amber);
-  border: 1px solid color-mix(in srgb, var(--amber) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--amber) 30%, transparent);
   border-radius: 6px;
 }
 
-/* Fitts's Law Compliant Buttons (>= 40px comfortable targets) */
+/* Fitts's Law Compliant Buttons (>= 42px comfortable targets) */
 .btn-editorial-primary {
   background-color: var(--accent);
   color: #ffffff;
-  padding: 9px 18px;
-  min-height: 40px;
-  font-size: 13.5px;
+  padding: 10px 18px;
+  min-height: 42px;
+  font-size: 0.9375rem;
   font-weight: 600;
   border-radius: 8px;
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 1px 2px rgba(67, 56, 202, 0.22);
 }
 
 .btn-editorial-primary:hover {
@@ -196,10 +208,10 @@ html.dark {
   background-color: var(--surface);
   color: var(--text);
   border: 1px solid var(--border-strong);
-  padding: 9px 16px;
-  min-height: 40px;
-  font-size: 13.5px;
-  font-weight: 500;
+  padding: 10px 16px;
+  min-height: 42px;
+  font-size: 0.9375rem;
+  font-weight: 600;
   border-radius: 8px;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -214,8 +226,8 @@ html.dark {
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -232,5 +244,6 @@ html.dark {
   body {
     background: #ffffff !important;
     color: #000000 !important;
+    font-size: 12pt !important;
   }
 }

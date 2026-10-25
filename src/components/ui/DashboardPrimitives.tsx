@@ -22,7 +22,8 @@ export const StatusBadge: React.FC<{
     mixed: 'obs-badge-amber',
     avoid: 'obs-badge-crimson',
     info: 'obs-badge-brass',
-    neutral: 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border)] rounded-md',
+    neutral:
+      'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border)] rounded-md',
   };
 
   const icons: Record<SemanticTone, React.ReactNode> = {
@@ -36,8 +37,8 @@ export const StatusBadge: React.FC<{
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-medium whitespace-nowrap ${
-        size === 'md' ? 'px-2.5 py-1 text-xs' : 'px-2 py-0.5 text-[11.5px]'
+      className={`inline-flex items-center gap-1.5 font-semibold whitespace-nowrap ${
+        size === 'md' ? 'px-3 py-1 text-sm' : 'px-2.5 py-0.5 text-xs sm:text-[13px]'
       } ${styles[tone]}`}
     >
       {icons[tone]}
@@ -51,6 +52,7 @@ export interface KpiStatCardProps {
   value: string | number;
   subvalue?: string;
   benchmarkText: string;
+  plainHint?: string;
   status?: { tone: SemanticTone; label: string };
   icon?: React.ReactNode;
   actionLabel?: string;
@@ -62,17 +64,18 @@ export const KpiStatCard: React.FC<KpiStatCardProps> = ({
   value,
   subvalue,
   benchmarkText,
+  plainHint,
   status,
   icon,
   actionLabel,
   onAction,
 }) => {
   return (
-    <div className="obs-card p-5 flex flex-col justify-between gap-3">
+    <div className="obs-card p-5 flex flex-col justify-between gap-3.5">
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-medium text-[var(--text-secondary)]">{label}</span>
-          {icon && <span className="text-[var(--text-muted)]">{icon}</span>}
+          <span className="text-sm font-semibold text-[var(--text-secondary)]">{label}</span>
+          {icon && <span className="text-[var(--accent)]">{icon}</span>}
         </div>
 
         <div className="flex items-baseline gap-2 flex-wrap">
@@ -80,27 +83,33 @@ export const KpiStatCard: React.FC<KpiStatCardProps> = ({
             {value}
           </span>
           {subvalue && (
-            <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
+            <span className="text-sm font-medium text-[var(--text-muted)] tabular-nums">
               {subvalue}
             </span>
           )}
         </div>
+
+        {plainHint && (
+          <p className="text-sm text-[var(--text-secondary)] leading-snug">{plainHint}</p>
+        )}
       </div>
 
       <div className="space-y-2.5 pt-1">
         <div className="flex flex-wrap items-center justify-between gap-2">
           {status && <StatusBadge tone={status.tone} label={status.label} />}
-          <span className="text-xs text-[var(--text-muted)] tabular-nums">{benchmarkText}</span>
+          <span className="text-[13px] sm:text-sm text-[var(--text-muted)] tabular-nums">
+            {benchmarkText}
+          </span>
         </div>
 
         {actionLabel && onAction && (
           <button
             type="button"
             onClick={onAction}
-            className="pt-2 border-t border-[var(--border)] w-full text-left text-xs font-medium text-[var(--accent)] hover:underline inline-flex items-center justify-between"
+            className="pt-2.5 border-t border-[var(--border)] w-full text-left text-sm font-semibold text-[var(--accent)] hover:underline inline-flex items-center justify-between"
           >
             <span>{actionLabel}</span>
-            <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
+            <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
           </button>
         )}
       </div>
@@ -126,7 +135,7 @@ export const ScoreTrendChart: React.FC<{
 }> = ({
   points,
   benchmarkValue = 70,
-  benchmarkLabel = '70 Optimal threshold',
+  benchmarkLabel = '70+ Good Window',
   maxValue = 100,
   selectedId,
   onSelectPoint,
@@ -135,11 +144,11 @@ export const ScoreTrendChart: React.FC<{
   if (!points.length) return null;
 
   const width = 680;
-  const height = 210;
-  const padLeft = 36;
+  const height = 228;
+  const padLeft = 40;
   const padRight = 24;
-  const padTop = 26;
-  const padBottom = 42;
+  const padTop = 28;
+  const padBottom = 48;
   const innerW = width - padLeft - padRight;
   const innerH = height - padTop - padBottom;
 
@@ -165,7 +174,7 @@ export const ScoreTrendChart: React.FC<{
     <div className="w-full overflow-x-auto">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full min-w-[460px] h-auto select-none"
+        className="w-full min-w-[480px] h-auto select-none"
         role="img"
         aria-label={ariaLabel}
       >
@@ -192,9 +201,9 @@ export const ScoreTrendChart: React.FC<{
               />
               <text
                 x={padLeft - 8}
-                y={y + 3.5}
+                y={y + 4}
                 textAnchor="end"
-                fontSize="10"
+                fontSize="11.5"
                 fontFamily="JetBrains Mono, monospace"
                 fill="var(--text-muted)"
               >
@@ -204,22 +213,22 @@ export const ScoreTrendChart: React.FC<{
           );
         })}
 
-        {/* Dashed Benchmark Line (Direct Label -> Passes Hover Test) */}
+        {/* Dashed Benchmark Line */}
         <line
           x1={padLeft}
           y1={benchY}
           x2={width - padRight}
           y2={benchY}
           stroke="var(--sage)"
-          strokeWidth="1.2"
+          strokeWidth="1.5"
           strokeDasharray="4 4"
         />
         <text
           x={width - padRight}
-          y={benchY - 5}
+          y={benchY - 6}
           textAnchor="end"
-          fontSize="10"
-          fontWeight="600"
+          fontSize="11.5"
+          fontWeight="700"
           fill="var(--sage)"
         >
           {benchmarkLabel}
@@ -231,7 +240,7 @@ export const ScoreTrendChart: React.FC<{
           d={linePath}
           fill="none"
           stroke="var(--accent)"
-          strokeWidth="2.25"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -243,7 +252,8 @@ export const ScoreTrendChart: React.FC<{
           const isSelected = pt.id === selectedId;
           const isPeak = pt.value === maxVal && pt.value >= benchmarkValue;
           const isOptimal = pt.value >= benchmarkValue;
-          const showTopValue = isSelected || isPeak || i === 0 || i === points.length - 1 || i % 2 === 0;
+          const showTopValue =
+            isSelected || isPeak || i === 0 || i === points.length - 1 || i % 2 === 0;
 
           return (
             <g
@@ -258,7 +268,7 @@ export const ScoreTrendChart: React.FC<{
                   x2={cx}
                   y2={padTop + innerH}
                   stroke="var(--accent)"
-                  strokeOpacity="0.3"
+                  strokeOpacity="0.35"
                   strokeDasharray="2 2"
                 />
               )}
@@ -266,33 +276,32 @@ export const ScoreTrendChart: React.FC<{
               <circle
                 cx={cx}
                 cy={cy}
-                r={isSelected ? 6 : 4.2}
+                r={isSelected ? 6.5 : 4.8}
                 fill={isOptimal ? 'var(--sage)' : 'var(--surface)'}
                 stroke={isOptimal ? 'var(--sage)' : 'var(--accent)'}
-                strokeWidth={isSelected ? 2.5 : 2}
+                strokeWidth={isSelected ? 2.8 : 2.2}
               />
 
               {showTopValue && (
                 <text
                   x={cx}
-                  y={cy - 9}
+                  y={cy - 10}
                   textAnchor="middle"
-                  fontSize="10"
+                  fontSize="11.5"
                   fontFamily="JetBrains Mono, monospace"
-                  fontWeight={isSelected || isPeak ? '700' : '500'}
+                  fontWeight={isSelected || isPeak ? '700' : '600'}
                   fill={isOptimal ? 'var(--sage)' : 'var(--text)'}
                 >
                   {pt.value}
                 </text>
               )}
 
-              {/* X-Axis Labels */}
               <text
                 x={cx}
-                y={padTop + innerH + 16}
+                y={padTop + innerH + 18}
                 textAnchor="middle"
-                fontSize="10"
-                fontWeight={isSelected ? '700' : '500'}
+                fontSize="11.5"
+                fontWeight={isSelected ? '700' : '600'}
                 fill={isSelected ? 'var(--accent)' : 'var(--text-secondary)'}
               >
                 {pt.label}
@@ -300,9 +309,9 @@ export const ScoreTrendChart: React.FC<{
               {pt.sublabel && (
                 <text
                   x={cx}
-                  y={padTop + innerH + 29}
+                  y={padTop + innerH + 33}
                   textAnchor="middle"
-                  fontSize="9"
+                  fontSize="10.5"
                   fill="var(--text-muted)"
                 >
                   {pt.sublabel}
@@ -341,11 +350,11 @@ export const BenchmarkBarChart: React.FC<{
   if (!items.length) return null;
   const maxVal = Math.max(42, ...items.map((x) => x.value + 4));
   const width = 680;
-  const height = 210;
-  const padLeft = 34;
+  const height = 225;
+  const padLeft = 36;
   const padRight = 18;
-  const padTop = 24;
-  const padBottom = 42;
+  const padTop = 26;
+  const padBottom = 46;
   const innerW = width - padLeft - padRight;
   const innerH = height - padTop - padBottom;
   const slotW = innerW / items.length;
@@ -367,7 +376,7 @@ export const BenchmarkBarChart: React.FC<{
           x2={width - padRight}
           y2={padTop + innerH}
           stroke="var(--border-strong)"
-          strokeWidth="1"
+          strokeWidth="1.2"
         />
 
         {/* Bars */}
@@ -381,7 +390,7 @@ export const BenchmarkBarChart: React.FC<{
               : it.value < lowThreshold
               ? 'var(--crimson)'
               : 'var(--accent)';
-          const fillOpacity = it.value >= highThreshold || it.value < lowThreshold ? 0.88 : 0.72;
+          const fillOpacity = it.value >= highThreshold || it.value < lowThreshold ? 0.9 : 0.78;
 
           return (
             <g key={it.id}>
@@ -398,7 +407,7 @@ export const BenchmarkBarChart: React.FC<{
                 x={x + barW / 2}
                 y={y - 6}
                 textAnchor="middle"
-                fontSize="10.5"
+                fontSize="11.5"
                 fontFamily="JetBrains Mono, monospace"
                 fontWeight="700"
                 fill="var(--text)"
@@ -407,9 +416,9 @@ export const BenchmarkBarChart: React.FC<{
               </text>
               <text
                 x={x + barW / 2}
-                y={padTop + innerH + 15}
+                y={padTop + innerH + 17}
                 textAnchor="middle"
-                fontSize="10.5"
+                fontSize="11.5"
                 fontWeight="600"
                 fill="var(--text-secondary)"
               >
@@ -418,9 +427,9 @@ export const BenchmarkBarChart: React.FC<{
               {it.sublabel && (
                 <text
                   x={x + barW / 2}
-                  y={padTop + innerH + 28}
+                  y={padTop + innerH + 32}
                   textAnchor="middle"
-                  fontSize="9.5"
+                  fontSize="10.5"
                   fill="var(--text-muted)"
                 >
                   {it.sublabel}
@@ -437,15 +446,15 @@ export const BenchmarkBarChart: React.FC<{
           x2={width - padRight}
           y2={benchY}
           stroke="var(--text)"
-          strokeOpacity="0.65"
-          strokeWidth="1.2"
+          strokeOpacity="0.7"
+          strokeWidth="1.4"
           strokeDasharray="4 3"
         />
         <rect
-          x={width - padRight - 118}
-          y={benchY - 17}
-          width={118}
-          height={15}
+          x={width - padRight - 134}
+          y={benchY - 18}
+          width={134}
+          height={16}
           rx={3}
           fill="var(--surface)"
         />
@@ -453,8 +462,8 @@ export const BenchmarkBarChart: React.FC<{
           x={width - padRight - 4}
           y={benchY - 6}
           textAnchor="end"
-          fontSize="9.5"
-          fontWeight="600"
+          fontSize="11"
+          fontWeight="700"
           fill="var(--text-secondary)"
         >
           {benchmarkLabel}
@@ -492,14 +501,14 @@ export const DayTimelineBar: React.FC<{
   const nowPct = ((nowH - riseH) / span) * 100;
 
   return (
-    <div className="space-y-2.5">
-      <div className="flex items-center justify-between text-xs text-[var(--text-muted)] font-mono">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] font-mono">
         <span>☀ Sunrise {sunriseTime}</span>
         <span>Daylight Window Timeline</span>
         <span>🌇 Sunset {sunsetTime}</span>
       </div>
 
-      <div className="relative h-9 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] overflow-hidden">
+      <div className="relative h-11 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] overflow-hidden">
         {windows.map((w) => {
           const left = Math.max(0, Math.min(100, ((w.startHourFloat - riseH) / span) * 100));
           const right = Math.max(0, Math.min(100, ((w.endHourFloat - riseH) / span) * 100));
@@ -518,7 +527,7 @@ export const DayTimelineBar: React.FC<{
               key={w.name}
               title={`${w.name}: ${w.startTime}–${w.endTime} (${w.category})`}
               style={{ left: `${left}%`, width: `${widthPct}%` }}
-              className={`absolute inset-y-0 flex items-center justify-center px-1 text-[10.5px] font-semibold truncate ${bg}`}
+              className={`absolute inset-y-0 flex items-center justify-center px-1.5 text-xs font-semibold truncate ${bg}`}
             >
               {widthPct >= 8 ? w.name.split(' ')[0] : ''}
             </div>
@@ -534,19 +543,19 @@ export const DayTimelineBar: React.FC<{
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--text-secondary)]">
+      <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--text-secondary)]">
         <span className="inline-flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/50 inline-block" />
-          Optimal (Abhijit / Brahma)
+          <span className="w-3 h-3 rounded-sm bg-emerald-500/55 inline-block" />
+          Best Hours (Abhijit / Brahma)
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm bg-rose-500/50 inline-block" />
-          Avoid (Rahu Kaal / Yamaganda)
+          <span className="w-3 h-3 rounded-sm bg-rose-500/55 inline-block" />
+          Avoid Starting New Work (Rahu Kaal / Yamaganda)
         </span>
         {nowPct >= 0 && nowPct <= 100 && (
           <span className="inline-flex items-center gap-1.5 font-mono text-[var(--text-muted)]">
-            <span className="w-2 h-2 rounded-full bg-[var(--text)] inline-block" />
-            Vertical marker = Current local hour
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--text)] inline-block" />
+            Vertical line = Current local time
           </span>
         )}
       </div>
@@ -586,7 +595,7 @@ export function SegmentedTabs<T extends string>({
             type="button"
             aria-selected={active}
             onClick={() => onChange(item.id)}
-            className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition inline-flex items-center gap-1.5 min-h-[34px] ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition inline-flex items-center gap-1.5 min-h-[38px] ${
               active
                 ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm border border-[var(--border)]'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
@@ -595,9 +604,9 @@ export function SegmentedTabs<T extends string>({
             <span>{item.label}</span>
             {item.count !== undefined && (
               <span
-                className={`px-1.5 py-0.2 rounded text-[11px] tabular-nums ${
+                className={`px-2 py-0.5 rounded text-xs tabular-nums ${
                   active
-                    ? 'bg-[var(--accent-bg)] text-[var(--accent)]'
+                    ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-bold'
                     : 'bg-[var(--surface)] text-[var(--text-muted)]'
                 }`}
               >
@@ -618,15 +627,15 @@ export const EmptyStateCard: React.FC<{
   onAction?: () => void;
 }> = ({ title, description, actionLabel, onAction }) => (
   <div className="obs-card p-8 text-center max-w-md mx-auto space-y-3">
-    <div className="text-base font-semibold text-[var(--text)]">{title}</div>
-    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{description}</p>
+    <div className="text-lg font-semibold text-[var(--text)]">{title}</div>
+    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{description}</p>
     {actionLabel && onAction && (
       <button
         type="button"
         onClick={onAction}
-        className="btn-editorial-secondary inline-flex items-center gap-1.5 text-xs"
+        className="btn-editorial-secondary inline-flex items-center gap-1.5 text-sm"
       >
-        <RotateCcw className="w-3.5 h-3.5" />
+        <RotateCcw className="w-4 h-4" />
         <span>{actionLabel}</span>
       </button>
     )}

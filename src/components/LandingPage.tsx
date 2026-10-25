@@ -11,6 +11,9 @@ import {
   Moon,
   Calendar,
   Activity,
+  Download,
+  FileText,
+  Type,
 } from 'lucide-react';
 import { BirthProfile } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
@@ -19,11 +22,13 @@ import { PanchangReport } from '../engines/panchangEngine';
 import { NumerologyReport } from '../engines/numerologyEngine';
 import { NEPAL_AND_GLOBAL_CITIES } from '../engines/locationAtlas';
 import { evaluateActionConsequence, scanUpcomingBestWindows } from '../data/karmaAndMuhurtaCodex';
+import { HOUSE_PLAIN_GUIDE } from '../data/plainEnglishGuide';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
 import { KpiStatCard, ScoreTrendChart, StatusBadge } from './ui/DashboardPrimitives';
 
 export type WebsiteDestination =
   | 'HOME'
+  | 'FULL_REPORT'
   | 'NAKSHATRAS'
   | 'WHAT_HAPPENS_IF'
   | 'OBSERVATORY'
@@ -47,6 +52,9 @@ interface Props {
   numerologyReport: NumerologyReport;
   darkMode: boolean;
   onToggleDarkMode: () => void;
+  largeText?: boolean;
+  onToggleLargeText?: () => void;
+  onDownloadPdf?: () => Promise<void>;
   onNavigate: (
     dest: WebsiteDestination,
     subTarget?: {
@@ -74,10 +82,14 @@ export const LandingPage: React.FC<Props> = ({
   numerologyReport,
   darkMode,
   onToggleDarkMode,
+  largeText = false,
+  onToggleLargeText,
+  onDownloadPdf,
   onNavigate,
 }) => {
   const [previewActionId, setPreviewActionId] = useState<string>('SIGN_CONTRACT');
   const [showCitySearch, setShowCitySearch] = useState<boolean>(false);
+  const [pdfDownloading, setPdfDownloading] = useState<boolean>(false);
 
   const moonPlanet = natalChart.planets.find((p) => p.id === 'Moon') || natalChart.planets[0];
 
@@ -139,10 +151,23 @@ export const LandingPage: React.FC<Props> = ({
     return [...vedicReport.sarvashtakavarga].sort((a, b) => b.bindus - a.bindus)[0];
   }, [vedicReport.sarvashtakavarga]);
 
+  const handleQuickPdf = async () => {
+    if (!onDownloadPdf) {
+      onNavigate('FULL_REPORT');
+      return;
+    }
+    try {
+      setPdfDownloading(true);
+      await onDownloadPdf();
+    } finally {
+      setPdfDownloading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg)] text-[var(--text)]">
       {/* ==================== CLEAN PRODUCT NAVBAR ==================== */}
-      <header className="sticky top-0 z-40 bg-[var(--surface)]/90 backdrop-blur-md border-b border-[var(--border)]">
+      <header className="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)]">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-8">
             <button
@@ -150,7 +175,7 @@ export const LandingPage: React.FC<Props> = ({
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="flex items-center gap-2.5 text-left"
             >
-              <div className="w-8 h-8 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+              <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center font-bold text-base shadow-sm">
                 ☉
               </div>
               <span className="font-display font-bold text-lg tracking-tight text-[var(--text)]">
@@ -158,53 +183,72 @@ export const LandingPage: React.FC<Props> = ({
               </span>
             </button>
 
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--text-secondary)]">
+            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-[var(--text-secondary)]">
+              <button
+                type="button"
+                onClick={() => onNavigate('FULL_REPORT')}
+                className="text-[var(--accent)] hover:underline inline-flex items-center gap-1.5"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Easy Report &amp; PDF</span>
+              </button>
               <button
                 type="button"
                 onClick={() => onNavigate('WHAT_HAPPENS_IF')}
                 className="hover:text-[var(--text)] transition"
               >
-                Action Timing
+                Best Dates &amp; Timing
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' })}
                 className="hover:text-[var(--text)] transition"
               >
-                Charts &amp; Ashtakavarga
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('OBSERVATORY', { studioTab: 'ASTROCARTOGRAPHY' })}
-                className="hover:text-[var(--text)] transition"
-              >
-                World Relocation
+                Kundali &amp; Charts
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('NAKSHATRAS')}
                 className="hover:text-[var(--text)] transition"
               >
-                28 Nakshatras
+                28 Birth Stars
               </button>
             </nav>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {onToggleLargeText && (
+              <button
+                type="button"
+                onClick={onToggleLargeText}
+                aria-label="Toggle larger reading text"
+                title="Switch between Standard and Large comfortable reading text"
+                className={`px-3 py-2 rounded-lg border text-sm font-semibold transition inline-flex items-center gap-1.5 ${
+                  largeText
+                    ? 'border-[var(--accent)] bg-[var(--accent-bg)] text-[var(--accent)]'
+                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text)]'
+                }`}
+              >
+                <Type className="w-4 h-4" />
+                <span className="hidden sm:inline">{largeText ? 'Large Text On' : 'Aa Size'}</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onToggleDarkMode}
               aria-label="Toggle color theme"
-              className="p-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text)] transition"
+              className="p-2.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text)] transition"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
+
             <button
               type="button"
-              onClick={() => onNavigate('OBSERVATORY', { studioTab: 'SYNTHESIS' })}
-              className="btn-editorial-primary inline-flex items-center gap-2 text-xs sm:text-sm"
+              onClick={() => onNavigate('FULL_REPORT')}
+              className="btn-editorial-primary inline-flex items-center gap-2 text-sm"
             >
-              <span>Open Dashboard</span>
+              <span>Read My Report</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -215,40 +259,39 @@ export const LandingPage: React.FC<Props> = ({
         {/* ==================== 5-SECOND TEST SPLIT HERO ==================== */}
         <section className="max-w-[1280px] mx-auto px-4 sm:px-8 pt-10 pb-16 lg:pt-14 lg:pb-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-            {/* Left (5 cols): Clear Value Prop + Instant Birth Profile Launcher */}
+            {/* Left (5 cols): Clear Value Prop + Instant Birth Profile & PDF Launcher */}
             <div className="lg:col-span-5 space-y-6">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>100% Client-Side Ephemeris • Zero Telemetry</span>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-sm font-semibold">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Plain-English Readings + Full Printable PDF Report</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-[var(--text)] leading-[1.12] tracking-tight">
-                  Know when to act, where you thrive, and how your sky aligns.
+                <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-[var(--text)] leading-[1.15] tracking-tight">
+                  Understand your birth chart clearly—and know your best days to act.
                 </h1>
 
-                <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-                  Decision-driven astrology, Vedic Kundali, Nepali Patro, and global relocation
-                  powered by real geocentric astronomy—clear summaries upfront, classical depth on
-                  demand.
+                <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed">
+                  Enter your birth details below to read a clear, plain-English personal horoscope,
+                  check upcoming dates for life decisions, or download your detailed multi-page{' '}
+                  <strong className="text-[var(--text)]">PDF Kundali &amp; Life Report</strong>.
                 </p>
               </div>
 
               {/* Clean Birth Profile Launcher Card */}
-              <div className="obs-card p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[var(--text)]">
-                    Personalize Your Workspace
+              <div className="obs-card p-6 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-base font-bold text-[var(--text)]">
+                    Enter Birth Details
                   </span>
-                  <span className="text-xs text-[var(--text-muted)] font-mono">
-                    {natalChart.ascendant.signSymbol} {natalChart.ascendant.signName} Asc •{' '}
-                    {moonPlanet.nakshatraName}
+                  <span className="text-sm text-[var(--accent)] font-semibold">
+                    {natalChart.ascendant.signName} Rising • {moonPlanet.nakshatraName} Star
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       First name
                     </label>
                     <input
@@ -265,7 +308,7 @@ export const LandingPage: React.FC<Props> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       Last name
                     </label>
                     <input
@@ -285,7 +328,7 @@ export const LandingPage: React.FC<Props> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       Birth date (YYYY / MM / DD)
                     </label>
                     <div className="grid grid-cols-3 gap-1.5">
@@ -299,7 +342,7 @@ export const LandingPage: React.FC<Props> = ({
                             year: parseInt(e.target.value, 10) || 1996,
                           })
                         }
-                        className="obs-input font-mono text-xs px-2"
+                        className="obs-input font-mono px-2"
                       />
                       <input
                         type="number"
@@ -313,7 +356,7 @@ export const LandingPage: React.FC<Props> = ({
                             month: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)),
                           })
                         }
-                        className="obs-input font-mono text-xs px-2"
+                        className="obs-input font-mono px-2"
                       />
                       <input
                         type="number"
@@ -327,13 +370,13 @@ export const LandingPage: React.FC<Props> = ({
                             day: Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1)),
                           })
                         }
-                        className="obs-input font-mono text-xs px-2"
+                        className="obs-input font-mono px-2"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       Birth time (24h HH : MM)
                     </label>
                     <div className="grid grid-cols-2 gap-1.5">
@@ -349,7 +392,7 @@ export const LandingPage: React.FC<Props> = ({
                             hour: Math.min(23, Math.max(0, parseInt(e.target.value, 10) || 0)),
                           })
                         }
-                        className="obs-input font-mono text-xs"
+                        className="obs-input font-mono"
                       />
                       <input
                         type="number"
@@ -363,7 +406,7 @@ export const LandingPage: React.FC<Props> = ({
                             minute: Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0)),
                           })
                         }
-                        className="obs-input font-mono text-xs"
+                        className="obs-input font-mono"
                       />
                     </div>
                   </div>
@@ -371,15 +414,15 @@ export const LandingPage: React.FC<Props> = ({
 
                 {/* Clean Location Selector */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-[var(--text-secondary)] font-medium inline-flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[var(--accent)]" />
+                      <MapPin className="w-4 h-4 text-[var(--accent)]" />
                       {profile.location.name}, {profile.location.country}
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowCitySearch(!showCitySearch)}
-                      className="text-[var(--accent)] font-medium hover:underline"
+                      className="text-[var(--accent)] font-semibold hover:underline"
                     >
                       {showCitySearch ? 'Done' : 'Change city'}
                     </button>
@@ -394,9 +437,9 @@ export const LandingPage: React.FC<Props> = ({
                             key={city.id}
                             type="button"
                             onClick={() => onProfileChange({ ...profile, location: city })}
-                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
                               active
-                                ? 'bg-[var(--accent-bg)] text-[var(--accent)] border border-[var(--accent)]/30'
+                                ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold border border-[var(--accent)]/30'
                                 : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
                             }`}
                           >
@@ -417,23 +460,38 @@ export const LandingPage: React.FC<Props> = ({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                {/* Primary Actions: Easy Report + Direct PDF Download */}
+                <div className="space-y-2.5 pt-2">
                   <button
                     type="button"
-                    onClick={() => onNavigate('OBSERVATORY', { studioTab: 'SYNTHESIS' })}
-                    className="btn-editorial-primary flex items-center justify-center gap-2"
+                    onClick={() => onNavigate('FULL_REPORT')}
+                    className="w-full btn-editorial-primary flex items-center justify-center gap-2 text-base"
                   >
-                    <span>Launch Dashboard</span>
+                    <FileText className="w-4 h-4" />
+                    <span>Read My Easy Personal Report</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })}
-                    className="btn-editorial-secondary flex items-center justify-center gap-2"
-                  >
-                    <Scale className="w-4 h-4 text-[var(--accent)]" />
-                    <span>Check Action Timing</span>
-                  </button>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      disabled={pdfDownloading}
+                      onClick={handleQuickPdf}
+                      className="btn-editorial-secondary flex items-center justify-center gap-2 text-sm disabled:opacity-60"
+                    >
+                      <Download className="w-4 h-4 text-[var(--accent)]" />
+                      <span>{pdfDownloading ? 'Building PDF…' : 'Download Detailed PDF'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('OBSERVATORY', { studioTab: 'SYNTHESIS' })}
+                      className="btn-editorial-secondary flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Compass className="w-4 h-4 text-[var(--accent)]" />
+                      <span>Interactive Dashboard</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -441,14 +499,14 @@ export const LandingPage: React.FC<Props> = ({
             {/* Right (7 cols): Live Interactive Decision & Forecast Preview Window */}
             <div className="lg:col-span-7 obs-card overflow-hidden shadow-sm">
               {/* Window Top Context Strip */}
-              <div className="px-5 py-3.5 bg-[var(--bg-elevated)] border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
+              <div className="px-5 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 text-[var(--accent)]" />
-                  <span className="text-xs font-semibold text-[var(--text)]">
-                    Live Decision Timing Preview — {profile.location.name}
+                  <span className="text-sm font-bold text-[var(--text)]">
+                    Should You Do It Today? — {profile.location.name}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1.5">
                   {HERO_PREVIEW_ACTIONS.map((act) => {
                     const active = act.id === previewActionId;
                     return (
@@ -456,7 +514,7 @@ export const LandingPage: React.FC<Props> = ({
                         key={act.id}
                         type="button"
                         onClick={() => setPreviewActionId(act.id)}
-                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
                           active
                             ? 'bg-[var(--surface)] text-[var(--accent)] font-semibold shadow-sm border border-[var(--border)]'
                             : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
@@ -471,13 +529,15 @@ export const LandingPage: React.FC<Props> = ({
 
               <div className="p-5 sm:p-6 space-y-6">
                 {/* 3 Focused Contextual Metrics */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  <div className="obs-panel p-3.5 space-y-1.5">
-                    <div className="text-xs text-[var(--text-secondary)]">Today’s Readiness</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="obs-panel p-4 space-y-1.5">
+                    <div className="text-sm font-medium text-[var(--text-secondary)]">
+                      Today’s Score
+                    </div>
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="text-2xl font-bold tabular-nums text-[var(--text)]">
                         {liveEval.score}
-                        <span className="text-xs font-normal text-[var(--text-muted)]">/100</span>
+                        <span className="text-sm font-normal text-[var(--text-muted)]">/100</span>
                       </span>
                       <StatusBadge
                         tone={
@@ -489,67 +549,67 @@ export const LandingPage: React.FC<Props> = ({
                         }
                         label={
                           liveEval.score >= 70
-                            ? 'Optimal'
+                            ? 'Good Day'
                             : liveEval.score >= 48
                             ? 'Mixed'
-                            : 'Postpone'
+                            : 'Wait'
                         }
                       />
                     </div>
-                    <div className="text-[11px] text-[var(--text-muted)] tabular-nums">
-                      {liveEval.score >= 70
-                        ? `+${liveEval.score - 70} pts above safe threshold`
-                        : `${70 - liveEval.score} pts below 70 threshold`}
+                    <div className="text-xs sm:text-sm text-[var(--text-muted)]">
+                      70+ is an ideal green-light day
                     </div>
                   </div>
 
-                  <div className="obs-panel p-3.5 space-y-1.5">
-                    <div className="text-xs text-[var(--text-secondary)]">Best Date in 10 Days</div>
-                    <div className="text-lg font-bold text-[var(--text)] tabular-nums">
+                  <div className="obs-panel p-4 space-y-1.5">
+                    <div className="text-sm font-medium text-[var(--text-secondary)]">
+                      Best Day in Next 10 Days
+                    </div>
+                    <div className="text-xl font-bold text-[var(--text)] tabular-nums">
                       {bestUpcoming?.dateStr || panchangReport.dateStr}
                     </div>
-                    <div className="text-[11px] text-[var(--sage)] font-medium tabular-nums">
-                      Peak score {bestUpcoming?.score ?? liveEval.score}/100 •{' '}
-                      {bestUpcoming?.nakshatraName}
+                    <div className="text-xs sm:text-sm text-[var(--sage)] font-semibold tabular-nums">
+                      Score {bestUpcoming?.score ?? liveEval.score}/100 ({bestUpcoming?.nakshatraName})
                     </div>
                   </div>
 
-                  <div className="obs-panel p-3.5 space-y-1.5">
-                    <div className="text-xs text-[var(--text-secondary)]">Active Life Period</div>
-                    <div className="text-lg font-bold text-[var(--text)]">
-                      {vedicReport.activeMahadasha.lord} – {vedicReport.activeAntardasha.lord}
+                  <div className="obs-panel p-4 space-y-1.5">
+                    <div className="text-sm font-medium text-[var(--text-secondary)]">
+                      Your Strongest Life Area
                     </div>
-                    <div className="text-[11px] text-[var(--text-muted)] tabular-nums">
-                      Peak SAV: House {topSavHouse.house} ({topSavHouse.bindus} bindus)
+                    <div className="text-lg font-bold text-[var(--text)] leading-snug">
+                      {HOUSE_PLAIN_GUIDE[topSavHouse.house]?.shortTitle || `House ${topSavHouse.house}`}
+                    </div>
+                    <div className="text-xs sm:text-sm text-[var(--text-muted)] tabular-nums">
+                      House {topSavHouse.house} ({topSavHouse.bindus} pts vs 28 avg)
                     </div>
                   </div>
                 </div>
 
-                {/* Visual 10-Day Trend Line Chart (Passes Hover Test) */}
+                {/* Visual 10-Day Trend Line Chart */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <h2 className="text-sm font-semibold text-[var(--text)]">
-                        10-Day Electional Favorability Forecast — {liveEval.action.title}
+                      <h2 className="text-base font-bold text-[var(--text)]">
+                        10-Day Timing Forecast — {liveEval.action.title}
                       </h2>
-                      <p className="text-xs text-[var(--text-muted)]">
-                        Computed across Nakshatra nature, Tithi group, Vara, Panchaka &amp; personal
-                        Tarabala
+                      <p className="text-sm text-[var(--text-muted)]">
+                        Green dots (70+) show the easiest, most supportive days to act
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })}
-                      className="text-xs font-semibold text-[var(--accent)] hover:underline whitespace-nowrap"
+                      className="text-sm font-semibold text-[var(--accent)] hover:underline whitespace-nowrap"
                     >
-                      All 20 actions →
+                      Test all 20 life decisions →
                     </button>
                   </div>
 
                   <ScoreTrendChart
                     points={forecastPoints}
                     benchmarkValue={70}
-                    benchmarkLabel="70+ Optimal window"
+                    benchmarkLabel="70+ Best Days"
                     selectedId={forecastPoints[0]?.id}
                     onSelectPoint={() =>
                       onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })
@@ -558,22 +618,22 @@ export const LandingPage: React.FC<Props> = ({
                   />
                 </div>
 
-                {/* Concise Action Takeaway */}
-                <div className="obs-panel p-4 flex flex-wrap items-center justify-between gap-4">
-                  <div className="space-y-0.5 max-w-xl">
-                    <div className="text-xs font-semibold text-[var(--text)]">
+                {/* Plain-English Action Takeaway */}
+                <div className="obs-panel p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1 max-w-xl">
+                    <div className="text-sm font-bold text-[var(--text)]">
                       {liveEval.headlineVerdict}
                     </div>
-                    <p className="text-xs text-[var(--text-secondary)] line-clamp-2">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {liveEval.whatHappensIfDoneNow}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })}
-                    className="btn-editorial-secondary py-1.5 px-3 text-xs min-h-[34px]"
+                    className="btn-editorial-secondary text-sm shrink-0"
                   >
-                    Inspect Rules
+                    See Full Explanation
                   </button>
                 </div>
               </div>
@@ -581,84 +641,91 @@ export const LandingPage: React.FC<Props> = ({
           </div>
         </section>
 
-        {/* ==================== TODAY'S LOCAL SKY SNAPSHOT (4 KPI CARDS MAX) ==================== */}
-        <section className="border-y border-[var(--border)] bg-[var(--surface)]/60 py-12">
+        {/* ==================== TODAY'S LOCAL SKY SNAPSHOT ==================== */}
+        <section className="border-y border-[var(--border)] bg-[var(--surface)]/70 py-14">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-8 space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-                  Today’s Sky at a Glance — {profile.location.name}
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold text-[var(--text)]">
+                  Today’s Sky in Plain English — {profile.location.name}
                 </h2>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  {panchangReport.bikramSambat.formatted} • {panchangReport.vara.name} • Sunrise{' '}
-                  {panchangReport.sunriseTime} – Sunset {panchangReport.sunsetTime}
+                <p className="text-base text-[var(--text-secondary)]">
+                  Nepali Date: {panchangReport.bikramSambat.formatted} • {panchangReport.vara.name} •
+                  Sunrise {panchangReport.sunriseTime} – Sunset {panchangReport.sunsetTime}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => onNavigate('OBSERVATORY', { studioTab: 'PANCHANG' })}
-                className="text-sm font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1"
+                className="text-base font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1.5"
               >
-                <span>Open Daily Panchang &amp; Choghadiya</span>
+                <span>Open Full Daily Panchang &amp; Best Hours</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiStatCard
-                label="Transit Nakshatra"
+                label="Today’s Moon Star (Nakshatra)"
                 value={panchangReport.nakshatra.name}
                 subvalue={`Pada ${panchangReport.nakshatra.pada}`}
+                plainHint={`Sets today’s overall mood: ${panchangReport.nakshatra.natureGroup}`}
                 benchmarkText={`${panchangReport.nakshatra.hoursRemaining} left`}
                 status={{
                   tone: 'info',
                   label: panchangReport.nakshatra.natureGroup.split(' ')[0],
                 }}
                 icon={<Sparkles className="w-4 h-4" />}
-                actionLabel="Read Nakshatra profile"
+                actionLabel="Read about this star"
                 onAction={() =>
                   onNavigate('NAKSHATRAS', { nakIdx: panchangReport.nakshatra.zeroIndex })
                 }
               />
 
               <KpiStatCard
-                label="Lunar Tithi & Paksha"
+                label="Lunar Day (Tithi)"
                 value={panchangReport.tithi.name}
-                benchmarkText={`${panchangReport.tithi.progressPercent}% elapsed`}
+                plainHint={
+                  panchangReport.tithi.isRikta
+                    ? 'Good for clearing debt/clutter; wait on new launches'
+                    : 'Constructive lunar phase for steady progress'
+                }
+                benchmarkText={`${panchangReport.tithi.progressPercent}% complete`}
                 status={{
                   tone: panchangReport.tithi.isRikta ? 'mixed' : 'favorable',
                   label: panchangReport.tithi.isRikta
-                    ? 'Rikta (Caution)'
+                    ? 'Caution Day'
                     : panchangReport.tithi.paksha.split(' ')[0],
                 }}
                 icon={<Calendar className="w-4 h-4" />}
-                actionLabel="View Muhurat timeline"
+                actionLabel="See today’s good hours"
                 onAction={() => onNavigate('OBSERVATORY', { studioTab: 'PANCHANG' })}
               />
 
               <KpiStatCard
-                label="Personal Tarabala"
-                value={`Tara #${panchangReport.personalTarabala.taraNumber}`}
-                subvalue={panchangReport.personalTarabala.taraName.split(' ')[0]}
+                label="Personal Star Harmony (Tarabala)"
+                value={
+                  panchangReport.personalTarabala.isAuspicious ? 'Supportive' : 'Pace Carefully'
+                }
+                plainHint={`How today’s Moon aligns with your Birth Star (${moonPlanet.nakshatraName})`}
                 benchmarkText={`Moon in House ${panchangReport.personalTarabala.chandrabalaHouse}`}
                 status={{
                   tone: panchangReport.personalTarabala.isAuspicious ? 'optimal' : 'mixed',
-                  label: panchangReport.personalTarabala.isAuspicious
-                    ? 'Supportive'
-                    : 'Use Parihara',
+                  label: panchangReport.personalTarabala.taraName.split(' ')[0],
                 }}
                 icon={<Compass className="w-4 h-4" />}
-                actionLabel="Test an action today"
+                actionLabel="Check a decision today"
                 onAction={() => onNavigate('WHAT_HAPPENS_IF')}
               />
 
               <KpiStatCard
-                label="Personal Year & Life Path"
+                label="Your Personal Year & Life Path"
                 value={`Year ${numerologyReport.personalYear.final}`}
-                subvalue={`LP #${numerologyReport.lifePath.final}`}
+                subvalue={`Life Path #${numerologyReport.lifePath.final}`}
+                plainHint={numerologyReport.personalYear.meaning.split('.')[0]}
                 benchmarkText={`Month ${numerologyReport.personalMonth.singleDigit} • Day ${numerologyReport.personalDay.singleDigit}`}
                 status={{ tone: 'info', label: numerologyReport.system }}
-                actionLabel="Open 25-year ColorChart"
+                actionLabel="Open 25-year forecast"
                 onAction={() => onNavigate('OBSERVATORY', { studioTab: 'NUMEROLOGY' })}
               />
             </div>
@@ -669,74 +736,74 @@ export const LandingPage: React.FC<Props> = ({
         <section className="max-w-[1280px] mx-auto px-4 sm:px-8 py-16 space-y-8">
           <div className="max-w-2xl space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">
-              Built around the decisions you actually make
+              Easy to read first—with full astrological depth whenever you want it
             </h2>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-              Every module surfaces high-signal metrics and visual charts first, while keeping full
-              classical treatises, sutras, and tables one click away.
+            <p className="text-base text-[var(--text-secondary)]">
+              Start with your plain-English personal reading and downloadable PDF report, or dive
+              into any specialized chart and timing tool below.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {[
               {
+                icon: <FileText className="w-5 h-5 text-[var(--accent)]" />,
+                badge: 'Plain-English + PDF',
+                title: 'Full Personal Reading & Printable PDF Report',
+                desc: 'Read your complete horoscope in clear, everyday language—covering personality, current life chapter, 12 life areas, D1/D9 Kundali charts, and best upcoming dates—and save it as a multi-page PDF.',
+                cta: 'Open Easy Report & PDF',
+                onClick: () => onNavigate('FULL_REPORT'),
+              },
+              {
                 icon: <Scale className="w-5 h-5 text-[var(--accent)]" />,
-                badge: '20 Life Actions',
-                title: 'Muhurta Action & Consequence Planner',
-                desc: 'Test lending, contracts, debt repayment, marriage, surgery, property, or travel against any date—with 12-day optimal score curves and behavioral Karma-Vipaka.',
-                cta: 'Open Action Timing',
+                badge: '20 Life Decisions',
+                title: 'Best Days to Sign, Invest, Marry, Build or Travel',
+                desc: 'Check whether today is favorable for contracts, loans, debt repayment, marriage, property, or medical care—and see your highest-scoring dates over the next 12 days.',
+                cta: 'Check Best Dates',
                 onClick: () => onNavigate('WHAT_HAPPENS_IF'),
               },
               {
-                icon: <Compass className="w-5 h-5 text-[var(--accent)]" />,
-                badge: '10 Vargas + 337 Bindus',
-                title: 'Natal Ephemeris, Vedic Kundali & KP',
-                desc: 'Interactive ecliptic wheel, ±120m rectification, 10 Shodashvarga charts, 12-house Sarvashtakavarga benchmark bars, Jaimini Karakas, and KP 1–249 Horary.',
-                cta: 'Explore Charts & SAV',
-                onClick: () => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' }),
-              },
-              {
                 icon: <Globe className="w-5 h-5 text-[var(--accent)]" />,
-                badge: '48 Planetary Lines',
-                title: 'World Astrocartography & Compatibility',
-                desc: 'Rank global and Himalayan cities for Career, Home Sanctuary, and Love across MC/IC/ASC/DSC lines, paired with 36-Guna Ashtakoota matchmaking.',
-                cta: 'Open World Relocation Map',
+                badge: 'World Map + Matchmaking',
+                title: 'Best Cities for You & Relationship Compatibility',
+                desc: 'Discover which cities worldwide support your career, peace of mind, and relationships, plus check 36-point Vedic marriage compatibility with a partner.',
+                cta: 'Explore World Map & Compatibility',
                 onClick: () => onNavigate('OBSERVATORY', { studioTab: 'ASTROCARTOGRAPHY' }),
               },
               {
                 icon: <BookOpen className="w-5 h-5 text-[var(--accent)]" />,
-                badge: '28 Stars & 9 Books',
-                title: '28 Nakshatras & Classical Source Library',
-                desc: 'Clean master-detail reference for all 28 lunar mansions, 108 Navamsha Padas, 360° Sabian symbols, 108 Planet-in-House rulings, and 9 foundational texts.',
-                cta: 'Browse Nakshatras & Library',
+                badge: '28 Stars & 9 Classics',
+                title: '28 Birth Stars (Nakshatras) & Classical Library',
+                desc: 'Explore readable guides to all 28 Vedic birth stars, 108 quarters (Padas), and personalized readings from 9 foundational astrology texts.',
+                cta: 'Browse Birth Stars & Books',
                 onClick: () => onNavigate('NAKSHATRAS'),
               },
             ].map((card) => (
               <div
                 key={card.title}
                 onClick={card.onClick}
-                className="obs-card p-6 hover:border-[var(--accent)] transition cursor-pointer flex flex-col justify-between gap-5 group"
+                className="obs-card p-6 sm:p-7 hover:border-[var(--accent)] transition cursor-pointer flex flex-col justify-between gap-5 group"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--accent-bg)] flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-lg bg-[var(--accent-bg)] flex items-center justify-center">
                       {card.icon}
                     </div>
-                    <span className="px-2.5 py-1 rounded-md bg-[var(--bg-elevated)] text-xs font-medium text-[var(--text-secondary)]">
+                    <span className="px-3 py-1 rounded-md bg-[var(--bg-elevated)] text-sm font-medium text-[var(--text-secondary)]">
                       {card.badge}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition">
+                  <h3 className="text-xl font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition">
                     {card.title}
                   </h3>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                  <p className="text-base text-[var(--text-secondary)] leading-relaxed">
                     {card.desc}
                   </p>
                 </div>
 
-                <div className="text-xs font-semibold text-[var(--accent)] inline-flex items-center gap-1.5">
+                <div className="text-sm font-semibold text-[var(--accent)] inline-flex items-center gap-1.5">
                   <span>{card.cta}</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
             ))}
@@ -745,14 +812,21 @@ export const LandingPage: React.FC<Props> = ({
       </main>
 
       {/* ==================== CLEAN MINIMAL FOOTER ==================== */}
-      <footer className="border-t border-[var(--border)] bg-[var(--surface)] py-8 px-4 sm:px-8 text-xs text-[var(--text-muted)]">
+      <footer className="border-t border-[var(--border)] bg-[var(--surface)] py-8 px-4 sm:px-8 text-sm text-[var(--text-muted)]">
         <div className="max-w-[1280px] mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-[var(--text)]">Oceanology</span>
             <span>•</span>
-            <span>Client-side Astronomical Ephemeris, Jyotish &amp; Decision Timing</span>
+            <span>Easy-to-Read Horoscope, Vedic Kundali &amp; Printable PDF Reports</span>
           </div>
-          <div className="flex flex-wrap items-center gap-5">
+          <div className="flex flex-wrap items-center gap-5 font-medium">
+            <button
+              type="button"
+              onClick={() => onNavigate('FULL_REPORT')}
+              className="text-[var(--accent)] hover:underline"
+            >
+              Full Report &amp; PDF
+            </button>
             <button
               type="button"
               onClick={() => onNavigate('OBSERVATORY')}
@@ -765,21 +839,14 @@ export const LandingPage: React.FC<Props> = ({
               onClick={() => onNavigate('WHAT_HAPPENS_IF')}
               className="hover:text-[var(--text)]"
             >
-              Action Timing
+              Best Dates
             </button>
             <button
               type="button"
               onClick={() => onNavigate('NAKSHATRAS')}
               className="hover:text-[var(--text)]"
             >
-              28 Nakshatras
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate('CANON')}
-              className="hover:text-[var(--text)]"
-            >
-              Classical Texts
+              28 Birth Stars
             </button>
           </div>
         </div>
