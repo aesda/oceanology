@@ -32,6 +32,8 @@ import {
 import { SacredFlowerIcon } from './ui/FloralAnimations';
 import {
   formatCityForLang,
+  formatDisplayDate,
+  shortNakshatraLabel,
   trActionCategory,
   trActionDynamicOutcome,
   trActionTitle,
@@ -146,11 +148,11 @@ export const ActionConsequenceLab: React.FC<Props> = ({
         moonPlanet.nakshatraIndex,
         natalMoonSignIdx
       );
-      const shortDate = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const shortDate = formatDisplayDate(dayIso, lang, false, true);
       return {
         id: dayIso,
-        label: idx === 0 ? shortDate : shortDate,
-        sublabel: ev.panchang.nakshatra.name.slice(0, 5),
+        label: shortDate,
+        sublabel: shortNakshatraLabel(ev.panchang.nakshatra.name, lang),
         value: ev.score,
       };
     });
@@ -161,6 +163,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
     location,
     moonPlanet.nakshatraIndex,
     natalMoonSignIdx,
+    lang,
   ]);
 
   const shiftDateByDays = (delta: number) => {
@@ -356,7 +359,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
 
             <KpiStatCard
               label={t('Best Date (Next 12 Days)', 'सर्वोत्तम मिति (आगामी १२ दिन)')}
-              value={bestWindows[0]?.dateStr || selectedDateStr}
+              value={formatDisplayDate(bestWindows[0]?.dateStr || selectedDateStr, lang, false)}
               subvalue={bestWindows[0] ? `${bestWindows[0].score}/100` : undefined}
               benchmarkText={
                 bestWindows[0]
@@ -462,8 +465,10 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                     label={lang === 'ne' ? readinessStatus.label : report.verdictTier}
                     size="md"
                   />
-                  <span className="text-xs font-mono text-[var(--text-muted)]">
-                    {report.action.sanskritTitle}
+                  <span className="text-xs text-[var(--text-muted)]">
+                    {lang === 'ne'
+                      ? report.action.sanskritTitle.replace(/\s*\([^)]+\)/g, '')
+                      : report.action.sanskritTitle}
                   </span>
                 </div>
 

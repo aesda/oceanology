@@ -620,9 +620,9 @@ function AppWorkspace() {
           type="button"
           disabled={pdfExporting}
           onClick={handleGlobalDownloadPdf}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg btn-editorial-primary text-sm disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg btn-editorial-secondary text-sm disabled:opacity-60"
         >
-          <Download className="w-4 h-4" />
+          <Download className="w-4 h-4 text-[var(--accent)]" />
           <span>
             {pdfExporting
               ? t('Building PDF…', 'PDF बन्दैछ…')
@@ -752,28 +752,24 @@ function AppWorkspace() {
               type="button"
               onClick={() => setFloralMotion(!floralMotion)}
               aria-label="Toggle sacred flower animations"
-              title="Toggle Floating Flower Petals & Click Blooms"
-              className={`hidden md:inline-flex ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
+              title={t('Toggle flower animations', 'पुष्प एनिमेसन अन/अफ')}
+              className={`hidden md:inline-flex ui-toolbar-icon-btn ${
+                floralMotion ? 'ui-toolbar-btn-active' : ''
+              }`}
             >
-              <SacredFlowerIcon
-                variety="lotus"
-                primaryHex="#EC4899"
-                secondaryHex="#FBCFE8"
-                size={16}
-                animated={floralMotion}
-              />
-              <span className="hidden 2xl:inline">{t('Bloom', 'पुष्प')}</span>
+              <Sparkles className="w-4 h-4" />
             </button>
 
             <button
               type="button"
               onClick={() => setLargeText(!largeText)}
               aria-label="Toggle larger text size"
-              title="Toggle Larger Reading Text"
-              className={`hidden md:inline-flex ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
+              title={t('Toggle larger reading text', 'ठूलो अक्षर आकार')}
+              className={`hidden md:inline-flex ui-toolbar-btn px-2.5 ${
+                largeText ? 'ui-toolbar-btn-active' : ''
+              }`}
             >
-              <Type className="w-4 h-4" />
-              <span className="hidden 2xl:inline">{largeText ? t('Large', 'ठूलो') : 'Aa'}</span>
+              <span>{largeText ? t('Aa+', 'ठूलो') : 'Aa'}</span>
             </button>
 
             <button
@@ -926,6 +922,8 @@ function AppWorkspace() {
                         label: t('Strong Alignment', 'उच्च तालमेल'),
                       }}
                       icon={<Activity className="w-4 h-4" />}
+                      actionLabel={t('Read full personal report', 'पूर्ण रिपोर्ट पढ्नुहोस्')}
+                      onAction={() => handleNavigate('FULL_REPORT')}
                     />
 
                     <KpiStatCard
@@ -982,7 +980,17 @@ function AppWorkspace() {
                         `Month ${numerologyReport.personalMonth.singleDigit} • Day ${numerologyReport.personalDay.singleDigit}`,
                         `महिना ${numerologyReport.personalMonth.singleDigit} • दिन ${numerologyReport.personalDay.singleDigit}`
                       )}
-                      status={{ tone: 'favorable', label: numSystem }}
+                      status={{
+                        tone: 'favorable',
+                        label:
+                          lang === 'ne'
+                            ? numSystem === 'CHALDEAN'
+                              ? 'कल्डियन'
+                              : 'पाइथागोरियन'
+                            : numSystem === 'CHALDEAN'
+                            ? 'Chaldean'
+                            : 'Pythagorean',
+                      }}
                       icon={<Hash className="w-4 h-4" />}
                       actionLabel={t('Open 25-year forecast', '२५-वर्षे अंक चक्र')}
                       onAction={() => setStudioTab('NUMEROLOGY')}
@@ -1054,8 +1062,11 @@ function AppWorkspace() {
                                 {t('360° Natal Sky Wheel', '३६०° जन्म आकाश ग्रह चक्र')}
                               </h2>
                               <p className="text-sm text-[var(--text-muted)]">
-                                {ayanamsha} {t('zodiac', 'अयनांश')} • {houseSystem}{' '}
-                                {t('houses', 'भाव प्रणाली')}
+                                {lang === 'ne'
+                                  ? `${ayanamsha === 'LAHIRI' ? 'लाहिरी' : ayanamsha} अयनांश • ${
+                                      houseSystem === 'PLACIDUS' ? 'प्लासिडस' : houseSystem
+                                    } भाव प्रणाली`
+                                  : `${ayanamsha} zodiac • ${houseSystem} houses`}
                               </p>
                             </div>
                             <button

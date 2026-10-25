@@ -117,23 +117,23 @@ export const FloatingPetalsBackdrop: React.FC<{ enabled?: boolean }> = ({
   enabled = true,
 }) => {
   const petals = useMemo<FloatingPetalSpec[]>(() => {
-    return Array.from({ length: 22 }, (_, idx) => {
+    return Array.from({ length: 12 }, (_, idx) => {
       const palette = PETAL_PALETTE[idx % PETAL_PALETTE.length];
-      // Frame the left (1%..16%) and right (84%..98%) botanical margins so center text stays crystal-clear
+      // Frame only ultra-wide outer margins (1%..6% and 94%..99%) so laptop viewports stay 100% crisp and smudge-free
       const isLeftMargin = idx % 2 === 0;
-      const laneOffset = ((idx * 3.7) % 14.5) + 1.2;
-      const leftPct = isLeftMargin ? laneOffset : 98.8 - laneOffset;
+      const laneOffset = ((idx * 1.9) % 4.8) + 1.0;
+      const leftPct = isLeftMargin ? laneOffset : 99.0 - laneOffset;
 
       return {
         id: idx,
         leftPct,
-        durationSec: 16 + (idx % 7) * 2.8,
-        delaySec: -((idx * 2.4) % 24),
-        swayDurationSec: 3.8 + (idx % 5) * 0.9,
-        driftPx: isLeftMargin ? 28 + (idx % 4) * 12 : -(28 + (idx % 4) * 12),
-        swayPx: isLeftMargin ? 16 : -16,
-        scale: 0.72 + (idx % 4) * 0.12,
-        opacity: idx % 4 === 0 ? 0.38 : 0.28,
+        durationSec: 18 + (idx % 6) * 3.2,
+        delaySec: -((idx * 3.1) % 24),
+        swayDurationSec: 4.4 + (idx % 4) * 0.9,
+        driftPx: isLeftMargin ? 16 + (idx % 3) * 8 : -(16 + (idx % 3) * 8),
+        swayPx: isLeftMargin ? 10 : -10,
+        scale: 0.78 + (idx % 3) * 0.1,
+        opacity: 0.2,
         primary: palette.primary,
         secondary: palette.secondary,
         isFullFlower: idx % 3 === 0,
@@ -146,7 +146,7 @@ export const FloatingPetalsBackdrop: React.FC<{ enabled?: boolean }> = ({
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-0 pointer-events-none overflow-hidden z-[1] no-print"
+      className="hidden 2xl:block fixed inset-0 pointer-events-none overflow-hidden z-[1] no-print"
     >
       {petals.map((p) => (
         <div

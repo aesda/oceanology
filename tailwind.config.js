@@ -5,11 +5,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
-        serif: ['Newsreader', 'Georgia', 'serif'],
-        literary: ['Newsreader', 'Georgia', 'serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Inter', 'Noto Sans Devanagari', 'Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'Noto Sans Devanagari', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['Newsreader', 'Noto Sans Devanagari', 'Georgia', 'serif'],
+        literary: ['Newsreader', 'Noto Sans Devanagari', 'Georgia', 'serif'],
+        mono: ['Inter', 'Noto Sans Devanagari', 'system-ui', 'sans-serif'],
       },
     },
   },

@@ -8,7 +8,7 @@
   --bg-elevated: #F1F5F9;
   --surface: #FFFFFF;
   --surface-muted: #F8FAFC;
-  --border: #CBD5E1;
+  --border: #E2E8F0;
   --border-strong: #94A3B8;
   --text: #0F172A;
   --text-secondary: #334155;
@@ -83,11 +83,6 @@ html.dark {
 
   body {
     background-color: var(--bg);
-    background-image:
-      radial-gradient(at 12% 8%, rgba(236, 72, 153, 0.08) 0px, transparent 48%),
-      radial-gradient(at 88% 12%, rgba(245, 158, 11, 0.09) 0px, transparent 46%),
-      radial-gradient(at 50% 88%, rgba(79, 70, 229, 0.08) 0px, transparent 52%);
-    background-attachment: fixed;
     color: var(--text);
     font-family: 'Inter', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
     font-size: 1rem;
@@ -96,11 +91,8 @@ html.dark {
     text-rendering: optimizeLegibility;
   }
 
-  html.dark body {
-    background-image:
-      radial-gradient(at 15% 10%, rgba(236, 72, 153, 0.14) 0px, transparent 48%),
-      radial-gradient(at 85% 14%, rgba(245, 158, 11, 0.11) 0px, transparent 46%),
-      radial-gradient(at 50% 90%, rgba(99, 102, 241, 0.16) 0px, transparent 54%);
+  .font-mono {
+    font-variant-numeric: tabular-nums;
   }
 
   h1, h2, h3, h4 {
@@ -588,21 +580,11 @@ input[type='number'].obs-input::-webkit-inner-spin-button {
 .floral-banner-glow {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    125deg,
-    color-mix(in srgb, var(--surface) 90%, #FDF2F8) 0%,
-    color-mix(in srgb, var(--surface) 92%, #FFFBEB) 50%,
-    color-mix(in srgb, var(--surface) 90%, #EEF2FF) 100%
-  );
+  background-color: var(--surface);
 }
 
 html.dark .floral-banner-glow {
-  background: linear-gradient(
-    125deg,
-    rgba(236, 72, 153, 0.12) 0%,
-    rgba(245, 158, 11, 0.08) 50%,
-    rgba(99, 102, 241, 0.14) 100%
-  );
+  background-color: var(--surface);
 }
 
 @media (prefers-reduced-motion: reduce) {

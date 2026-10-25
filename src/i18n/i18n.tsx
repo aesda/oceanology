@@ -325,6 +325,70 @@ export function trNakshatra(nakName: string, lang: AppLanguage): string {
   return NAKSHATRA_NE[nakName] || nakName;
 }
 
+const SHORT_NAK_EN: Record<string, string> = {
+  Mrigashira: 'Mrigash.',
+  Punarvasu: 'Punarv.',
+  'Purva Phalguni': 'P.Phalg.',
+  'Uttara Phalguni': 'U.Phalg.',
+  'Purva Ashadha': 'P.Ashad.',
+  'Uttara Ashadha': 'U.Ashad.',
+  Dhanishtha: 'Dhanish.',
+  Dhanishta: 'Dhanish.',
+  Shatabhisha: 'Shatabh.',
+  'Purva Bhadrapada': 'P.Bhadr.',
+  'Uttara Bhadrapada': 'U.Bhadr.',
+};
+
+const SHORT_NAK_NE: Record<string, string> = {
+  'Purva Phalguni': 'पू.फाल्गुनी',
+  'Uttara Phalguni': 'उ.फाल्गुनी',
+  'Purva Ashadha': 'पूर्वाषाढा',
+  'Uttara Ashadha': 'उत्तराषाढा',
+  'Purva Bhadrapada': 'पू.भाद्र',
+  'Uttara Bhadrapada': 'उ.भाद्र',
+};
+
+export function shortNakshatraLabel(nakName: string, lang: AppLanguage): string {
+  if (lang === 'ne') {
+    return SHORT_NAK_NE[nakName] || NAKSHATRA_NE[nakName] || nakName;
+  }
+  return SHORT_NAK_EN[nakName] || nakName;
+}
+
+const MONTHS_SHORT_EN = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+const MONTHS_SHORT_NE = [
+  'जनवरी', 'फेब्रुअरी', 'मार्च', 'अप्रिल', 'मे', 'जुन',
+  'जुलाई', 'अगस्ट', 'सेप्टेम्बर', 'अक्टोबर', 'नोभेम्बर', 'डिसेम्बर',
+];
+
+const MONTHS_COMPACT_NE = [
+  'जन', 'फेब्रु', 'मार्च', 'अप्रिल', 'मे', 'जुन',
+  'जुलाई', 'अग', 'सेप्टे', 'अक्टो', 'नोभे', 'डिसे',
+];
+
+export function formatDisplayDate(
+  isoDateStr: string,
+  lang: AppLanguage,
+  includeYear = false,
+  compact = false
+): string {
+  const parts = isoDateStr.split('-').map((n) => parseInt(n, 10));
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return isoDateStr;
+  const [yr, mo, dy] = parts;
+  const mIdx = Math.max(0, Math.min(11, mo - 1));
+  if (lang === 'ne') {
+    const mName = compact ? MONTHS_COMPACT_NE[mIdx] : MONTHS_SHORT_NE[mIdx];
+    return includeYear ? `${mName} ${dy}, ${yr}` : `${mName} ${dy}`;
+  }
+  return includeYear
+    ? `${MONTHS_SHORT_EN[mIdx]} ${dy}, ${yr}`
+    : `${MONTHS_SHORT_EN[mIdx]} ${dy}`;
+}
+
 export function trVara(varaFull: string, lang: AppLanguage): string {
   if (lang === 'en') return varaFull;
   if (VARA_NE[varaFull]) return VARA_NE[varaFull];
@@ -751,12 +815,28 @@ export function trActionDynamicOutcome(
   score: number,
   action: LifeActionSpec,
   nakName: string,
-  enHeadline: string,
-  enWhatHappens: string,
+  _enHeadline: string,
+  _enWhatHappens: string,
   lang: AppLanguage
 ): { headline: string; consequence: string } {
   if (lang === 'en') {
-    return { headline: enHeadline, consequence: enWhatHappens };
+    const cleanAct = action.title.toLowerCase();
+    if (score >= 70) {
+      return {
+        headline: `Green-Light Day (${score}/100) — Favorable for ${action.title}`,
+        consequence: `Today’s ${nakName} Moon and your personal star alignment strongly support ${cleanAct}, helping plans move forward smoothly with lasting results.`,
+      };
+    }
+    if (score >= 48) {
+      return {
+        headline: `Mixed Conditions (${score}/100) — Use Today’s Best Planetary Hours`,
+        consequence: `Today’s ${nakName} Moon is workable for ${cleanAct} when timed well—schedule during a favorable Hora or Abhijit window and avoid Rahu Kaal.`,
+      };
+    }
+    return {
+      headline: `Better to Wait (${score}/100) — Pick a 70+ Green-Light Day`,
+      consequence: `Today’s ${nakName} Moon carries extra friction or delays for ${cleanAct}. If it isn’t urgent, choose one of the green 70+ dates on the forecast chart.`,
+    };
   }
   const neAction = trActionTitle(action.id, action.title, 'ne');
   const neNak = trNakshatra(nakName, 'ne');

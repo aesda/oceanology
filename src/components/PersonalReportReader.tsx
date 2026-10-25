@@ -50,11 +50,7 @@ import {
 import { VedicKundliSvg } from './VedicKundliSvg';
 import { NatalWheelSvg } from './NatalWheelSvg';
 import { StatusBadge } from './ui/DashboardPrimitives';
-import {
-  BloomingLotusMandala,
-  LotusVineDivider,
-  SacredFlowerIcon,
-} from './ui/FloralAnimations';
+import { LotusVineDivider, SacredFlowerIcon } from './ui/FloralAnimations';
 
 interface Props {
   profile: BirthProfile;
@@ -234,14 +230,11 @@ export const PersonalReportReader: React.FC<Props> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12 animate-bloom-in">
       {/* ==================== TOP DOSSIER HERO & PDF EXPORT CARD ==================== */}
-      <section className="obs-card floral-banner-glow p-6 sm:p-8 space-y-6 border-t-4 border-t-[var(--accent)] relative overflow-hidden">
-        <div className="pointer-events-none absolute -right-24 -top-24 opacity-25">
-          <BloomingLotusMandala size={280} />
-        </div>
-        <div className="flex flex-wrap items-start justify-between gap-4 relative z-10">
+      <section className="obs-card p-6 sm:p-8 space-y-6 border-t-4 border-t-[var(--accent)]">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--accent-bg)] text-[var(--accent)] text-xs sm:text-sm font-semibold border border-[var(--accent)]/20">
-              <SacredFlowerIcon variety="lotus" primaryHex="#EC4899" secondaryHex="#FDE68A" size={17} />
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 obs-badge-brass text-xs font-semibold">
+              <SacredFlowerIcon variety="lotus" primaryHex="#6366F1" secondaryHex="#E0E7FF" size={16} />
               <span>
                 {t(
                   'Easy-to-Read Personal Horoscope & Multi-Page PDF Dossier',

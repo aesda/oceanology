@@ -43,8 +43,6 @@ import {
   WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 import {
-  BloomingLotusMandala,
-  CornerLotusDecor,
   HoraiLotusClockWheel,
   LotusVineDivider,
   SacredFlowerIcon,
@@ -256,13 +254,9 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
         }
       />
 
-      {/* ==================== HERO LIVE HORAI FLORAL BANNER ==================== */}
-      <div className="obs-card floral-banner-glow p-6 sm:p-7 relative overflow-hidden group">
-        <div className="pointer-events-none absolute -right-20 -bottom-24 opacity-30">
-          <BloomingLotusMandala size={310} />
-        </div>
-
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      {/* ==================== HERO LIVE HORAI BANNER ==================== */}
+      <div className="obs-card p-6 sm:p-7">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           <div className="lg:col-span-7 space-y-3">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md obs-badge-sage text-xs font-bold">
@@ -273,8 +267,8 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                 <span>{t('ACTIVE HORAI RIGHT NOW', 'अहिले चलिरहेको प्रत्यक्ष होरा')}</span>
               </span>
               <StatusBadge tone={activeHorai.tone} label={activeHoraiDisp.quality} />
-              <span className="text-xs font-medium text-[var(--text-secondary)] bg-[var(--surface)]/85 px-2.5 py-1 rounded-md border border-[var(--border)]">
-                {activeHorai.devanagariName} • {activeHorai.tamilName}
+              <span className="text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-elevated)] px-2.5 py-1 rounded-md border border-[var(--border)]">
+                {lang === 'ne' ? activeHorai.devanagariName : activeHorai.sanskritHora}
               </span>
             </div>
 
@@ -313,7 +307,10 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                 <span>
                   {t(
                     `Heads-up: ${activeHorai.kalamConflictNote} — pause brand-new launches until the overlap passes.`,
-                    `सावधानी: यस समयमा राहुकाल/यमगण्ड परेको छ (${activeHorai.kalamConflictNote}) — नयाँ शुभ कार्य केही बेर प्रतीक्षा गर्नुहोस्।`
+                    `सावधानी: यस समयमा ${activeHorai.kalamConflictNote
+                      .replace('Overlaps Rahu Kaal', 'राहुकाल')
+                      .replace('Overlaps Yamaganda', 'यमगण्ड')
+                      .replace('Overlaps Gulika', 'गुलिक काल')} परेको छ — नयाँ शुभ कार्य केही बेर प्रतीक्षा गर्नुहोस्।`
                   )}
                 </span>
               </div>
@@ -541,12 +538,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
           </div>
 
           {/* Right: Selected Petal Deep Inspector */}
-          <div className="lg:col-span-6 obs-panel p-5 sm:p-6 relative overflow-hidden group space-y-4">
-            <CornerLotusDecor
-              primaryHex={inspectedSlot.sacredFlower.primaryHex}
-              secondaryHex={inspectedSlot.sacredFlower.secondaryHex}
-            />
-
+          <div className="lg:col-span-6 obs-panel p-5 sm:p-6 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-1 rounded-md bg-[var(--surface)] border border-[var(--border)] text-xs font-mono font-bold text-[var(--text)]">
@@ -581,7 +573,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                   {inspectedDisp.horaiName} — {slotTimeStr(inspectedSlot)}
                 </h3>
                 <p className="text-sm text-[var(--text-secondary)]">
-                  {inspectedSlot.sanskritHora} • {inspectedSlot.tamilName} •{' '}
+                  {lang === 'ne' ? inspectedSlot.devanagariName : inspectedSlot.sanskritHora} •{' '}
                   {t('Sacred Pushpa:', 'पवित्र पुष्प:')}{' '}
                   <strong>{inspectedDisp.flowerName}</strong>
                 </p>
@@ -736,7 +728,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                             )}
                           </div>
                           <p className="text-xs text-[var(--text-secondary)]">
-                            {sDisp.bestFor[0]} • {slot.tamilName}
+                            {sDisp.bestFor[0]}
                           </p>
                           {slot.kalamConflictNote && (
                             <p className="text-xs font-semibold text-[var(--amber)]">
@@ -802,7 +794,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                             )}
                           </div>
                           <p className="text-xs text-[var(--text-secondary)]">
-                            {sDisp.bestFor[0]} • {slot.tamilName}
+                            {sDisp.bestFor[0]}
                           </p>
                         </div>
                       </div>
@@ -1043,14 +1035,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               const meta = HORAI_LORD_META[lordId];
               const neMeta = HORAI_NE_META[lordId];
               return (
-                <div
-                  key={lordId}
-                  className="obs-panel p-5 relative overflow-hidden group space-y-3"
-                >
-                  <CornerLotusDecor
-                    primaryHex={meta.sacredFlower.primaryHex}
-                    secondaryHex={meta.sacredFlower.secondaryHex}
-                  />
+                <div key={lordId} className="obs-panel p-5 space-y-3">
                   <div className="flex items-center gap-3">
                     <SacredFlowerIcon
                       variety={meta.sacredFlower.variety}
@@ -1071,7 +1056,8 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                         />
                       </div>
                       <p className="text-xs text-[var(--text-secondary)]">
-                        {meta.devanagariName} • {meta.tamilName} • {t('Flower:', 'पवित्र पुष्प:')}{' '}
+                        {lang === 'ne' ? meta.devanagariName : meta.sanskritHora} •{' '}
+                        {t('Flower:', 'पवित्र पुष्प:')}{' '}
                         <strong>
                           {lang === 'ne' ? neMeta.flowerName : meta.sacredFlower.name}
                         </strong>

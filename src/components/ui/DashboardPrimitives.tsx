@@ -74,15 +74,15 @@ export const KpiStatCard: React.FC<KpiStatCardProps> = ({
   onAction,
 }) => {
   return (
-    <div className="obs-card p-5 flex flex-col justify-between gap-3.5">
+    <div className="obs-card p-5 h-full flex flex-col justify-between gap-3.5">
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-semibold text-[var(--text-secondary)]">{label}</span>
-          {icon && <span className="text-[var(--accent)]">{icon}</span>}
+          {icon && <span className="text-[var(--accent)] shrink-0">{icon}</span>}
         </div>
 
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span className="text-2xl sm:text-[26px] font-bold tracking-tight text-[var(--text)] tabular-nums leading-tight">
+          <span className="text-2xl sm:text-[25px] font-bold tracking-tight text-[var(--text)] tabular-nums leading-tight">
             {value}
           </span>
           {subvalue && (
@@ -112,7 +112,7 @@ export const KpiStatCard: React.FC<KpiStatCardProps> = ({
             className="pt-2.5 border-t border-[var(--border)] w-full text-left text-sm font-semibold text-[var(--accent)] hover:underline inline-flex items-center justify-between"
           >
             <span>{actionLabel}</span>
-            <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+            <ArrowUpRight className="w-4 h-4 shrink-0" aria-hidden="true" />
           </button>
         )}
       </div>
@@ -134,6 +134,7 @@ export const ScoreTrendChart: React.FC<{
   maxValue?: number;
   selectedId?: string;
   onSelectPoint?: (id: string) => void;
+  headerAction?: React.ReactNode;
   ariaLabel: string;
 }> = ({
   points,
@@ -142,21 +143,24 @@ export const ScoreTrendChart: React.FC<{
   maxValue = 100,
   selectedId,
   onSelectPoint,
+  headerAction,
   ariaLabel,
 }) => {
   if (!points.length) return null;
 
   const width = 680;
-  const height = 228;
-  const padLeft = 40;
-  const padRight = 24;
-  const padTop = 28;
-  const padBottom = 48;
-  const innerW = width - padLeft - padRight;
+  const height = 208;
+  const padLeft = 36;
+  const padRight = 20;
+  const padTop = 24;
+  const padBottom = 46;
+  const plotLeft = padLeft + 16;
+  const plotRight = width - padRight - 8;
+  const innerW = plotRight - plotLeft;
   const innerH = height - padTop - padBottom;
 
   const getX = (i: number) =>
-    points.length === 1 ? padLeft + innerW / 2 : padLeft + (i / (points.length - 1)) * innerW;
+    points.length === 1 ? plotLeft + innerW / 2 : plotLeft + (i / (points.length - 1)) * innerW;
   const getY = (val: number) => {
     const clamped = Math.max(0, Math.min(maxValue, val));
     return padTop + innerH - (clamped / maxValue) * innerH;
@@ -175,8 +179,9 @@ export const ScoreTrendChart: React.FC<{
 
   return (
     <div className="w-full overflow-x-auto space-y-1.5">
-      <div className="flex items-center justify-end">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[var(--sage-bg)] text-[var(--sage)] text-[11px] font-bold border border-[var(--sage)]/25">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>{headerAction}</div>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[var(--sage-bg)] text-[var(--sage)] text-xs font-semibold border border-[var(--sage)]/25">
           <span className="w-3.5 border-t-2 border-dashed border-[var(--sage)] inline-block" />
           <span>{benchmarkLabel}</span>
         </span>
@@ -189,7 +194,7 @@ export const ScoreTrendChart: React.FC<{
       >
         <defs>
           <linearGradient id="oceanTrendFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.22" />
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.16" />
             <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.01" />
           </linearGradient>
         </defs>
@@ -212,7 +217,7 @@ export const ScoreTrendChart: React.FC<{
                 x={padLeft - 8}
                 y={y + 4}
                 textAnchor="end"
-                fontSize="11.5"
+                fontSize="11"
                 fill="var(--text-muted)"
                 className="tabular-nums"
               >
@@ -239,20 +244,25 @@ export const ScoreTrendChart: React.FC<{
           d={linePath}
           fill="none"
           stroke="var(--accent)"
-          strokeWidth="2.5"
+          strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
 
-        {/* Data Points + Direct Value Labels */}
+        {/* Data Points + Consistent Haloed Value Labels */}
         {points.map((pt, i) => {
           const cx = getX(i);
           const cy = getY(pt.value);
           const isSelected = pt.id === selectedId;
           const isPeak = pt.value === maxVal && pt.value >= benchmarkValue;
           const isOptimal = pt.value >= benchmarkValue;
-          const showTopValue =
-            isSelected || isPeak || i === 0 || i === points.length - 1 || i % 2 === 0;
+          const showValue = points.length <= 14 || isSelected || isPeak || i % 2 === 0;
+
+          const prevVal = i > 0 ? points[i - 1].value : pt.value;
+          const nextVal = i < points.length - 1 ? points[i + 1].value : pt.value;
+          const isLocalValley =
+            i > 0 && i < points.length - 1 && pt.value < prevVal - 8 && pt.value < nextVal - 8;
+          const labelY = isLocalValley && pt.value >= 18 ? cy + 17 : cy - 10;
 
           return (
             <g
@@ -267,7 +277,7 @@ export const ScoreTrendChart: React.FC<{
                   x2={cx}
                   y2={padTop + innerH}
                   stroke="var(--accent)"
-                  strokeOpacity="0.35"
+                  strokeOpacity="0.28"
                   strokeDasharray="2 2"
                 />
               )}
@@ -275,20 +285,24 @@ export const ScoreTrendChart: React.FC<{
               <circle
                 cx={cx}
                 cy={cy}
-                r={isSelected ? 6.5 : 4.8}
+                r={isSelected ? 6 : 4.6}
                 fill={isOptimal ? 'var(--sage)' : 'var(--surface)'}
                 stroke={isOptimal ? 'var(--sage)' : 'var(--accent)'}
-                strokeWidth={isSelected ? 2.8 : 2.2}
+                strokeWidth={isSelected ? 2.6 : 2.2}
               />
 
-              {showTopValue && (
+              {showValue && (
                 <text
                   x={cx}
-                  y={cy - 10}
+                  y={labelY}
                   textAnchor="middle"
-                  fontSize="11.5"
+                  fontSize="11"
                   fontWeight={isSelected || isPeak ? '700' : '600'}
                   fill={isOptimal ? 'var(--sage)' : 'var(--text)'}
+                  stroke="var(--surface)"
+                  strokeWidth="3.5"
+                  strokeLinejoin="round"
+                  style={{ paintOrder: 'stroke' }}
                   className="tabular-nums"
                 >
                   {pt.value}
