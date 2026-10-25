@@ -51,6 +51,7 @@ import {
   WebsiteDestination,
 } from './components/LandingPage';
 import { PersonalReportReader } from './components/PersonalReportReader';
+import { HoraiAndTimeStudio } from './components/HoraiAndTimeStudio';
 import { NakshatraEncyclopedia } from './components/NakshatraEncyclopedia';
 import { ActionConsequenceLab } from './components/ActionConsequenceLab';
 import { NatalWheelSvg } from './components/NatalWheelSvg';
@@ -67,6 +68,11 @@ import {
   SegmentedTabs,
   StatusBadge,
 } from './components/ui/DashboardPrimitives';
+import {
+  FloatingPetalsBackdrop,
+  InteractivePetalBurst,
+  SacredFlowerIcon,
+} from './components/ui/FloralAnimations';
 
 export function App() {
   const [profile, setProfile] = useState<BirthProfile>(DEFAULT_PROFILE);
@@ -94,11 +100,22 @@ export function App() {
     'DASHA' | 'ASHTAKAVARGA_JAIMINI' | 'KP_SUBLORDS'
   >('DASHA');
 
-  // UI Shell & Reading Comfort states
+  // UI Shell, Floral Animations & Reading Comfort states
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [expandedDashaLord, setExpandedDashaLord] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [floralMotion, setFloralMotion] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return window.localStorage.getItem('oceanology_floral_motion') !== '0';
+      } catch {
+        return true;
+      }
+    }
+    return true;
+  });
+  const [liveClockDate, setLiveClockDate] = useState<Date>(() => new Date());
   const [largeText, setLargeText] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -110,6 +127,21 @@ export function App() {
     return false;
   });
   const [pdfExporting, setPdfExporting] = useState<boolean>(false);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setLiveClockDate(new Date());
+    }, 30000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('oceanology_floral_motion', floralMotion ? '1' : '0');
+    } catch {
+      // ignore storage errors
+    }
+  }, [floralMotion]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -177,8 +209,8 @@ export function App() {
 
   const panchangReport = useMemo(() => {
     const moon = natalChart.planets.find((p) => p.id === 'Moon')!;
-    return calculatePanchang(new Date(), profile.location, moon.nakshatraIndex, moon.signIndex);
-  }, [profile.location, natalChart]);
+    return calculatePanchang(liveClockDate, profile.location, moon.nakshatraIndex, moon.signIndex);
+  }, [liveClockDate, profile.location, natalChart]);
 
   const numerologyReport = useMemo(
     () => calculateNumerology(profile, numSystem),
@@ -279,20 +311,26 @@ export function App() {
   // ==================== MODE 1: CLEAN MARKETING LANDING PAGE ====================
   if (activeDest === 'HOME') {
     return (
-      <LandingPage
-        profile={profile}
-        onProfileChange={setProfile}
-        natalChart={natalChart}
-        vedicReport={vedicReport}
-        panchangReport={panchangReport}
-        numerologyReport={numerologyReport}
-        darkMode={darkMode}
-        onToggleDarkMode={() => setDarkMode(!darkMode)}
-        largeText={largeText}
-        onToggleLargeText={() => setLargeText(!largeText)}
-        onDownloadPdf={handleGlobalDownloadPdf}
-        onNavigate={handleNavigate}
-      />
+      <>
+        <FloatingPetalsBackdrop enabled={floralMotion} />
+        <InteractivePetalBurst enabled={floralMotion} />
+        <LandingPage
+          profile={profile}
+          onProfileChange={setProfile}
+          natalChart={natalChart}
+          vedicReport={vedicReport}
+          panchangReport={panchangReport}
+          numerologyReport={numerologyReport}
+          darkMode={darkMode}
+          onToggleDarkMode={() => setDarkMode(!darkMode)}
+          largeText={largeText}
+          onToggleLargeText={() => setLargeText(!largeText)}
+          floralMotion={floralMotion}
+          onToggleFloralMotion={() => setFloralMotion(!floralMotion)}
+          onDownloadPdf={handleGlobalDownloadPdf}
+          onNavigate={handleNavigate}
+        />
+      </>
     );
   }
 
@@ -302,13 +340,14 @@ export function App() {
     items: {
       key: string;
       label: string;
+      badgeText?: string;
       icon: JSX.Element;
       isActive: boolean;
       onClick: () => void;
     }[];
   }[] = [
     {
-      groupLabel: 'Personal Reading & PDF',
+      groupLabel: 'Personal Reading & Time',
       items: [
         {
           key: 'easy-report',
@@ -316,6 +355,22 @@ export function App() {
           icon: <FileText className="w-4 h-4" />,
           isActive: activeDest === 'FULL_REPORT',
           onClick: () => handleNavigate('FULL_REPORT'),
+        },
+        {
+          key: 'horai-clock',
+          label: 'Live Horai & Time',
+          badgeText: panchangReport.activeHorai.lord,
+          icon: (
+            <SacredFlowerIcon
+              variety={panchangReport.activeHorai.sacredFlower.variety}
+              primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
+              secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
+              size={17}
+              animated={floralMotion}
+            />
+          ),
+          isActive: activeDest === 'HORAI',
+          onClick: () => handleNavigate('HORAI'),
         },
         {
           key: 'overview',
@@ -414,14 +469,20 @@ export function App() {
             onClick={() => handleNavigate('HOME')}
             className="flex items-center gap-2.5 text-left"
           >
-            <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center font-bold text-base shadow-sm">
-              ☉
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+              <SacredFlowerIcon
+                variety="lotus"
+                primaryHex="#FDE68A"
+                secondaryHex="#FFFFFF"
+                size={21}
+                animated={floralMotion}
+              />
             </div>
             <div>
               <div className="font-display font-bold text-base tracking-tight text-[var(--text)] leading-none">
                 Oceanology
               </div>
-              <div className="text-xs text-[var(--text-muted)] mt-0.5">Personal Horoscope</div>
+              <div className="text-xs text-[var(--text-muted)] mt-0.5">Horoscope &amp; Horai</div>
             </div>
           </button>
 
@@ -447,14 +508,21 @@ export function App() {
                   key={item.key}
                   type="button"
                   onClick={item.onClick}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                     item.isActive
                       ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
                       : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]'
                   }`}
                 >
-                  {item.icon}
-                  <span>{item.label}</span>
+                  <span className="inline-flex items-center gap-2.5 truncate">
+                    {item.icon}
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                  {item.badgeText && (
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-pink-500/15 text-pink-700 dark:text-pink-300 border border-pink-400/30">
+                      {item.badgeText}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -484,7 +552,7 @@ export function App() {
           type="button"
           disabled={pdfExporting}
           onClick={handleGlobalDownloadPdf}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-semibold transition disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg btn-editorial-primary text-sm disabled:opacity-60"
         >
           <Download className="w-4 h-4" />
           <span>{pdfExporting ? 'Building PDF…' : 'Download PDF Report'}</span>
@@ -503,9 +571,12 @@ export function App() {
   );
 
   return (
-    <div className="min-h-screen flex bg-[var(--bg)] text-[var(--text)]">
+    <div className="min-h-screen flex bg-transparent text-[var(--text)] relative">
+      <FloatingPetalsBackdrop enabled={floralMotion} />
+      <InteractivePetalBurst enabled={floralMotion} />
+
       {/* ==================== DESKTOP LEFT SIDEBAR ==================== */}
-      <aside className="hidden lg:block w-[264px] shrink-0 border-r border-[var(--border)] bg-[var(--surface)] sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden lg:block w-[268px] shrink-0 border-r border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-md sticky top-0 h-screen overflow-y-auto z-20">
         <SidebarNavContent />
       </aside>
 
@@ -523,9 +594,9 @@ export function App() {
       )}
 
       {/* ==================== MAIN CONTENT COLUMN ==================== */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col relative z-10">
         {/* Sticky Global Context Topbar */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/92 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
@@ -540,13 +611,31 @@ export function App() {
               <span className="text-base font-bold text-[var(--text)] truncate">
                 {currentViewLabel}
               </span>
+              <button
+                type="button"
+                onClick={() => handleNavigate('HORAI')}
+                title="Open Live 24-Petal Horai Sacred Clock"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full floral-banner-glow border border-[var(--border)] text-xs font-bold text-[var(--text)] hover:border-[var(--accent)] transition"
+              >
+                <SacredFlowerIcon
+                  variety={panchangReport.activeHorai.sacredFlower.variety}
+                  primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
+                  secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
+                  size={16}
+                  animated={floralMotion}
+                />
+                <span>{panchangReport.activeHorai.horaiName}</span>
+                <span className="font-mono text-[var(--accent)]">
+                  • {panchangReport.activeHorai.minutesRemaining}m
+                </span>
+              </button>
               {isSampleProfile && (
                 <button
                   type="button"
                   onClick={() => setShowProfileModal(true)}
-                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold hover:underline"
+                  className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold hover:underline"
                 >
-                  <span>Sample profile • Enter your birth details</span>
+                  <span>Sample profile • Edit birth details</span>
                 </button>
               )}
             </div>
@@ -570,7 +659,7 @@ export function App() {
               aria-label="Zodiac Ayanamsha mode"
               value={ayanamsha}
               onChange={(e) => setAyanamsha(e.target.value as AyanamshaMode)}
-              className="obs-input py-1.5 px-2.5 text-sm font-mono hidden xl:block w-auto min-h-[38px]"
+              className="obs-input py-1.5 px-2.5 text-sm font-mono hidden 2xl:block w-auto min-h-[38px]"
             >
               <option value="LAHIRI">Lahiri Sidereal</option>
               <option value="TROPICAL">Tropical (0°)</option>
@@ -579,6 +668,27 @@ export function App() {
               <option value="RAMAN">B.V. Raman</option>
               <option value="KHULLAR">KP Khullar</option>
             </select>
+
+            <button
+              type="button"
+              onClick={() => setFloralMotion(!floralMotion)}
+              aria-label="Toggle sacred flower animations"
+              title="Toggle Floating Flower Petals & Click Blooms"
+              className={`px-2.5 py-2 rounded-lg border text-sm font-semibold transition inline-flex items-center gap-1.5 ${
+                floralMotion
+                  ? 'border-pink-400/50 bg-pink-500/10 text-pink-700 dark:text-pink-300'
+                  : 'border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
+              }`}
+            >
+              <SacredFlowerIcon
+                variety="lotus"
+                primaryHex="#EC4899"
+                secondaryHex="#FBCFE8"
+                size={16}
+                animated={floralMotion}
+              />
+              <span className="hidden xl:inline">{floralMotion ? 'Bloom' : 'Calm'}</span>
+            </button>
 
             <button
               type="button"
@@ -608,7 +718,7 @@ export function App() {
               type="button"
               disabled={pdfExporting}
               onClick={handleGlobalDownloadPdf}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-semibold transition disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-editorial-primary text-sm disabled:opacity-60"
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">
@@ -633,6 +743,20 @@ export function App() {
               houseSystem={houseSystem}
               onEditProfile={() => setShowProfileModal(true)}
               onOpenActionTiming={(actId) =>
+                handleNavigate('WHAT_HAPPENS_IF', actId ? { actionId: actId } : undefined)
+              }
+              onOpenHoraiStudio={() => handleNavigate('HORAI')}
+              onInspectNakshatra={(idx) => handleNavigate('NAKSHATRAS', { nakIdx: idx })}
+            />
+          )}
+
+          {/* ==================== ROUTE: LIVE HORAI & SACRED CLOCK ==================== */}
+          {activeDest === 'HORAI' && (
+            <HoraiAndTimeStudio
+              location={profile.location}
+              natalMoonNakshatraIdx={moonPlanet.nakshatraIndex}
+              natalMoonSignIdx={moonPlanet.signIndex}
+              onOpenActionSimulator={(actId) =>
                 handleNavigate('WHAT_HAPPENS_IF', actId ? { actionId: actId } : undefined)
               }
               onInspectNakshatra={(idx) => handleNavigate('NAKSHATRAS', { nakIdx: idx })}
@@ -1677,6 +1801,7 @@ export function App() {
                   panchang={panchangReport}
                   onInspectNakshatra={(idx) => handleNavigate('NAKSHATRAS', { nakIdx: idx })}
                   onOpenActionSimulator={() => handleNavigate('WHAT_HAPPENS_IF')}
+                  onOpenHoraiStudio={() => handleNavigate('HORAI')}
                 />
               )}
 

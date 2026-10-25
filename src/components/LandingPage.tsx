@@ -14,6 +14,7 @@ import {
   Download,
   FileText,
   Type,
+  Clock,
 } from 'lucide-react';
 import { BirthProfile } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
@@ -25,10 +26,17 @@ import { evaluateActionConsequence, scanUpcomingBestWindows } from '../data/karm
 import { HOUSE_PLAIN_GUIDE } from '../data/plainEnglishGuide';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
 import { KpiStatCard, ScoreTrendChart, StatusBadge } from './ui/DashboardPrimitives';
+import {
+  BloomingLotusMandala,
+  CornerLotusDecor,
+  LotusVineDivider,
+  SacredFlowerIcon,
+} from './ui/FloralAnimations';
 
 export type WebsiteDestination =
   | 'HOME'
   | 'FULL_REPORT'
+  | 'HORAI'
   | 'NAKSHATRAS'
   | 'WHAT_HAPPENS_IF'
   | 'OBSERVATORY'
@@ -54,6 +62,8 @@ interface Props {
   onToggleDarkMode: () => void;
   largeText?: boolean;
   onToggleLargeText?: () => void;
+  floralMotion?: boolean;
+  onToggleFloralMotion?: () => void;
   onDownloadPdf?: () => Promise<void>;
   onNavigate: (
     dest: WebsiteDestination,
@@ -84,6 +94,8 @@ export const LandingPage: React.FC<Props> = ({
   onToggleDarkMode,
   largeText = false,
   onToggleLargeText,
+  floralMotion = true,
+  onToggleFloralMotion,
   onDownloadPdf,
   onNavigate,
 }) => {
@@ -165,25 +177,30 @@ export const LandingPage: React.FC<Props> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg)] text-[var(--text)]">
+    <div className="min-h-screen flex flex-col bg-transparent text-[var(--text)] relative z-10">
       {/* ==================== CLEAN PRODUCT NAVBAR ==================== */}
-      <header className="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)]">
+      <header className="sticky top-0 z-40 bg-[var(--surface)]/92 backdrop-blur-md border-b border-[var(--border)]">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-7">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2.5 text-left"
+              className="flex items-center gap-2.5 text-left group"
             >
-              <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center font-bold text-base shadow-sm">
-                ☉
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white flex items-center justify-center shadow-sm">
+                <SacredFlowerIcon
+                  variety="lotus"
+                  primaryHex="#FDE68A"
+                  secondaryHex="#FFFFFF"
+                  size={24}
+                />
               </div>
               <span className="font-display font-bold text-lg tracking-tight text-[var(--text)]">
                 Oceanology
               </span>
             </button>
 
-            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-[var(--text-secondary)]">
+            <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-[var(--text-secondary)]">
               <button
                 type="button"
                 onClick={() => onNavigate('FULL_REPORT')}
@@ -191,6 +208,14 @@ export const LandingPage: React.FC<Props> = ({
               >
                 <FileText className="w-4 h-4" />
                 <span>Easy Report &amp; PDF</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('HORAI')}
+                className="hover:text-[var(--text)] transition inline-flex items-center gap-1.5"
+              >
+                <Clock className="w-4 h-4 text-pink-500" />
+                <span>Live Horai Time</span>
               </button>
               <button
                 type="button"
@@ -217,6 +242,29 @@ export const LandingPage: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onToggleFloralMotion && (
+              <button
+                type="button"
+                onClick={onToggleFloralMotion}
+                aria-label="Toggle floating flower petals"
+                title="Toggle ambient sacred flower animations"
+                className={`px-2.5 py-2 rounded-lg border text-xs sm:text-sm font-semibold transition inline-flex items-center gap-1.5 ${
+                  floralMotion
+                    ? 'border-pink-400/50 bg-pink-500/10 text-pink-700 dark:text-pink-300'
+                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)]'
+                }`}
+              >
+                <SacredFlowerIcon
+                  variety="lotus"
+                  primaryHex="#EC4899"
+                  secondaryHex="#FBCFE8"
+                  size={17}
+                  animated={floralMotion}
+                />
+                <span className="hidden md:inline">{floralMotion ? 'Bloom On' : 'Bloom Off'}</span>
+              </button>
+            )}
+
             {onToggleLargeText && (
               <button
                 type="button"
@@ -253,34 +301,86 @@ export const LandingPage: React.FC<Props> = ({
             </button>
           </div>
         </div>
+
+        {/* LIVE HORAI & SACRED TIME TICKER RIBBON */}
+        <div className="border-t border-[var(--border)] floral-banner-glow">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="inline-flex items-center gap-1.5 font-bold text-[var(--text)]">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <SacredFlowerIcon
+                  variety={panchangReport.activeHorai.sacredFlower.variety}
+                  primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
+                  secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
+                  size={18}
+                />
+                <span>
+                  Live in {profile.location.name}: {panchangReport.activeHorai.horaiName} (
+                  {panchangReport.activeHorai.lord})
+                </span>
+              </span>
+              <StatusBadge
+                tone={panchangReport.activeHorai.tone}
+                label={`${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`}
+              />
+              <span className="hidden md:inline text-[var(--text-secondary)]">
+                • Gowri: <strong>{panchangReport.activeGowri.name}</strong> • Nalla Neram:{' '}
+                <strong className="font-mono">
+                  {panchangReport.nallaNeram[0].startTime}–{panchangReport.nallaNeram[0].endTime}
+                </strong>
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onNavigate('HORAI')}
+              className="font-bold text-[var(--accent)] hover:underline inline-flex items-center gap-1"
+            >
+              <span>Open 24-Petal Horai Clock</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </header>
 
       <main className="flex-1">
         {/* ==================== 5-SECOND TEST SPLIT HERO ==================== */}
-        <section className="max-w-[1280px] mx-auto px-4 sm:px-8 pt-10 pb-16 lg:pt-14 lg:pb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+        <section className="max-w-[1280px] mx-auto px-4 sm:px-8 pt-10 pb-16 lg:pt-14 lg:pb-20 relative">
+          {/* Sacred Blooming Lotus Mandala Backdrop */}
+          <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 opacity-40 dark:opacity-50 -z-10">
+            <BloomingLotusMandala size={440} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start animate-bloom-in">
             {/* Left (5 cols): Clear Value Prop + Instant Birth Profile & PDF Launcher */}
             <div className="lg:col-span-5 space-y-6">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-sm font-semibold">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Plain-English Readings + Full Printable PDF Report</span>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-sm font-semibold border border-[var(--accent)]/20">
+                  <SacredFlowerIcon
+                    variety="marigold"
+                    primaryHex="#F59E0B"
+                    secondaryHex="#FDE68A"
+                    size={18}
+                  />
+                  <span>Plain-English Readings • Live Horai Clock • Full PDF Report</span>
                 </div>
 
                 <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-[var(--text)] leading-[1.15] tracking-tight">
-                  Understand your birth chart clearly—and know your best days to act.
+                  Understand your birth chart clearly—and know your best hours &amp; days to act.
                 </h1>
 
                 <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed">
                   Enter your birth details below to read a clear, plain-English personal horoscope,
-                  check upcoming dates for life decisions, or download your detailed multi-page{' '}
+                  track live <strong className="text-[var(--text)]">Horai &amp; Gowri</strong>{' '}
+                  planetary hours, or download your detailed multi-page{' '}
                   <strong className="text-[var(--text)]">PDF Kundali &amp; Life Report</strong>.
                 </p>
               </div>
 
               {/* Clean Birth Profile Launcher Card */}
-              <div className="obs-card p-6 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="obs-card p-6 space-y-4 relative overflow-hidden group">
+                <CornerLotusDecor primaryHex="#EC4899" secondaryHex="#FDE68A" />
+                <div className="flex flex-wrap items-center justify-between gap-2 relative z-10">
                   <span className="text-base font-bold text-[var(--text)]">
                     Enter Birth Details
                   </span>
@@ -641,13 +741,15 @@ export const LandingPage: React.FC<Props> = ({
           </div>
         </section>
 
+        <LotusVineDivider label="Live Sky, Horai Planetary Hours & Sacred Time" />
+
         {/* ==================== TODAY'S LOCAL SKY SNAPSHOT ==================== */}
-        <section className="border-y border-[var(--border)] bg-[var(--surface)]/70 py-14">
+        <section className="border-y border-[var(--border)] bg-[var(--surface)]/75 backdrop-blur-sm py-14">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-8 space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="space-y-1">
                 <h2 className="text-2xl font-bold text-[var(--text)]">
-                  Today’s Sky in Plain English — {profile.location.name}
+                  Today’s Sky &amp; Horai in Plain English — {profile.location.name}
                 </h2>
                 <p className="text-base text-[var(--text-secondary)]">
                   Nepali Date: {panchangReport.bikramSambat.formatted} • {panchangReport.vara.name} •
@@ -656,15 +758,37 @@ export const LandingPage: React.FC<Props> = ({
               </div>
               <button
                 type="button"
-                onClick={() => onNavigate('OBSERVATORY', { studioTab: 'PANCHANG' })}
+                onClick={() => onNavigate('HORAI')}
                 className="text-base font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1.5"
               >
-                <span>Open Full Daily Panchang &amp; Best Hours</span>
+                <span>Open 24-Petal Horai Flower Clock &amp; Gowri</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <KpiStatCard
+                label="Active Horai Right Now"
+                value={panchangReport.activeHorai.horaiName}
+                subvalue={panchangReport.activeHorai.lord}
+                plainHint={`Gowri: ${panchangReport.activeGowri.name} • Nalla Neram ${panchangReport.nallaNeram[0].startTime}–${panchangReport.nallaNeram[0].endTime}`}
+                benchmarkText={`${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`}
+                status={{
+                  tone: panchangReport.activeHorai.tone,
+                  label: panchangReport.activeHorai.quality,
+                }}
+                icon={
+                  <SacredFlowerIcon
+                    variety={panchangReport.activeHorai.sacredFlower.variety}
+                    primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
+                    secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
+                    size={18}
+                  />
+                }
+                actionLabel="Open 24h Horai Clock"
+                onAction={() => onNavigate('HORAI')}
+              />
+
               <KpiStatCard
                 label="Today’s Moon Star (Nakshatra)"
                 value={panchangReport.nakshatra.name}
@@ -680,26 +804,6 @@ export const LandingPage: React.FC<Props> = ({
                 onAction={() =>
                   onNavigate('NAKSHATRAS', { nakIdx: panchangReport.nakshatra.zeroIndex })
                 }
-              />
-
-              <KpiStatCard
-                label="Lunar Day (Tithi)"
-                value={panchangReport.tithi.name}
-                plainHint={
-                  panchangReport.tithi.isRikta
-                    ? 'Good for clearing debt/clutter; wait on new launches'
-                    : 'Constructive lunar phase for steady progress'
-                }
-                benchmarkText={`${panchangReport.tithi.progressPercent}% complete`}
-                status={{
-                  tone: panchangReport.tithi.isRikta ? 'mixed' : 'favorable',
-                  label: panchangReport.tithi.isRikta
-                    ? 'Caution Day'
-                    : panchangReport.tithi.paksha.split(' ')[0],
-                }}
-                icon={<Calendar className="w-4 h-4" />}
-                actionLabel="See today’s good hours"
-                onAction={() => onNavigate('OBSERVATORY', { studioTab: 'PANCHANG' })}
               />
 
               <KpiStatCard
@@ -732,38 +836,77 @@ export const LandingPage: React.FC<Props> = ({
           </div>
         </section>
 
-        {/* ==================== 4-MODULE CAPABILITIES BENTO GRID ==================== */}
+        {/* ==================== CAPABILITIES BENTO GRID WITH FLORAL BLOOMS ==================== */}
         <section className="max-w-[1280px] mx-auto px-4 sm:px-8 py-16 space-y-8">
           <div className="max-w-2xl space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">
-              Easy to read first—with full astrological depth whenever you want it
+              Easy to read, lively to explore—with full sacred timing depth
             </h2>
             <p className="text-base text-[var(--text-secondary)]">
-              Start with your plain-English personal reading and downloadable PDF report, or dive
-              into any specialized chart and timing tool below.
+              Start with your plain-English personal reading, live 24-petal Horai flower clock, and
+              downloadable PDF report, or dive into any specialized chart below.
             </p>
+          </div>
+
+          {/* Featured Full-Width Horai & Sacred Clock Floral Card */}
+          <div
+            onClick={() => onNavigate('HORAI')}
+            className="obs-card floral-banner-glow p-6 sm:p-8 hover:border-[var(--accent)] transition cursor-pointer relative overflow-hidden group flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+          >
+            <CornerLotusDecor primaryHex="#F59E0B" secondaryHex="#FBCFE8" />
+            <div className="space-y-2.5 max-w-2xl relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-xs font-bold text-[var(--accent)]">
+                <SacredFlowerIcon
+                  variety="lotus"
+                  primaryHex="#EC4899"
+                  secondaryHex="#FDE68A"
+                  size={16}
+                />
+                <span>NEW • 24-HOUR GRAHA HORAI, GOWRI PANCHANGAM &amp; NALLA NERAM</span>
+              </div>
+              <h3 className="text-2xl font-extrabold text-[var(--text)] group-hover:text-[var(--accent)] transition">
+                Interactive 24-Petal Horai Sacred Flower Clock
+              </h3>
+              <p className="text-base text-[var(--text-secondary)] leading-relaxed">
+                Track every planetary hour from Sunrise to Sunrise—<strong>Sukra</strong>,{' '}
+                <strong>Guru</strong>, <strong>Budha</strong>, <strong>Chandra</strong>,{' '}
+                <strong>Suriya</strong>, <strong>Sevvai</strong> &amp; <strong>Sani Horai</strong>—plus
+                8-fold Day &amp; Night <strong>Gowri Panchangam</strong>, Morning/Evening{' '}
+                <strong>Nalla Neram</strong>, <strong>Rahu Kalam</strong>, and sacred planetary flowers.
+              </p>
+            </div>
+            <div className="shrink-0 relative z-10">
+              <span className="btn-editorial-primary inline-flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4" />
+                <span>Explore Live Horai Clock</span>
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {[
               {
                 icon: <FileText className="w-5 h-5 text-[var(--accent)]" />,
+                flowerHex: '#EC4899',
                 badge: 'Plain-English + PDF',
                 title: 'Full Personal Reading & Printable PDF Report',
-                desc: 'Read your complete horoscope in clear, everyday language—covering personality, current life chapter, 12 life areas, D1/D9 Kundali charts, and best upcoming dates—and save it as a multi-page PDF.',
+                desc: 'Read your complete horoscope in clear, everyday language—covering personality, current life chapter, 12 life areas, D1/D9 Kundali charts, Horai windows, and best upcoming dates—and save it as a multi-page PDF.',
                 cta: 'Open Easy Report & PDF',
                 onClick: () => onNavigate('FULL_REPORT'),
               },
               {
                 icon: <Scale className="w-5 h-5 text-[var(--accent)]" />,
-                badge: '20 Life Decisions',
-                title: 'Best Days to Sign, Invest, Marry, Build or Travel',
-                desc: 'Check whether today is favorable for contracts, loans, debt repayment, marriage, property, or medical care—and see your highest-scoring dates over the next 12 days.',
-                cta: 'Check Best Dates',
+                flowerHex: '#F59E0B',
+                badge: '20 Life Decisions + Horai',
+                title: 'Best Days & Horai Hours to Sign, Invest, Marry or Travel',
+                desc: 'Check whether today is favorable for contracts, loans, debt repayment, marriage, property, or medical care—paired with exact daily Horai planetary hours and 12-day forecasts.',
+                cta: 'Check Best Dates & Horais',
                 onClick: () => onNavigate('WHAT_HAPPENS_IF'),
               },
               {
                 icon: <Globe className="w-5 h-5 text-[var(--accent)]" />,
+                flowerHex: '#10B981',
                 badge: 'World Map + Matchmaking',
                 title: 'Best Cities for You & Relationship Compatibility',
                 desc: 'Discover which cities worldwide support your career, peace of mind, and relationships, plus check 36-point Vedic marriage compatibility with a partner.',
@@ -772,6 +915,7 @@ export const LandingPage: React.FC<Props> = ({
               },
               {
                 icon: <BookOpen className="w-5 h-5 text-[var(--accent)]" />,
+                flowerHex: '#6366F1',
                 badge: '28 Stars & 9 Classics',
                 title: '28 Birth Stars (Nakshatras) & Classical Library',
                 desc: 'Explore readable guides to all 28 Vedic birth stars, 108 quarters (Padas), and personalized readings from 9 foundational astrology texts.',
@@ -782,9 +926,10 @@ export const LandingPage: React.FC<Props> = ({
               <div
                 key={card.title}
                 onClick={card.onClick}
-                className="obs-card p-6 sm:p-7 hover:border-[var(--accent)] transition cursor-pointer flex flex-col justify-between gap-5 group"
+                className="obs-card p-6 sm:p-7 hover:border-[var(--accent)] transition cursor-pointer flex flex-col justify-between gap-5 group relative overflow-hidden"
               >
-                <div className="space-y-3">
+                <CornerLotusDecor primaryHex={card.flowerHex} secondaryHex="#FDE68A" />
+                <div className="space-y-3 relative z-10">
                   <div className="flex items-center justify-between">
                     <div className="w-11 h-11 rounded-lg bg-[var(--accent-bg)] flex items-center justify-center">
                       {card.icon}
@@ -801,7 +946,7 @@ export const LandingPage: React.FC<Props> = ({
                   </p>
                 </div>
 
-                <div className="text-sm font-semibold text-[var(--accent)] inline-flex items-center gap-1.5">
+                <div className="text-sm font-semibold text-[var(--accent)] inline-flex items-center gap-1.5 relative z-10">
                   <span>{card.cta}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </div>
@@ -812,12 +957,13 @@ export const LandingPage: React.FC<Props> = ({
       </main>
 
       {/* ==================== CLEAN MINIMAL FOOTER ==================== */}
-      <footer className="border-t border-[var(--border)] bg-[var(--surface)] py-8 px-4 sm:px-8 text-sm text-[var(--text-muted)]">
+      <footer className="border-t border-[var(--border)] bg-[var(--surface)]/95 py-8 px-4 sm:px-8 text-sm text-[var(--text-muted)]">
         <div className="max-w-[1280px] mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
+            <SacredFlowerIcon variety="lotus" primaryHex="#EC4899" secondaryHex="#FDE68A" size={18} />
             <span className="font-bold text-[var(--text)]">Oceanology</span>
             <span>•</span>
-            <span>Easy-to-Read Horoscope, Vedic Kundali &amp; Printable PDF Reports</span>
+            <span>Easy-to-Read Horoscope, Live Horai Clock &amp; Printable PDF Reports</span>
           </div>
           <div className="flex flex-wrap items-center gap-5 font-medium">
             <button
@@ -826,6 +972,13 @@ export const LandingPage: React.FC<Props> = ({
               className="text-[var(--accent)] hover:underline"
             >
               Full Report &amp; PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('HORAI')}
+              className="hover:text-[var(--text)]"
+            >
+              Live Horai Clock
             </button>
             <button
               type="button"

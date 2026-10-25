@@ -799,17 +799,95 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
   y += 5;
 
-  // ==================== SECTION 7: DAILY PANCHANG & 10-DECISION TIMING GUIDE ====================
+  // ==================== SECTION 7: DAILY PANCHANG, HORAI TIME & 10-DECISION TIMING GUIDE ====================
   drawSectionHeader(
     'Section 7 of 8',
-    `Daily Panchang & Upcoming Decision Timing (${profile.location.name})`,
+    `Daily Panchang, Horai Time & Decision Timing (${profile.location.name})`,
     `Computed for ${panchangReport.dateStr} (${panchangReport.vara.name})  |  Sunrise ${panchangReport.sunriseTime} - Sunset ${panchangReport.sunsetTime}`
   );
 
-  const panchangOverview = `Lunar Day (Tithi): ${panchangReport.tithi.name} (${panchangReport.tithi.paksha}). Transit Star: ${panchangReport.nakshatra.name} (Pada ${panchangReport.nakshatra.pada}). Yoga: ${panchangReport.yoga.name}. Karana: ${panchangReport.karana.name}. Personal Star Harmony (Tarabala): Tara #${panchangReport.personalTarabala.taraNumber} (${panchangReport.personalTarabala.taraName}) - ${
+  const nallaSummary = panchangReport.nallaNeram
+    .map((nn) => `${nn.periodLabel}: ${nn.startTime}-${nn.endTime} (${nn.gowriName})`)
+    .join('  |  ');
+  const panchangOverview = `Lunar Day (Tithi): ${panchangReport.tithi.name} (${panchangReport.tithi.paksha}). Transit Star: ${panchangReport.nakshatra.name} (Pada ${panchangReport.nakshatra.pada}). Yoga: ${panchangReport.yoga.name}. Karana: ${panchangReport.karana.name}. Active Horai: ${panchangReport.activeHorai.horaiName} (${panchangReport.activeHorai.startTime}-${panchangReport.activeHorai.endTime}). Active Gowri: ${panchangReport.activeGowri.name} (${panchangReport.activeGowri.nature}). ${nallaSummary}. Personal Star Harmony (Tarabala): Tara #${panchangReport.personalTarabala.taraNumber} (${panchangReport.personalTarabala.taraName}) - ${
     panchangReport.personalTarabala.isAuspicious ? 'Supportive' : 'Mixed / Pace carefully'
-  }. Travel Caution Direction Today: Avoid ${panchangReport.dishashoola.forbiddenDirection} (${panchangReport.dishashoola.pariharaRemedy}).`;
-  drawParagraphBlock('Today’s Local Sky & Nepali Patro Summary', panchangOverview);
+  }. Travel Caution Today: Avoid ${panchangReport.dishashoola.forbiddenDirection} (${panchangReport.dishashoola.pariharaRemedy}).`;
+  drawParagraphBlock('Today’s Local Sky, Horai, Gowri & Nalla Neram Summary', panchangOverview);
+
+  // Daytime 12-Horai Schedule Compact 2-Column Grid
+  ensureSpace(46);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(
+    cleanPdfText(
+      `Today’s 12 Daytime Horai Planetary Hours (${panchangReport.sunriseTime} - ${panchangReport.sunsetTime})`
+    ),
+    marginX,
+    y + 4
+  );
+  y += 6.5;
+
+  const colW = (contentW - 4) / 2;
+  for (let row = 0; row < 6; row++) {
+    ensureSpace(7);
+    const leftH = panchangReport.dayHorai[row];
+    const rightH = panchangReport.dayHorai[row + 6];
+    [leftH, rightH].forEach((hSlot, cIdx) => {
+      if (!hSlot) return;
+      const cellX = marginX + cIdx * (colW + 4);
+      doc.setFillColor(
+        hSlot.tone === 'optimal'
+          ? 236
+          : hSlot.tone === 'favorable'
+          ? 240
+          : hSlot.tone === 'avoid'
+          ? 255
+          : 248,
+        hSlot.tone === 'optimal'
+          ? 253
+          : hSlot.tone === 'favorable'
+          ? 249
+          : hSlot.tone === 'avoid'
+          ? 241
+          : 250,
+        hSlot.tone === 'optimal'
+          ? 245
+          : hSlot.tone === 'favorable'
+          ? 255
+          : hSlot.tone === 'avoid'
+          ? 242
+          : 252
+      );
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(cellX, y, colW, 6.2, 1, 1, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.8);
+      doc.setTextColor(15, 23, 42);
+      doc.text(
+        cleanPdfText(`#${hSlot.hourIndexInPeriod} ${hSlot.horaiName}`),
+        cellX + 2,
+        y + 4.2
+      );
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.4);
+      doc.setTextColor(71, 85, 105);
+      doc.text(cleanPdfText(hSlot.quality), cellX + 34, y + 4.2);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(67, 56, 202);
+      doc.text(
+        `${hSlot.startTime}-${hSlot.endTime}`,
+        cellX + colW - 2,
+        y + 4.2,
+        { align: 'right' }
+      );
+    });
+    y += 7;
+  }
+  y += 3;
 
   const keyActionIds = [
     'SIGN_CONTRACT',

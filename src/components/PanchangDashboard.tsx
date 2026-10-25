@@ -17,21 +17,24 @@ import {
   StatusBadge,
   SemanticTone,
 } from './ui/DashboardPrimitives';
+import { SacredFlowerIcon } from './ui/FloralAnimations';
 
 interface Props {
   panchang: PanchangReport;
   onInspectNakshatra?: (nakIdx: number) => void;
   onOpenActionSimulator?: () => void;
+  onOpenHoraiStudio?: () => void;
 }
 
-type PanchangTab = 'CHOGHADIYA' | 'FIVE_ANGAS' | 'ALERTS';
+type PanchangTab = 'HORAI_GOWRI' | 'CHOGHADIYA' | 'FIVE_ANGAS' | 'ALERTS';
 
 export const PanchangDashboard: React.FC<Props> = ({
   panchang,
   onInspectNakshatra,
   onOpenActionSimulator,
+  onOpenHoraiStudio,
 }) => {
-  const [activeTab, setActiveTab] = useState<PanchangTab>('CHOGHADIYA');
+  const [activeTab, setActiveTab] = useState<PanchangTab>('HORAI_GOWRI');
   const [yr, mo, dy] = panchang.dateStr.split('-').map((n) => parseInt(n, 10));
   const bsDate = gregorianToBikramSambat(yr || 2026, mo || 10, dy || 25);
 
@@ -148,6 +151,51 @@ export const PanchangDashboard: React.FC<Props> = ({
         />
       </div>
 
+      {/* ==================== LIVE HORAI & NALLA NERAM FLORAL BANNER ==================== */}
+      <div className="obs-card floral-banner-glow p-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center shadow-sm">
+            <SacredFlowerIcon
+              variety={panchang.activeHorai.sacredFlower.variety}
+              primaryHex={panchang.activeHorai.sacredFlower.primaryHex}
+              secondaryHex={panchang.activeHorai.sacredFlower.secondaryHex}
+              size={34}
+            />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                Active Horai Right Now
+              </span>
+              <StatusBadge tone={panchang.activeHorai.tone} label={panchang.activeHorai.quality} />
+              <span className="text-xs font-mono text-[var(--text-secondary)]">
+                {panchang.activeHorai.startTime}–{panchang.activeHorai.endTime} (
+                {panchang.activeHorai.minutesRemaining}m left)
+              </span>
+            </div>
+            <h2 className="text-lg font-extrabold text-[var(--text)] mt-0.5">
+              {panchang.activeHorai.horaiName} ({panchang.activeHorai.lord}) • Active Gowri:{' '}
+              {panchang.activeGowri.name}
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)]">
+              Nalla Neram Today: <strong>{panchang.nallaNeram[0].startTime}–{panchang.nallaNeram[0].endTime}</strong>{' '}
+              &amp; <strong>{panchang.nallaNeram[1].startTime}–{panchang.nallaNeram[1].endTime}</strong>
+            </p>
+          </div>
+        </div>
+
+        {onOpenHoraiStudio && (
+          <button
+            type="button"
+            onClick={onOpenHoraiStudio}
+            className="btn-editorial-primary text-sm inline-flex items-center gap-2"
+          >
+            <Clock className="w-4 h-4" />
+            <span>Open 24-Petal Horai Flower Clock</span>
+          </button>
+        )}
+      </div>
+
       {/* ==================== ROW 2: VISUAL DAYLIGHT TIMELINE BAR ==================== */}
       <div className="obs-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -181,6 +229,11 @@ export const PanchangDashboard: React.FC<Props> = ({
             onChange={setActiveTab}
             items={[
               {
+                id: 'HORAI_GOWRI',
+                label: '24h Horai & Gowri Time',
+                count: 24,
+              },
+              {
                 id: 'CHOGHADIYA',
                 label: 'Muhurats & 16 Choghadiyas',
                 count: panchang.muhurats.length,
@@ -198,6 +251,94 @@ export const PanchangDashboard: React.FC<Props> = ({
             ]}
           />
         </div>
+
+        {/* TAB 0: 24-HOUR HORAI & GOWRI PANCHANGAM */}
+        {activeTab === 'HORAI_GOWRI' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[var(--text)]">
+                  Daytime 12 Horai Planetary Hours ({panchang.sunriseTime} – {panchang.sunsetTime})
+                </h3>
+                {onOpenHoraiStudio && (
+                  <button
+                    type="button"
+                    onClick={onOpenHoraiStudio}
+                    className="text-xs font-bold text-[var(--accent)] hover:underline"
+                  >
+                    Interactive Night Horai + Flower Wheel →
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {panchang.dayHorai.map((h) => (
+                  <div
+                    key={h.slotNumber}
+                    className={`p-3 rounded-xl border flex items-start justify-between gap-2 ${
+                      h.isActiveNow
+                        ? 'border-[var(--accent)] bg-[var(--accent-bg)] ring-1 ring-[var(--accent)]'
+                        : 'border-[var(--border)] bg-[var(--surface-muted)]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <SacredFlowerIcon
+                        variety={h.sacredFlower.variety}
+                        primaryHex={h.sacredFlower.primaryHex}
+                        secondaryHex={h.sacredFlower.secondaryHex}
+                        size={24}
+                        animated={h.isActiveNow}
+                      />
+                      <div>
+                        <div className="text-sm font-bold text-[var(--text)]">
+                          {h.horaiName}
+                        </div>
+                        <div className="text-xs text-[var(--text-secondary)]">
+                          {h.quality}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="font-mono text-xs font-bold text-[var(--text)] whitespace-nowrap">
+                      {h.startTime}–{h.endTime}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 space-y-3">
+              <h3 className="text-sm font-bold text-[var(--text)]">
+                Day Gowri Panchangam (8 Solar Octants)
+              </h3>
+              <div className="space-y-2">
+                {panchang.dayGowri.map((g) => (
+                  <div
+                    key={g.slotIndex}
+                    className={`p-3 rounded-xl border flex items-center justify-between gap-2 ${
+                      g.isActiveNow
+                        ? 'border-[var(--accent)] bg-[var(--accent-bg)]'
+                        : 'border-[var(--border)] bg-[var(--surface-muted)]'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[var(--text)]">
+                          {g.name} ({g.tamilLabel})
+                        </span>
+                        <StatusBadge tone={g.tone} label={g.nature} />
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                        {g.plainMeaning}
+                      </p>
+                    </div>
+                    <span className="font-mono text-xs font-semibold text-[var(--text)] whitespace-nowrap">
+                      {g.startTime}–{g.endTime}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: MUHURATS & CHOGHADIYA */}
         {activeTab === 'CHOGHADIYA' && (

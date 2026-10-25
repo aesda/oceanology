@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { CityLocation } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
+import { getRecommendedHoraisForAction } from '../engines/panchangEngine';
 import {
   ActionCategory,
   BEHAVIORAL_KARMA_VIPAKA,
@@ -27,6 +28,7 @@ import {
   StatusBadge,
   SemanticTone,
 } from './ui/DashboardPrimitives';
+import { SacredFlowerIcon } from './ui/FloralAnimations';
 
 interface Props {
   chart: NatalChartResult;
@@ -436,6 +438,67 @@ export const ActionConsequenceLab: React.FC<Props> = ({
               </div>
             </div>
           </div>
+
+          {/* RECOMMENDED HORAI PLANETARY HOURS FOR THIS ACTION */}
+          {(() => {
+            const rec = getRecommendedHoraisForAction(report.action.id);
+            const matchingDayHorai = report.panchang.dayHorai.filter(
+              (h) => rec.lords.includes(h.lord) && !h.kalamConflictNote
+            );
+            const slotsToShow =
+              matchingDayHorai.length > 0
+                ? matchingDayHorai
+                : report.panchang.dayHorai.filter((h) => rec.lords.includes(h.lord));
+
+            return (
+              <div className="obs-card floral-banner-glow p-5 space-y-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-base font-bold text-[var(--text)]">
+                      Best Horai Planetary Hours on {selectedDateStr} for {report.action.title}
+                    </h3>
+                    <p className="text-sm text-[var(--text-secondary)]">{rec.rationale}</p>
+                  </div>
+                  <span className="text-xs font-mono text-[var(--accent)] font-semibold">
+                    Click a Horai to set exact clock time
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {slotsToShow.slice(0, 4).map((slot) => (
+                    <button
+                      key={slot.slotNumber}
+                      type="button"
+                      onClick={() => setSelectedTimeStr(slot.startTime)}
+                      className={`text-left p-3.5 rounded-xl border transition flex items-center justify-between gap-2.5 bg-[var(--surface)] ${
+                        selectedTimeStr === slot.startTime
+                          ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]'
+                          : 'border-[var(--border)] hover:border-[var(--accent)]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <SacredFlowerIcon
+                          variety={slot.sacredFlower.variety}
+                          primaryHex={slot.sacredFlower.primaryHex}
+                          secondaryHex={slot.sacredFlower.secondaryHex}
+                          size={26}
+                        />
+                        <div>
+                          <div className="text-sm font-bold text-[var(--text)]">
+                            {slot.horaiName}
+                          </div>
+                          <div className="text-xs font-mono text-[var(--accent)] font-semibold">
+                            {slot.startTime} – {slot.endTime}
+                          </div>
+                        </div>
+                      </div>
+                      <StatusBadge tone={slot.tone} label={slot.isActiveNow ? 'LIVE' : 'Pick'} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* ROW 3: PROGRESSIVE DISCLOSURE DETAIL TABS */}
           <div className="obs-card p-5 space-y-5">

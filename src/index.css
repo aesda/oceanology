@@ -83,12 +83,24 @@ html.dark {
 
   body {
     background-color: var(--bg);
+    background-image:
+      radial-gradient(at 12% 8%, rgba(236, 72, 153, 0.08) 0px, transparent 48%),
+      radial-gradient(at 88% 12%, rgba(245, 158, 11, 0.09) 0px, transparent 46%),
+      radial-gradient(at 50% 88%, rgba(79, 70, 229, 0.08) 0px, transparent 52%);
+    background-attachment: fixed;
     color: var(--text);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: 1rem;
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  html.dark body {
+    background-image:
+      radial-gradient(at 15% 10%, rgba(236, 72, 153, 0.14) 0px, transparent 48%),
+      radial-gradient(at 85% 14%, rgba(245, 158, 11, 0.11) 0px, transparent 46%),
+      radial-gradient(at 50% 90%, rgba(99, 102, 241, 0.16) 0px, transparent 54%);
   }
 
   h1, h2, h3, h4 {
@@ -110,19 +122,37 @@ html.dark {
   }
 }
 
-/* Clean Product Surfaces — Spacious 8px Spatial System, Clear Borders */
+/* Lively Botanical Product Surfaces — High-Contrast Cards + Gentle Floral Hover Elevation */
 .obs-card,
 .folio-sheet {
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  border-radius: 14px;
+  box-shadow:
+    0 2px 10px -2px rgba(15, 23, 42, 0.05),
+    0 1px 3px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease;
+}
+
+.obs-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  box-shadow:
+    0 10px 26px -8px rgba(79, 70, 229, 0.11),
+    0 4px 12px -4px rgba(236, 72, 153, 0.08);
 }
 
 .obs-panel {
   background-color: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 11px;
+  transition: border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease;
+}
+
+.obs-panel:hover {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
 }
 
 .editorial-eyebrow {
@@ -145,11 +175,11 @@ html.dark {
   background-color: var(--surface);
   border: 1px solid var(--border-strong);
   color: var(--text);
-  border-radius: 8px;
+  border-radius: 9px;
   padding: 9px 13px;
   font-size: 0.9375rem;
   min-height: 42px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .obs-input:focus {
@@ -187,21 +217,36 @@ html.dark {
   border-radius: 6px;
 }
 
-/* Fitts's Law Compliant Buttons (>= 42px comfortable targets) */
+/* Fitts's Law Compliant Buttons with Floral Gradient Liveliness */
 .btn-editorial-primary {
-  background-color: var(--accent);
+  background-image: linear-gradient(135deg, #4338CA 0%, #6366F1 55%, #DB2777 100%);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
   color: #ffffff;
   padding: 10px 18px;
   min-height: 42px;
   font-size: 0.9375rem;
   font-weight: 600;
-  border-radius: 8px;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 1px 2px rgba(67, 56, 202, 0.22);
+  border-radius: 10px;
+  transition:
+    background-position 0.35s ease,
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease;
+  box-shadow:
+    0 4px 14px -3px rgba(79, 70, 229, 0.38),
+    0 2px 6px -2px rgba(219, 39, 119, 0.22);
 }
 
 .btn-editorial-primary:hover {
-  background-color: var(--accent-hover);
+  background-position: 100% 50%;
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 20px -4px rgba(79, 70, 229, 0.45),
+    0 4px 10px -2px rgba(219, 39, 119, 0.3);
+}
+
+.btn-editorial-primary:active {
+  transform: translateY(0) scale(0.985);
 }
 
 .btn-editorial-secondary {
@@ -212,17 +257,184 @@ html.dark {
   min-height: 42px;
   font-size: 0.9375rem;
   font-weight: 600;
-  border-radius: 8px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  border-radius: 10px;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.18s ease,
+    box-shadow 0.2s ease;
 }
 
 .btn-editorial-secondary:hover {
   border-color: var(--accent);
   background-color: var(--bg-elevated);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.16);
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* ==================== SACRED LOTUS & FLOWER MOTION KEYFRAMES ==================== */
+@keyframes floralPetalFall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) scale(var(--petal-scale, 1));
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--petal-opacity, 0.55);
+  }
+  88% {
+    opacity: var(--petal-opacity, 0.5);
+  }
+  100% {
+    transform: translate3d(var(--petal-drift, 65px), 112vh, 0) rotate(390deg) scale(var(--petal-scale, 1));
+    opacity: 0;
+  }
+}
+
+@keyframes floralBreezeSway {
+  0%, 100% {
+    margin-left: 0px;
+  }
+  50% {
+    margin-left: var(--petal-sway, 28px);
+  }
+}
+
+@keyframes lotusSpinClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lotusSpinCounter {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes lotusBreatheBloom {
+  0%, 100% {
+    transform: scale(0.96);
+    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.18));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.3));
+  }
+}
+
+@keyframes flowerGentleSway {
+  0%, 100% {
+    transform: rotate(-5deg) scale(1);
+  }
+  50% {
+    transform: rotate(6deg) scale(1.06);
+  }
+}
+
+@keyframes floralCardUnfurl {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes burstPetalFly {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(0.35) rotate(0deg);
+  }
+  35% {
+    opacity: 0.96;
+    transform: translate3d(calc(var(--tx) * 0.55), calc(var(--ty) * 0.55), 0) scale(1.08) rotate(calc(var(--rot) * 0.5));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--tx), calc(var(--ty) + 26px), 0) scale(0.45) rotate(var(--rot));
+  }
+}
+
+@keyframes livePetalHalo {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.1);
+  }
+}
+
+.animate-lotus-cw {
+  animation: lotusSpinClockwise 52s linear infinite;
+  transform-origin: center;
+}
+
+.animate-lotus-ccw {
+  animation: lotusSpinCounter 68s linear infinite;
+  transform-origin: center;
+}
+
+.animate-lotus-breathe {
+  animation: lotusBreatheBloom 5.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-flower-sway {
+  animation: flowerGentleSway 4.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-bloom-in {
+  animation: floralCardUnfurl 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-live-halo {
+  animation: livePetalHalo 2.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.floral-banner-glow {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    125deg,
+    color-mix(in srgb, var(--surface) 90%, #FDF2F8) 0%,
+    color-mix(in srgb, var(--surface) 92%, #FFFBEB) 50%,
+    color-mix(in srgb, var(--surface) 90%, #EEF2FF) 100%
+  );
+}
+
+html.dark .floral-banner-glow {
+  background: linear-gradient(
+    125deg,
+    rgba(236, 72, 153, 0.12) 0%,
+    rgba(245, 158, 11, 0.08) 50%,
+    rgba(99, 102, 241, 0.14) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-lotus-cw,
+  .animate-lotus-ccw,
+  .animate-lotus-breathe,
+  .animate-flower-sway,
+  .animate-live-halo {
+    animation: none !important;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -243,6 +455,7 @@ html.dark {
   }
   body {
     background: #ffffff !important;
+    background-image: none !important;
     color: #000000 !important;
     font-size: 12pt !important;
   }

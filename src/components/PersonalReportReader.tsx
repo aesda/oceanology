@@ -41,6 +41,11 @@ import {
 import { VedicKundliSvg } from './VedicKundliSvg';
 import { NatalWheelSvg } from './NatalWheelSvg';
 import { StatusBadge } from './ui/DashboardPrimitives';
+import {
+  BloomingLotusMandala,
+  LotusVineDivider,
+  SacredFlowerIcon,
+} from './ui/FloralAnimations';
 
 interface Props {
   profile: BirthProfile;
@@ -53,6 +58,7 @@ interface Props {
   houseSystem: HouseSystem;
   onEditProfile: () => void;
   onOpenActionTiming: (actionId?: string) => void;
+  onOpenHoraiStudio?: () => void;
   onInspectNakshatra: (nakIdx: number) => void;
 }
 
@@ -78,6 +84,7 @@ export const PersonalReportReader: React.FC<Props> = ({
   houseSystem,
   onEditProfile,
   onOpenActionTiming,
+  onOpenHoraiStudio,
   onInspectNakshatra,
 }) => {
   const [pdfBusy, setPdfBusy] = useState<'NONE' | 'DOWNLOAD' | 'PREVIEW'>('NONE');
@@ -185,13 +192,16 @@ export const PersonalReportReader: React.FC<Props> = ({
   const pad2 = (n: number) => String(n).padStart(2, '0');
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
+    <div className="max-w-4xl mx-auto space-y-8 pb-12 animate-bloom-in">
       {/* ==================== TOP DOSSIER HERO & PDF EXPORT CARD ==================== */}
-      <section className="obs-card p-6 sm:p-8 space-y-6 border-t-4 border-t-[var(--accent)]">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <section className="obs-card floral-banner-glow p-6 sm:p-8 space-y-6 border-t-4 border-t-[var(--accent)] relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-24 -top-24 opacity-25">
+          <BloomingLotusMandala size={280} />
+        </div>
+        <div className="flex flex-wrap items-start justify-between gap-4 relative z-10">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-sm font-semibold">
-              <FileText className="w-4 h-4" />
+              <SacredFlowerIcon variety="lotus" primaryHex="#EC4899" secondaryHex="#FDE68A" size={18} />
               <span>Easy-to-Read Personal Horoscope &amp; Multi-Page PDF Dossier</span>
             </div>
 
@@ -659,13 +669,15 @@ export const PersonalReportReader: React.FC<Props> = ({
         </div>
       </section>
 
+      <LotusVineDivider label="Daily Horai, Best Dates & Remedies" />
+
       {/* ==================== CHAPTER 7: DECISION TIMING & PRACTICAL REMEDIES ==================== */}
       <section id="rep-timing" className="obs-card p-6 sm:p-8 space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="text-sm font-semibold text-[var(--accent)]">Chapter 7</div>
             <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-              Best Upcoming Dates for Important Decisions &amp; Practical Remedies
+              Today’s Horai Time, Best Upcoming Dates &amp; Practical Remedies
             </h2>
             <p className="text-base text-[var(--text-secondary)]">
               Personalized for {profile.location.name} using your Birth Star ({moonPlanet.nakshatraName}
@@ -673,14 +685,64 @@ export const PersonalReportReader: React.FC<Props> = ({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onOpenActionTiming()}
-            className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
-          >
-            <Scale className="w-4 h-4 text-[var(--accent)]" />
-            <span>Test All 20 Actions</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenHoraiStudio && (
+              <button
+                type="button"
+                onClick={onOpenHoraiStudio}
+                className="btn-editorial-primary text-sm inline-flex items-center gap-1.5"
+              >
+                <span>Open 24h Horai Clock</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onOpenActionTiming()}
+              className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
+            >
+              <Scale className="w-4 h-4 text-[var(--accent)]" />
+              <span>Test All 20 Actions</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Today's Horai, Gowri & Nalla Neram Plain-English Box */}
+        <div className="obs-panel floral-banner-glow p-5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <SacredFlowerIcon
+                variety={panchangReport.activeHorai.sacredFlower.variety}
+                primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
+                secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
+                size={26}
+              />
+              <span className="text-base font-bold text-[var(--text)]">
+                Active Horai Right Now: {panchangReport.activeHorai.horaiName} (
+                {panchangReport.activeHorai.startTime}–{panchangReport.activeHorai.endTime})
+              </span>
+              <StatusBadge
+                tone={panchangReport.activeHorai.tone}
+                label={panchangReport.activeHorai.quality}
+              />
+            </div>
+            <span className="text-xs font-mono text-[var(--text-secondary)]">
+              Active Gowri: {panchangReport.activeGowri.name} ({panchangReport.activeGowri.nature})
+            </span>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)]">
+            <strong>Today’s Nalla Neram (Pure Good Time):</strong>{' '}
+            {panchangReport.nallaNeram[0].startTime}–{panchangReport.nallaNeram[0].endTime} (
+            {panchangReport.nallaNeram[0].gowriName}) &amp;{' '}
+            {panchangReport.nallaNeram[1].startTime}–{panchangReport.nallaNeram[1].endTime} (
+            {panchangReport.nallaNeram[1].gowriName}).{' '}
+            <strong>Best Daytime Shubha Horais Today:</strong>{' '}
+            {panchangReport.dayHorai
+              .filter((h) => ['Venus', 'Jupiter', 'Mercury'].includes(h.lord) && !h.kalamConflictNote)
+              .slice(0, 4)
+              .map((h) => `${h.horaiName} (${h.startTime}–${h.endTime})`)
+              .join(', ')}
+            .
+          </p>
         </div>
 
         <div className="overflow-x-auto">
