@@ -337,11 +337,10 @@ function AppWorkspace() {
     }
   };
 
-  // ==================== MODE 1: CLEAN MARKETING LANDING PAGE ====================
+  // ==================== MODE 1: COSMIC SUPERCONSCIOUS LANDING PAGE ====================
   if (activeDest === 'HOME') {
     return (
       <>
-        <FloatingPetalsBackdrop enabled={floralMotion} />
         <InteractivePetalBurst enabled={floralMotion} />
         <LandingPage
           profile={profile}
@@ -350,6 +349,7 @@ function AppWorkspace() {
           vedicReport={vedicReport}
           panchangReport={panchangReport}
           numerologyReport={numerologyReport}
+          synthesisReport={synthesisReport}
           darkMode={darkMode}
           onToggleDarkMode={() => setDarkMode(!darkMode)}
           largeText={largeText}

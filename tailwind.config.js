@@ -10,6 +10,8 @@ export default {
         serif: ['Newsreader', 'Noto Sans Devanagari', 'Georgia', 'serif'],
         literary: ['Newsreader', 'Noto Sans Devanagari', 'Georgia', 'serif'],
         mono: ['Inter', 'Noto Sans Devanagari', 'system-ui', 'sans-serif'],
+        scDisplay: ['"Wix Madefor Display"', '"Noto Sans Devanagari"', '"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        scSerif: ['"Tiro Kannada"', 'Newsreader', '"Noto Sans Devanagari"', 'Georgia', 'serif'],
       },
     },
   },

@@ -1,24 +1,28 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowRight,
+  ArrowUpRight,
   Compass,
   MapPin,
   Scale,
   BookOpen,
   Globe,
   Sparkles,
-  Sun,
-  Moon,
   Activity,
   Download,
   FileText,
   Clock,
+  HeartHandshake,
+  Hash,
+  Layers,
 } from 'lucide-react';
 import { BirthProfile } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
 import { VedicReport } from '../engines/vedicEngine';
 import { PanchangReport } from '../engines/panchangEngine';
 import { NumerologyReport } from '../engines/numerologyEngine';
+import { CosmicSynthesisReport, generateCosmicSynthesis } from '../engines/synthesisEngine';
+import { generateDeepLifeReport } from '../engines/deepLifeReportEngine';
 import { NEPAL_AND_GLOBAL_CITIES } from '../engines/locationAtlas';
 import { evaluateActionConsequence, scanUpcomingBestWindows } from '../data/karmaAndMuhurtaCodex';
 import {
@@ -33,18 +37,14 @@ import {
   trGowriName,
   trHoraiDisplay,
   trHouseGuide,
-  trHoursRemaining,
-  trNakNature,
   trNakshatra,
   trPlanet,
   trSign,
-  trTaraName,
   trVara,
   useLanguage,
 } from '../i18n/i18n';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
-import { KpiStatCard, ScoreTrendChart, StatusBadge } from './ui/DashboardPrimitives';
-import { LotusVineDivider, SacredFlowerIcon } from './ui/FloralAnimations';
+import { ScoreTrendChart, StatusBadge } from './ui/DashboardPrimitives';
 
 export type WebsiteDestination =
   | 'HOME'
@@ -71,6 +71,7 @@ interface Props {
   vedicReport: VedicReport;
   panchangReport: PanchangReport;
   numerologyReport: NumerologyReport;
+  synthesisReport?: CosmicSynthesisReport;
   darkMode: boolean;
   onToggleDarkMode: () => void;
   largeText?: boolean;
@@ -96,6 +97,137 @@ const HERO_PREVIEW_ACTIONS = [
   { id: 'MARRIAGE_VIVAHA', label: 'Marriage' },
 ];
 
+/* ==================== SACRED GEOMETRY & COSMIC ART PRIMITIVES ==================== */
+
+const SeedOfLifeMark: React.FC<{ size?: number; animated?: boolean; className?: string }> = ({
+  size = 32,
+  animated = false,
+  className = '',
+}) => {
+  const r = 10;
+  const ringAngles = [0, 60, 120, 180, 240, 300];
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="-26 -26 52 52"
+      aria-hidden="true"
+      className={`inline-block shrink-0 ${animated ? 'sc-animate-orbit' : ''} ${className}`}
+    >
+      <circle cx="0" cy="0" r="23" fill="none" stroke="rgba(221,181,252,0.35)" strokeWidth="1" />
+      <circle cx="0" cy="0" r={r} fill="none" stroke="rgba(255,255,255,0.88)" strokeWidth="1.05" />
+      {ringAngles.map((deg) => {
+        const rad = (deg * Math.PI) / 180;
+        const cx = Math.cos(rad) * r;
+        const cy = Math.sin(rad) * r;
+        return (
+          <circle
+            key={deg}
+            cx={cx.toFixed(2)}
+            cy={cy.toFixed(2)}
+            r={r}
+            fill="none"
+            stroke="rgba(237,197,252,0.82)"
+            strokeWidth="0.95"
+          />
+        );
+      })}
+    </svg>
+  );
+};
+
+const InlineOrbitalPill: React.FC<{ variant: 'torus' | 'infinity' | 'starburst' }> = ({
+  variant,
+}) => (
+  <span
+    aria-hidden="true"
+    className="sc-inline-pill align-middle mx-1.5 sm:mx-3 w-[68px] h-[38px] sm:w-[112px] sm:h-[60px] lg:w-[132px] lg:h-[68px]"
+  >
+    {variant === 'torus' && (
+      <svg viewBox="-36 -24 72 48" className="w-11 sm:w-16 lg:w-20 h-auto">
+        <ellipse cx="0" cy="0" rx="22" ry="11" fill="none" stroke="#EDC5FC" strokeWidth="0.9" strokeOpacity="0.85" />
+        <ellipse cx="0" cy="0" rx="11" ry="19" fill="none" stroke="#9780FF" strokeWidth="0.9" strokeOpacity="0.85" />
+        <ellipse cx="0" cy="0" rx="16" ry="16" fill="none" stroke="#FFFFFF" strokeWidth="0.75" strokeOpacity="0.55" />
+      </svg>
+    )}
+    {variant === 'infinity' && (
+      <svg viewBox="-36 -24 72 48" className="w-11 sm:w-16 lg:w-20 h-auto">
+        <circle cx="-9" cy="0" r="12" fill="none" stroke="#EDC5FC" strokeWidth="1" strokeOpacity="0.88" />
+        <circle cx="9" cy="0" r="12" fill="none" stroke="#9780FF" strokeWidth="1" strokeOpacity="0.88" />
+        <circle cx="0" cy="0" r="5" fill="none" stroke="#FFFFFF" strokeWidth="0.8" strokeOpacity="0.65" />
+      </svg>
+    )}
+    {variant === 'starburst' && (
+      <svg viewBox="-36 -24 72 48" className="w-11 sm:w-16 lg:w-20 h-auto">
+        <ellipse cx="0" cy="0" rx="25" ry="5" fill="none" stroke="#EDC5FC" strokeWidth="0.9" strokeOpacity="0.88" />
+        <ellipse cx="0" cy="0" rx="5" ry="19" fill="none" stroke="#9780FF" strokeWidth="0.9" strokeOpacity="0.88" />
+        <circle cx="0" cy="0" r="2.6" fill="#FFFFFF" />
+      </svg>
+    )}
+  </span>
+);
+
+const ConstellationWireframe: React.FC = () => (
+  <svg
+    viewBox="0 0 180 180"
+    aria-hidden="true"
+    className="pointer-events-none absolute -bottom-5 -right-5 w-44 h-44 opacity-[0.16]"
+  >
+    <path
+      d="M90 10 L122 158 L14 58 L166 58 L58 158 Z"
+      fill="none"
+      stroke="#DDB5FC"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    />
+    <circle cx="90" cy="90" r="58" fill="none" stroke="#9780FF" strokeWidth="0.8" strokeDasharray="3 4" />
+  </svg>
+);
+
+const CosmicMeshOrbSvg: React.FC = () => (
+  <svg
+    viewBox="0 0 520 520"
+    aria-hidden="true"
+    className="pointer-events-none select-none w-[310px] sm:w-[440px] lg:w-[510px] h-auto drop-shadow-[0_0_85px_rgba(123,92,224,0.52)]"
+  >
+    <defs>
+      <radialGradient id="scOrbBody" cx="38%" cy="28%" r="68%">
+        <stop offset="0%" stopColor="#F5DCFF" stopOpacity="0.96" />
+        <stop offset="26%" stopColor="#9780FF" stopOpacity="0.92" />
+        <stop offset="58%" stopColor="#4700D6" stopOpacity="0.88" />
+        <stop offset="86%" stopColor="#1A0E38" stopOpacity="0.95" />
+        <stop offset="100%" stopColor="#0C0B0C" stopOpacity="0" />
+      </radialGradient>
+      <pattern id="scMeshDots" width="12" height="12" patternUnits="userSpaceOnUse">
+        <circle cx="2" cy="2" r="1.05" fill="#EDC5FC" fillOpacity="0.28" />
+        <circle cx="8" cy="8" r="0.85" fill="#FFFFFF" fillOpacity="0.18" />
+      </pattern>
+      <clipPath id="scBlobClip">
+        <path d="M262,48 C342,42 426,92 448,168 C470,244 454,344 394,404 C334,464 228,478 152,432 C76,386 42,296 58,208 C74,120 182,54 262,48 Z" />
+      </clipPath>
+    </defs>
+
+    <g clipPath="url(#scBlobClip)">
+      <rect width="520" height="520" fill="url(#scOrbBody)" />
+      <rect width="520" height="520" fill="url(#scMeshDots)" />
+      {[120, 175, 230, 285, 340, 395].map((ry, i) => (
+        <ellipse
+          key={ry}
+          cx="260"
+          cy="260"
+          rx={220 - i * 16}
+          ry={ry * 0.55}
+          transform={`rotate(${-22 + i * 9} 260 260)`}
+          fill="none"
+          stroke="#EDC5FC"
+          strokeOpacity="0.16"
+          strokeWidth="1.1"
+        />
+      ))}
+    </g>
+  </svg>
+);
+
 export const LandingPage: React.FC<Props> = ({
   profile,
   onProfileChange,
@@ -103,8 +235,7 @@ export const LandingPage: React.FC<Props> = ({
   vedicReport,
   panchangReport,
   numerologyReport,
-  darkMode,
-  onToggleDarkMode,
+  synthesisReport,
   largeText = false,
   onToggleLargeText,
   floralMotion = true,
@@ -119,6 +250,33 @@ export const LandingPage: React.FC<Props> = ({
 
   const sunPlanet = natalChart.planets.find((p) => p.id === 'Sun') || natalChart.planets[0];
   const moonPlanet = natalChart.planets.find((p) => p.id === 'Moon') || natalChart.planets[0];
+
+  const resolvedSynthesis = useMemo(
+    () =>
+      synthesisReport ??
+      generateCosmicSynthesis(
+        profile,
+        natalChart,
+        vedicReport,
+        panchangReport,
+        numerologyReport
+      ),
+    [synthesisReport, profile, natalChart, vedicReport, panchangReport, numerologyReport]
+  );
+
+  const deepReport = useMemo(
+    () =>
+      generateDeepLifeReport(
+        profile,
+        natalChart,
+        vedicReport,
+        panchangReport,
+        numerologyReport,
+        resolvedSynthesis,
+        lang
+      ),
+    [profile, natalChart, vedicReport, panchangReport, numerologyReport, resolvedSynthesis, lang]
+  );
 
   const liveEval = useMemo(
     () =>
@@ -185,7 +343,6 @@ export const LandingPage: React.FC<Props> = ({
     [previewActionId, profile.location, moonPlanet.nakshatraIndex, moonPlanet.signIndex]
   );
 
-  // Exactly 4 balanced cities so the preset grid sits on one clean row without orphan wrapping
   const quickCities = useMemo(() => {
     const wanted = ['Kathmandu', 'Pokhara', 'Varanasi', 'New York'];
     return NEPAL_AND_GLOBAL_CITIES.filter((c) =>
@@ -241,86 +398,88 @@ export const LandingPage: React.FC<Props> = ({
     }
   };
 
+  const scrollToSection = (id: string) => {
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const horaiDotClasses =
     panchangReport.activeHorai.tone === 'optimal' ||
     panchangReport.activeHorai.tone === 'favorable'
-      ? { ping: 'bg-emerald-400', dot: 'bg-emerald-500' }
+      ? { ping: 'bg-emerald-400', dot: 'bg-emerald-400' }
       : panchangReport.activeHorai.tone === 'avoid'
-      ? { ping: 'bg-rose-400', dot: 'bg-rose-500' }
-      : { ping: 'bg-amber-400', dot: 'bg-amber-500' };
+      ? { ping: 'bg-rose-400', dot: 'bg-rose-400' }
+      : { ping: 'bg-amber-400', dot: 'bg-amber-400' };
 
   const topHouseShort = trHouseGuide(topSavHouse.house, lang)
     .shortTitle.split(',')[0]
     .trim();
 
+  const nextMaturityMilestone = useMemo(
+    () =>
+      deepReport.maturityMilestones.find((m) => m.status === 'ACTIVE_NOW') ||
+      deepReport.maturityMilestones.find((m) => m.status === 'UPCOMING') ||
+      deepReport.maturityMilestones[0],
+    [deepReport.maturityMilestones]
+  );
+
   return (
-    <div className="min-h-screen flex flex-col bg-transparent text-[var(--text)] relative z-10">
-      {/* ==================== UNIFIED PRODUCT HEADER ==================== */}
-      <header className="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)]">
-        <div className="max-w-[1280px] mx-auto px-3.5 sm:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-5 min-w-0">
+    <div
+      className={`sc-landing min-h-screen flex flex-col relative z-10 ${
+        floralMotion ? '' : 'sc-motion-off'
+      }`}
+    >
+      {/* ==================== 0. FLOATING CENTER-PILL FROSTED GLASS NAVBAR ==================== */}
+      <header className="sticky top-3 sm:top-5 z-50 px-3 sm:px-6 pointer-events-none">
+        <div className="sc-nav-pill pointer-events-auto max-w-[96vw] w-fit mx-auto rounded-2xl px-2.5 sm:px-4 py-2 flex items-center gap-2 sm:gap-5">
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-2 text-left shrink-0 group"
+            aria-label="Oceanology Home"
+          >
+            <SeedOfLifeMark size={28} animated={floralMotion} />
+            <span className="hidden sm:inline font-scDisplay font-semibold text-base tracking-[-0.03em] text-white group-hover:text-[#EDC5FC] transition">
+              oceanology
+            </span>
+          </button>
+
+          <nav
+            aria-label="Cosmic landing sections"
+            className="hidden lg:flex items-center gap-1 text-[13.5px] font-medium text-white/75"
+          >
             <button
               type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2 sm:gap-2.5 text-left shrink-0"
+              onClick={() => scrollToSection('sc-studio')}
+              className="px-3 py-1.5 rounded-xl hover:text-white hover:bg-white/[0.07] transition whitespace-nowrap"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shadow-sm shrink-0">
-                <SacredFlowerIcon
-                  variety="lotus"
-                  primaryHex="#FDE68A"
-                  secondaryHex="#FFFFFF"
-                  size={20}
-                  animated={floralMotion}
-                />
-              </div>
-              <span className="font-display font-bold text-sm sm:text-lg tracking-tight text-[var(--text)] whitespace-nowrap">
-                Oceanology
-              </span>
+              {t('Live Studio', 'प्रत्यक्ष स्टुडियो')}
             </button>
-
-            <nav
-              aria-label="Primary sections"
-              className="hidden xl:flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)]"
+            <button
+              type="button"
+              onClick={() => scrollToSection('sc-how')}
+              className="px-3 py-1.5 rounded-xl hover:text-white hover:bg-white/[0.07] transition whitespace-nowrap"
             >
-              <button
-                type="button"
-                onClick={() => onNavigate('FULL_REPORT')}
-                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
-              >
-                {t('Personal Report', 'व्यक्तिगत रिपोर्ट')}
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('HORAI')}
-                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
-              >
-                {t('Horai Clock', 'होरा घडी')}
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('WHAT_HAPPENS_IF')}
-                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
-              >
-                {t('Best Dates', 'शुभ साइत')}
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' })}
-                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
-              >
-                {t('Kundali & Charts', 'कुण्डली र चार्ट')}
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate('NAKSHATRAS')}
-                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
-              >
-                {t('28 Birth Stars', '२८ नक्षत्र')}
-              </button>
-            </nav>
-          </div>
+              {t('How it Works', 'कसरी काम गर्छ')}
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('sc-features')}
+              className="px-3 py-1.5 rounded-xl hover:text-white hover:bg-white/[0.07] transition whitespace-nowrap"
+            >
+              {t('Sacred Timing', 'होरा र मुहूर्त')}
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('sc-dossier')}
+              className="px-3 py-1.5 rounded-xl hover:text-white hover:bg-white/[0.07] transition whitespace-nowrap"
+            >
+              {t('10-Ch. Dossier', '१०-अध्याय रिपोर्ट')}
+            </button>
+          </nav>
 
-          {/* Right Global Controls — 100% Identical to Workspace Topbar */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <LanguageSwitchButton />
 
@@ -328,13 +487,15 @@ export const LandingPage: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onToggleFloralMotion}
-                aria-label="Toggle sacred flower animations"
-                title={t('Toggle flower animations', 'पुष्प एनिमेसन अन/अफ')}
-                className={`hidden md:inline-flex ui-toolbar-icon-btn ${
-                  floralMotion ? 'ui-toolbar-btn-active' : ''
+                aria-label="Toggle cosmic orbital motion"
+                title={t('Toggle cosmic motion', 'कस्मिक एनिमेसन अन/अफ')}
+                className={`hidden xl:inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs transition ${
+                  floralMotion
+                    ? 'border-[#DDB5FC]/45 bg-[#9780FF]/20 text-[#EDC5FC]'
+                    : 'border-white/15 bg-white/[0.05] text-white/65'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-3.5 h-3.5" />
               </button>
             )}
 
@@ -344,28 +505,21 @@ export const LandingPage: React.FC<Props> = ({
                 onClick={onToggleLargeText}
                 aria-label="Toggle larger reading text"
                 title={t('Toggle larger reading text', 'ठूलो अक्षर आकार')}
-                className={`hidden sm:inline-flex ui-toolbar-btn px-2.5 ${
-                  largeText ? 'ui-toolbar-btn-active' : ''
+                className={`hidden md:inline-flex items-center justify-center h-8 px-2.5 rounded-lg border text-xs font-semibold transition ${
+                  largeText
+                    ? 'border-[#DDB5FC]/55 bg-[#9780FF]/20 text-white'
+                    : 'border-white/15 bg-white/[0.05] text-white/75 hover:text-white'
                 }`}
               >
-                <span>{largeText ? t('Aa+', 'ठूलो') : 'Aa'}</span>
+                {largeText ? t('Aa+', 'ठूलो') : 'Aa'}
               </button>
             )}
 
             <button
               type="button"
-              onClick={onToggleDarkMode}
-              aria-label="Toggle color theme"
-              title={t('Switch light and dark theme', 'उज्यालो / अँध्यारो मोड')}
-              className="ui-toolbar-icon-btn"
-            >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
-            <button
-              type="button"
+              data-testid="landing-read-report"
               onClick={() => onNavigate('FULL_REPORT')}
-              className="ui-toolbar-cta px-2.5 sm:px-3.5"
+              className="bg-white text-[#0C0B0C] hover:bg-[#F5EBFF] font-semibold text-xs sm:text-[13px] px-3 sm:px-4 h-[34px] rounded-xl inline-flex items-center gap-1.5 whitespace-nowrap shadow-[0_4px_18px_rgba(255,255,255,0.2)] transition"
             >
               <span className="hidden sm:inline">{t('Read Report', 'रिपोर्ट पढ्नुहोस्')}</span>
               <span className="sm:hidden">{t('Report', 'रिपोर्ट')}</span>
@@ -373,120 +527,360 @@ export const LandingPage: React.FC<Props> = ({
             </button>
           </div>
         </div>
-
-        {/* LIVE HORAI STATUS BAR — Harmonized Slate Surface & Matched Status Dot */}
-        <div className="border-t border-[var(--border)] bg-[var(--bg-elevated)]/65">
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-[13px] tabular-nums">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-2 font-semibold text-[var(--text)]">
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span
-                    className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${horaiDotClasses.ping}`}
-                  />
-                  <span
-                    className={`relative inline-flex rounded-full h-2 w-2 ${horaiDotClasses.dot}`}
-                  />
-                </span>
-                <span>
-                  {t(`Live in ${cityDisplay}:`, `${cityDisplay} मा प्रत्यक्ष समय:`)}{' '}
-                  <strong className="font-bold">
-                    {lang === 'ne'
-                      ? `${activeHoraiDisp.horaiName} (${activeHoraiDisp.lordLabel})`
-                      : `${activeHoraiDisp.lordLabel} Hora (${activeHoraiDisp.horaiName})`}
-                  </strong>
-                </span>
-              </span>
-              <StatusBadge
-                tone={panchangReport.activeHorai.tone}
-                label={t(
-                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`,
-                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining} मिनेट बाँकी)`
-                )}
-              />
-              <span className="hidden lg:inline text-[var(--text-secondary)]">
-                •{' '}
-                {t('Best Morning Window:', 'आजको शुभ अमृत वेला:')}{' '}
-                <strong className="text-[var(--text)] tabular-nums">
-                  {panchangReport.nallaNeram[0].startTime}–{panchangReport.nallaNeram[0].endTime}
-                </strong>
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('HORAI')}
-              className="font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1 whitespace-nowrap"
-            >
-              <span>{t('Open 24-Hour Horai Clock', '२४-पत्रे होरा कमल घडी खोल्नुहोस्')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
       </header>
 
       <main className="flex-1">
-        {/* ==================== BALANCED, ALIGNED HERO SECTION ==================== */}
-        <section className="max-w-[1280px] mx-auto px-4 sm:px-8 pt-6 pb-14 lg:pt-7 lg:pb-16">
-          {/* Unified Hero Lead Header */}
-          <div className="max-w-4xl space-y-2 mb-5">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 obs-badge-brass text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              <span>
+        {/* ==================== 1. COSMIC NEBULA HERO & 3D INTERACTIVE DEVICE ==================== */}
+        <section className="relative sc-starfield sc-nebula-hero pt-6 sm:pt-9 pb-14 sm:pb-16 px-4 sm:px-8 overflow-hidden">
+          <div className="max-w-[1320px] mx-auto relative">
+            {/* Monumental Brand Wordmark & Subtitle */}
+            <div className="text-center max-w-4xl mx-auto space-y-2.5 sm:space-y-3.5 relative z-20">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-[#DDB5FC]/35 bg-white/[0.05] text-[11px] sm:text-xs font-medium text-[#EDC5FC] tracking-wide">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EDC5FC] animate-pulse" />
+                <span>
+                  {t(
+                    '8 Classical Canons • 24h Graha Horai • 17-Page Printable Dossier',
+                    '८ शास्त्रीय ग्रन्थ • प्रत्यक्ष २४-घण्टा होरा • १७-पृष्ठ PDF जीवन दर्पण'
+                  )}
+                </span>
+              </div>
+
+              <h1 className="font-scDisplay font-medium text-[clamp(3rem,8.8vw,6.5rem)] leading-[0.96] tracking-[-0.055em] text-white select-none">
+                oceanology
+              </h1>
+
+              <p className="text-base sm:text-xl font-medium text-white/85 tracking-[-0.015em] max-w-2xl mx-auto">
                 {t(
-                  'Plain-English Horoscope • Live 24-Hour Horai • Printable PDF Dossier',
-                  'सरल नेपाली फलादेश • प्रत्यक्ष २४-घण्टा होरा घडी • प्रिन्टयोग्य PDF रिपोर्ट'
+                  'The Cosmic Timing, Horai & Personal Life Dossier',
+                  'प्रत्यक्ष ग्रह होरा, शुभ साइत र सरल १०-अध्याय जीवन कुण्डली दर्पण'
                 )}
-              </span>
+              </p>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-[var(--text)] leading-[1.18] tracking-tight">
-              {t(
-                'Understand your birth chart clearly—and know your best hours & days to act.',
-                'आफ्नो जन्म कुण्डली सरल भाषामा बुझ्नुहोस् र हरेक कामको सर्वोत्तम शुभ समय थाहा पाउनुहोस्।'
-              )}
-            </h1>
+            {/* Centerpiece Stage: Sculptural Cosmic Orb + 3D-Tilted Interactive Phone */}
+            <div className="relative mt-5 sm:mt-6 min-h-[490px] sm:min-h-[536px] flex items-center justify-center">
+              {/* Glowing 3D Lattice Nebula Orb */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <CosmicMeshOrbSvg />
+              </div>
 
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
-              {t(
-                'Enter your birth details to read a plain-English personal horoscope, check today’s live planetary hours, or download a multi-page PDF Kundali & life report.',
-                'आफ्नो जन्म विवरण प्रविष्ट गरी सरल नेपालीमा व्यक्तिगत कुण्डली फलादेश पढ्नुहोस्, प्रत्यक्ष होरा र गौरी पञ्चाङ्ग हेर्नुहोस्, वा बहु-पृष्ठ PDF रिपोर्ट डाउनलोड गर्नुहोस्।'
-              )}
-            </p>
-          </div>
-
-          {/* Symmetrical 12-Column Aligned Card Grid (Identical Card Chrome & Header Strips) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            {/* LEFT (5 cols): Birth Profile Card */}
-            <div className="lg:col-span-5 obs-card overflow-hidden flex flex-col justify-between">
-              <div>
-                {/* Matching Card Header Strip */}
-                <div className="px-5 py-3.5 bg-[var(--bg-elevated)] border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2 min-h-[54px]">
-                  <div className="flex items-center gap-2">
-                    <Compass className="w-4 h-4 text-[var(--accent)] shrink-0" />
-                    <span className="text-sm font-bold text-[var(--text)]">
-                      {t('Enter Birth Details', 'जन्म विवरण प्रविष्ट गर्नुहोस्')}
+              {/* 3D-Tilted Interactive Cosmic Phone Mockup */}
+              <div className="relative z-20 sc-animate-float w-[280px] sm:w-[318px] rounded-[42px] p-[9px] bg-gradient-to-b from-[#695B86] via-[#272235] to-[#121018] shadow-[0_38px_95px_rgba(0,0,0,0.88),0_0_50px_rgba(123,92,224,0.3)] border border-white/20">
+                <div className="rounded-[34px] bg-gradient-to-b from-[#0E0B16] via-[#130E24] to-[#0A090F] px-4 pt-3 pb-4 text-white relative overflow-hidden">
+                  {/* Dynamic Island + Status Row */}
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-white/80 mb-3 tabular-nums">
+                    <span>{panchangReport.sunriseTime}</span>
+                    <div className="w-20 h-4 rounded-full bg-black border border-white/10" />
+                    <span className="inline-flex items-center gap-1 text-[#EDC5FC]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      {t('LIVE', 'प्रत्यक्ष')}
                     </span>
                   </div>
-                  <StatusBadge
-                    tone="info"
-                    label={
-                      lang === 'ne'
-                        ? `${trSign(natalChart.ascendant.signName, 'ne')} लग्न • ${trNakshatra(
-                            moonPlanet.nakshatraName,
-                            'ne'
-                          )}`
-                        : `${natalChart.ascendant.signName} Rising • ${moonPlanet.nakshatraName}`
-                    }
-                  />
-                </div>
 
-                {/* Symmetrical 2x2 Input Grid */}
-                <div className="p-5 space-y-4">
+                  {/* Personalized Greeting */}
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#EDC5FC] via-[#9780FF] to-[#4700D6] p-[1.5px] shrink-0">
+                        <div className="w-full h-full rounded-full bg-[#130F21] flex items-center justify-center text-xs font-bold text-[#EDC5FC]">
+                          {(profile.firstName || 'A').slice(0, 1).toUpperCase()}
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[11px] text-white/60 leading-tight">
+                          {t('Welcome Back', 'स्वागतम्')}
+                        </div>
+                        <div className="text-sm font-semibold text-white truncate">
+                          {profile.firstName} {profile.lastName}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection('sc-studio')}
+                      title={t('Customize Birth Profile', 'जन्म विवरण बदल्नुहोस्')}
+                      className="w-8 h-8 rounded-full bg-white/[0.07] border border-white/15 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/15 transition shrink-0"
+                    >
+                      <Compass className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Glowing Violet-Orchid Frequency / Readiness Ring */}
+                  <div className="relative my-3 py-3 flex items-center justify-center">
+                    <div className="absolute w-44 h-44 rounded-full bg-[#7B5CE0]/35 blur-2xl pointer-events-none" />
+                    <div className="relative w-40 h-40 rounded-full border border-[#EDC5FC]/65 shadow-[0_0_34px_rgba(151,128,255,0.55),inset_0_0_26px_rgba(237,197,252,0.28)] flex flex-col items-center justify-center text-center px-3 bg-radial from-[#26184B]/80 to-[#0E0B17]/90">
+                      <div className="absolute inset-2 rounded-full border border-[#9780FF]/35 pointer-events-none" />
+                      <span className="text-[10px] uppercase tracking-wider text-[#EDC5FC]/85 font-medium">
+                        {t('Today’s Alignment', 'आजको मुहूर्त अंक')}
+                      </span>
+                      <div className="text-3xl font-bold tracking-tight text-white tabular-nums mt-0.5">
+                        {liveEval.score}
+                        <span className="text-sm font-normal text-white/65">/100</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate('HORAI')}
+                        className="mt-2 px-3 py-0.5 rounded-full text-[10.5px] font-semibold bg-white/10 hover:bg-white/20 border border-[#EDC5FC]/45 text-[#EDC5FC] transition"
+                      >
+                        {activeHoraiDisp.horaiName}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Birth Signature Pill */}
+                  <div className="text-center text-[11px] text-white/70 mb-3 truncate">
+                    {lang === 'ne'
+                      ? `${trSign(natalChart.ascendant.signName, 'ne')} लग्न • ${trNakshatra(
+                          moonPlanet.nakshatraName,
+                          'ne'
+                        )}`
+                      : `${natalChart.ascendant.signName} Rising • ${moonPlanet.nakshatraName}`}
+                  </div>
+
+                  {/* Activation Card Inside Phone */}
+                  <div className="relative rounded-2xl bg-white/[0.06] border border-white/12 p-3.5 overflow-hidden">
+                    <ConstellationWireframe />
+                    <div className="relative z-10 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xs font-semibold text-white leading-snug">
+                          {t(
+                            'Your 10-Chapter Life Dossier',
+                            'तपाईंको १०-अध्याय जीवन दर्पण'
+                          )}
+                        </div>
+                        <span className="w-5 h-5 rounded-full bg-[#9780FF] text-[#0C0B0C] text-[10px] font-bold flex items-center justify-center shrink-0">
+                          10
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] text-white/65 leading-relaxed">
+                        {t(
+                          `${vedicReport.activeMahadasha.lord}–${vedicReport.activeAntardasha.lord} period • Career, Wealth, Marriage & Prakriti`,
+                          `${trPlanet(vedicReport.activeMahadasha.lord, 'ne')}–${trPlanet(
+                            vedicReport.activeAntardasha.lord,
+                            'ne'
+                          )} दशा • करियर, धन, विवाह र स्वास्थ्य`
+                        )}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate('FULL_REPORT')}
+                        className="mt-1 px-3.5 py-1.5 rounded-full bg-white text-[#0C0B0C] text-[11px] font-bold hover:bg-[#F4E8FF] transition inline-flex items-center gap-1"
+                      >
+                        <span>{t('Start Reading', 'अध्ययन सुरु गर्नुहोस्')}</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Bottom App Dock Inside Phone */}
+                  <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-around text-[10px] text-white/65">
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('HORAI')}
+                      className="flex flex-col items-center gap-0.5 hover:text-white transition"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-[#EDC5FC]" />
+                      <span>{t('Horai', 'होरा')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('WHAT_HAPPENS_IF')}
+                      className="flex flex-col items-center gap-0.5 hover:text-white transition"
+                    >
+                      <Scale className="w-3.5 h-3.5" />
+                      <span>{t('Dates', 'साइत')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection('sc-studio')}
+                      aria-label="Jump to interactive birth studio"
+                      className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#4700D6] via-[#9780FF] to-[#EDC5FC] flex items-center justify-center shadow-[0_0_16px_rgba(151,128,255,0.7)]"
+                    >
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' })}
+                      className="flex flex-col items-center gap-0.5 hover:text-white transition"
+                    >
+                      <Compass className="w-3.5 h-3.5" />
+                      <span>{t('Kundali', 'कुण्डली')}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Hero Floating Pods (Flanking on XL, Cleanly Stacked Below on Mobile/Tablet) */}
+            <div className="mt-8 xl:mt-0 xl:absolute xl:bottom-0 xl:inset-x-0 z-30 flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4 pointer-events-none">
+              {/* Left Pod: Live Planetary Hora & Nalla Neram */}
+              <div className="sc-dock-pod pointer-events-auto p-4 sm:px-5 sm:py-4 max-w-md w-full md:w-auto">
+                <div className="flex items-center gap-2 text-xs font-semibold text-white tabular-nums">
+                  <span className="relative flex h-2.5 w-2.5 shrink-0">
+                    <span
+                      className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${horaiDotClasses.ping}`}
+                    />
+                    <span
+                      className={`relative inline-flex rounded-full h-2.5 w-2.5 ${horaiDotClasses.dot}`}
+                    />
+                  </span>
+                  <span className="text-white/75">
+                    {t(`Live in ${cityDisplay}:`, `${cityDisplay} मा प्रत्यक्ष होरा:`)}
+                  </span>
+                  <span className="text-[#EDC5FC] font-bold">
+                    {lang === 'ne'
+                      ? `${activeHoraiDisp.horaiName} (${activeHoraiDisp.lordLabel})`
+                      : `${activeHoraiDisp.lordLabel} Hora (${activeHoraiDisp.horaiName})`}
+                  </span>
+                </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/65 tabular-nums">
+                  <span>
+                    {panchangReport.activeHorai.startTime}–{panchangReport.activeHorai.endTime} (
+                    {panchangReport.activeHorai.minutesRemaining}
+                    {t('m left', ' मि. बाँकी')})
+                  </span>
+                  <span>•</span>
+                  <span>
+                    {t('Amrit Window:', 'शुभ वेला:')} {panchangReport.nallaNeram[0].startTime}–
+                    {panchangReport.nallaNeram[0].endTime}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Pod: Signature Superconscious Floating CTA Pod */}
+              <div className="sc-dock-pod pointer-events-auto p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-lg w-full md:w-auto">
+                <div className="space-y-0.5">
+                  <div className="text-sm sm:text-base font-semibold text-white tracking-[-0.01em]">
+                    {t(
+                      '10-Chapter Book-Backed Dossier',
+                      '१०-अध्याय शास्त्रीय जीवन रिपोर्ट'
+                    )}
+                  </div>
+                  <div className="text-xs sm:text-[13px] text-white/65">
+                    {t(
+                      'Plain-English reading + 17-page printable PDF',
+                      'सरल नेपाली व्याख्या + १७-पृष्ठ प्रिन्टयोग्य PDF'
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('FULL_REPORT')}
+                  className="sc-btn-white text-sm whitespace-nowrap shrink-0"
+                >
+                  <span>{t('Generate Dossier', 'रिपोर्ट खोल्नुहोस्')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== 2. SACRED GEOMETRY & 3-LINE INLINE-PILL MANIFESTO ==================== */}
+        <section className="py-16 sm:py-24 px-4 sm:px-8 relative overflow-hidden">
+          <div className="max-w-[1080px] mx-auto text-center space-y-10 sm:space-y-12">
+            <div className="flex justify-center">
+              <div className="p-3.5 rounded-full bg-white/[0.03] border border-white/10 shadow-[0_0_40px_rgba(151,128,255,0.18)]">
+                <SeedOfLifeMark size={52} animated={floralMotion} />
+              </div>
+            </div>
+
+            {/* 3-Line Monumental Inline-Pill Display Statement */}
+            <h2 className="font-scDisplay font-medium text-[clamp(2rem,5.6vw,4.6rem)] leading-[1.14] tracking-[-0.04em] text-white">
+              <span className="block">
+                {t('Decode', 'पढ्नुहोस्')}
+                <InlineOrbitalPill variant="torus" />
+                {t('Your', 'आफ्नो')}
+              </span>
+              <span className="block mt-1.5 sm:mt-2">
+                {t('Stars', 'नक्षत्र')}
+                <InlineOrbitalPill variant="infinity" />
+                <span className="font-scSerif italic font-normal text-[#EDC5FC]">
+                  {t('Master', 'चिनौं')}
+                </span>
+              </span>
+              <span className="block mt-1.5 sm:mt-2">
+                {t('Your', 'आफ्नो')}
+                <InlineOrbitalPill variant="starburst" />
+                {t('Timing', 'शुभ समय')}
+              </span>
+            </h2>
+
+            {/* Progressive-Luminance Editorial Narrative */}
+            <p className="max-w-2xl mx-auto text-base sm:text-xl leading-[1.68] text-left sm:text-center font-normal">
+              <span className="text-white">
+                {t(
+                  'Every turning point in your career, wealth, relationships, and vitality leaves a signature in the sky. ',
+                  'तपाईंको करियर, धन-सम्पत्ति, विवाह र स्वास्थ्यको हरेक मोड आकाशको ग्रह-स्थितिमा अंकित हुन्छ। '
+                )}
+              </span>
+              <span className="text-white/65">
+                {t(
+                  'Oceanology unites high-precision Moshier astronomical ephemeris with eight foundational Sanskrit & modern canons—translating complex D1/D9/D10 charts, Indu Lagna wealth indicators, and 24-hour Graha Horai windows into crystal-clear everyday guidance.',
+                  'ओसियोलोजीले सूक्ष्म खगोलीय इफेमेरिस र बृहत् पाराशर होरा शास्त्र लगायत ८ प्रामाणिक ग्रन्थहरूलाई जोडेर लग्न/नवांश/दशमांश कुण्डली, इन्दु लग्न धन योग र २४-घण्टा ग्रह होरालाई जो-कसैले सजिलै बुझ्ने सरल भाषामा प्रस्तुत गर्दछ।'
+                )}
+              </span>
+            </p>
+          </div>
+        </section>
+
+        {/* ==================== 3. INTERACTIVE LIVE BIRTH & COSMIC TIMING STUDIO ==================== */}
+        <section id="sc-studio" className="scroll-mt-24 py-8 sm:py-14 px-4 sm:px-8">
+          <div className="max-w-[1280px] mx-auto sc-card-iridescent p-5 sm:p-8 lg:p-10 relative overflow-hidden">
+            {/* Ambient Nebula Corner Glow */}
+            <div className="pointer-events-none absolute -top-28 -left-24 w-96 h-96 rounded-full bg-[#7B5CE0]/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-28 -right-24 w-96 h-96 rounded-full bg-[#E73825]/12 blur-3xl" />
+
+            <div className="relative z-10 flex flex-wrap items-end justify-between gap-4 mb-6 sm:mb-8">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="text-xs sm:text-sm font-semibold text-[#9780FF] tracking-wide uppercase">
+                  {t(
+                    'Interactive Cosmic Studio • Live Calculation',
+                    'प्रत्यक्ष जन्म कुण्डली र शुभ साइत स्टुडियो'
+                  )}
+                </div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-[-0.03em] text-white">
+                  {t(
+                    'Personalize your birth coordinates & test today’s sky',
+                    'आफ्नो जन्म विवरण राख्नुहोस् र आजको शुभ साइत जाँच्नुहोस्'
+                  )}
+                </h2>
+              </div>
+
+              <StatusBadge
+                tone="info"
+                label={
+                  lang === 'ne'
+                    ? `${trSign(natalChart.ascendant.signName, 'ne')} लग्न • ${trNakshatra(
+                        moonPlanet.nakshatraName,
+                        'ne'
+                      )}`
+                    : `${natalChart.ascendant.signName} Rising • ${moonPlanet.nakshatraName}`
+                }
+              />
+            </div>
+
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+              {/* LEFT (5 cols): Birth Profile Editor & Instant Signature */}
+              <div className="lg:col-span-5 rounded-2xl bg-white/[0.035] border border-white/10 p-5 sm:p-6 flex flex-col justify-between gap-5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/10">
+                    <span className="text-sm font-semibold text-white inline-flex items-center gap-2">
+                      <Compass className="w-4 h-4 text-[#DDB5FC]" />
+                      {t('Birth Coordinates', 'जन्म विवरण')}
+                    </span>
+                    <span className="text-xs text-[#DDB5FC] tabular-nums">
+                      {t(
+                        `Life Path #${numerologyReport.lifePath.final} • Year #${numerologyReport.personalYear.final}`,
+                        `मूलांक #${numerologyReport.lifePath.final} • व्यक्तिगत वर्ष #${numerologyReport.personalYear.final}`
+                      )}
+                    </span>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label
                         htmlFor="hero-first-name"
-                        className="block text-xs sm:text-sm font-medium text-[var(--text-secondary)] mb-1"
+                        className="block text-xs font-medium text-white/75 mb-1"
                       >
                         {t('First name', 'पहिलो नाम')}
                       </label>
@@ -501,13 +895,13 @@ export const LandingPage: React.FC<Props> = ({
                             currentFirstName: e.target.value,
                           })
                         }
-                        className="w-full obs-input"
+                        className="w-full sc-input"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="hero-last-name"
-                        className="block text-xs sm:text-sm font-medium text-[var(--text-secondary)] mb-1"
+                        className="block text-xs font-medium text-white/75 mb-1"
                       >
                         {t('Last name', 'थर')}
                       </label>
@@ -522,7 +916,7 @@ export const LandingPage: React.FC<Props> = ({
                             currentLastName: e.target.value,
                           })
                         }
-                        className="w-full obs-input"
+                        className="w-full sc-input"
                       />
                     </div>
                   </div>
@@ -531,7 +925,7 @@ export const LandingPage: React.FC<Props> = ({
                     <div>
                       <label
                         htmlFor="hero-birth-date"
-                        className="block text-xs sm:text-sm font-medium text-[var(--text-secondary)] mb-1"
+                        className="block text-xs font-medium text-white/75 mb-1"
                       >
                         {t('Birth date', 'जन्म मिति (ई.सं.)')}
                       </label>
@@ -548,14 +942,14 @@ export const LandingPage: React.FC<Props> = ({
                             onProfileChange({ ...profile, year: yr, month: mo, day: dy });
                           }
                         }}
-                        className="w-full obs-input tabular-nums font-medium"
+                        className="w-full sc-input tabular-nums"
                       />
                     </div>
 
                     <div>
                       <label
                         htmlFor="hero-birth-time"
-                        className="block text-xs sm:text-sm font-medium text-[var(--text-secondary)] mb-1"
+                        className="block text-xs font-medium text-white/75 mb-1"
                       >
                         {t('Birth time (24h)', 'जन्म समय (२४ घण्टा)')}
                       </label>
@@ -563,6 +957,7 @@ export const LandingPage: React.FC<Props> = ({
                         id="hero-birth-time"
                         type="time"
                         aria-label="Birth time"
+                        disabled={Boolean(profile.unknownTime)}
                         value={birthTimeIso}
                         onChange={(e) => {
                           const [hr, mn] = e.target.value
@@ -572,16 +967,33 @@ export const LandingPage: React.FC<Props> = ({
                             onProfileChange({ ...profile, hour: hr, minute: mn });
                           }
                         }}
-                        className="w-full obs-input tabular-nums font-medium"
+                        className="w-full sc-input tabular-nums disabled:opacity-50"
                       />
                     </div>
                   </div>
 
-                  {/* Clean Single-Row Location Selector (4 Balanced Presets, Zero Orphan Row) */}
-                  <div className="space-y-2 pt-0.5">
-                    <div className="flex items-center justify-between text-xs sm:text-sm">
-                      <span className="text-[var(--text-secondary)] font-medium inline-flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-[var(--accent)] shrink-0" />
+                  <label className="inline-flex items-center gap-2 text-xs text-white/70 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(profile.unknownTime)}
+                      onChange={(e) =>
+                        onProfileChange({ ...profile, unknownTime: e.target.checked })
+                      }
+                      className="rounded border-white/25 bg-[#121018] text-[#9780FF] focus:ring-[#9780FF]"
+                    />
+                    <span>
+                      {t(
+                        'Exact birth time unknown (use Sunrise / Chandra Lagna mode)',
+                        'जन्मको ठीक घण्टा थाहा छैन (चन्द्र लग्न मोड प्रयोग गर्नुहोस्)'
+                      )}
+                    </span>
+                  </label>
+
+                  {/* City Selector (4 Balanced Quick Cities + Global Search) */}
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <span className="text-white/80 font-medium inline-flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#DDB5FC] shrink-0" />
                         <span>
                           {cityDisplay}, {countryDisplay}
                         </span>
@@ -589,11 +1001,11 @@ export const LandingPage: React.FC<Props> = ({
                       <button
                         type="button"
                         onClick={() => setShowCitySearch(!showCitySearch)}
-                        className="text-[var(--accent)] font-semibold hover:underline"
+                        className="text-[#DDB5FC] font-semibold hover:underline"
                       >
                         {showCitySearch
                           ? t('Done', 'बन्द गर्नुहोस्')
-                          : t('Search all cities', 'अन्य सहर खोज्नुहोस्')}
+                          : t('Search 80+ cities', 'अन्य सहर खोज्नुहोस्')}
                       </button>
                     </div>
 
@@ -606,13 +1018,13 @@ export const LandingPage: React.FC<Props> = ({
                               key={city.id}
                               type="button"
                               onClick={() => onProfileChange({ ...profile, location: city })}
-                              className={`ui-chip justify-center px-2 text-xs ${
-                                active ? 'ui-chip-active' : ''
+                              className={`h-8 px-2 rounded-lg text-xs font-medium transition truncate border ${
+                                active
+                                  ? 'bg-[#9780FF]/25 border-[#DDB5FC]/65 text-white font-semibold'
+                                  : 'bg-white/[0.04] border-white/10 text-white/70 hover:text-white hover:border-white/25'
                               }`}
                             >
-                              <span className="truncate">
-                                {formatCityForLang(city.name, lang)}
-                              </span>
+                              {formatCityForLang(city.name, lang)}
                             </button>
                           );
                         })}
@@ -629,142 +1041,118 @@ export const LandingPage: React.FC<Props> = ({
                     )}
                   </div>
 
-                  {/* Live Instant Chart Preview (Eliminates Empty Gap & Updates Reactively) */}
-                  <div className="obs-panel p-3.5 space-y-2">
-                    <div className="flex items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                      <span>{t('Instant Chart Snapshot', 'तत्काल कुण्डली झलक')}</span>
-                      <span className="text-[var(--accent)] tabular-nums">
-                        {t(
-                          `Life Path #${numerologyReport.lifePath.final} • Personal Year #${numerologyReport.personalYear.final}`,
-                          `मूलांक #${numerologyReport.lifePath.final} • व्यक्तिगत वर्ष #${numerologyReport.personalYear.final}`
-                        )}
-                      </span>
+                  {/* Live 3-Column Natal Snapshot */}
+                  <div className="grid grid-cols-3 gap-2 pt-1">
+                    <div className="rounded-xl bg-black/35 border border-white/10 px-3 py-2.5">
+                      <div className="text-[11px] text-white/55">{t('Sun Sign', 'सूर्य राशि')}</div>
+                      <div className="text-xs sm:text-sm font-semibold text-white truncate mt-0.5">
+                        {trSign(sunPlanet.signName, lang)}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] px-2.5 py-2">
-                        <div className="text-[11px] font-medium text-[var(--text-muted)]">
-                          {t('Sun Sign', 'सूर्य राशि')}
-                        </div>
-                        <div className="text-xs sm:text-sm font-bold text-[var(--text)] truncate mt-0.5">
-                          {trSign(sunPlanet.signName, lang)}
-                        </div>
+                    <div className="rounded-xl bg-black/35 border border-white/10 px-3 py-2.5">
+                      <div className="text-[11px] text-white/55">{t('Moon Sign', 'चन्द्र राशि')}</div>
+                      <div className="text-xs sm:text-sm font-semibold text-white truncate mt-0.5">
+                        {trSign(moonPlanet.signName, lang)}
                       </div>
-                      <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] px-2.5 py-2">
-                        <div className="text-[11px] font-medium text-[var(--text-muted)]">
-                          {t('Moon Sign', 'चन्द्र राशि')}
-                        </div>
-                        <div className="text-xs sm:text-sm font-bold text-[var(--text)] truncate mt-0.5">
-                          {trSign(moonPlanet.signName, lang)}
-                        </div>
-                      </div>
-                      <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] px-2.5 py-2">
-                        <div className="text-[11px] font-medium text-[var(--text-muted)]">
-                          {t('Active Chapter', 'हालको दशा')}
-                        </div>
-                        <div className="text-xs sm:text-sm font-bold text-[var(--text)] truncate mt-0.5">
-                          {trPlanet(vedicReport.activeMahadasha.lord, lang)}–
-                          {trPlanet(vedicReport.activeAntardasha.lord, lang)}
-                        </div>
+                    </div>
+                    <div className="rounded-xl bg-black/35 border border-white/10 px-3 py-2.5">
+                      <div className="text-[11px] text-white/55">{t('Active Dasha', 'हालको दशा')}</div>
+                      <div className="text-xs sm:text-sm font-semibold text-[#EDC5FC] truncate mt-0.5">
+                        {trPlanet(vedicReport.activeMahadasha.lord, lang)}–
+                        {trPlanet(vedicReport.activeAntardasha.lord, lang)}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Card Action Footer */}
-              <div className="px-5 pb-5 pt-2 space-y-2.5 border-t border-[var(--border)] bg-[var(--surface-muted)]/60">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('FULL_REPORT')}
-                  className="w-full btn-editorial-primary flex items-center justify-center gap-2 text-sm sm:text-base mt-1"
-                >
-                  <FileText className="w-4 h-4 shrink-0" />
-                  <span>
-                    {t('Read My Easy Personal Report', 'मेरो सरल व्यक्तिगत रिपोर्ट पढ्नुहोस्')}
-                  </span>
-                  <ArrowRight className="w-4 h-4 shrink-0" />
-                </button>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {/* Primary & Secondary Studio Actions */}
+                <div className="space-y-2.5 pt-3 border-t border-white/10">
                   <button
                     type="button"
-                    disabled={pdfDownloading}
-                    onClick={handleQuickPdf}
-                    className="btn-editorial-secondary flex items-center justify-center gap-2 text-sm disabled:opacity-60"
+                    onClick={() => onNavigate('FULL_REPORT')}
+                    className="sc-btn-white w-full text-sm sm:text-[15px]"
                   >
-                    <Download className="w-4 h-4 text-[var(--accent)] shrink-0" />
+                    <FileText className="w-4 h-4 shrink-0" />
                     <span>
-                      {pdfDownloading
-                        ? t('Building PDF…', 'PDF बन्दैछ…')
-                        : t('Download PDF', 'PDF डाउनलोड')}
+                      {t('Open My 10-Chapter Life Report', 'मेरो १०-अध्याय जीवन रिपोर्ट पढ्नुहोस्')}
                     </span>
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('OBSERVATORY', { studioTab: 'SYNTHESIS' })}
-                    className="btn-editorial-secondary flex items-center justify-center gap-2 text-sm"
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      disabled={pdfDownloading}
+                      onClick={handleQuickPdf}
+                      className="sc-btn-glass text-xs sm:text-sm disabled:opacity-60"
+                    >
+                      <Download className="w-4 h-4 text-[#EDC5FC] shrink-0" />
+                      <span>
+                        {pdfDownloading
+                          ? t('Building PDF…', 'PDF बन्दैछ…')
+                          : t('Download 17p PDF', '१७-पृष्ठ PDF डाउनलोड')}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('OBSERVATORY', { studioTab: 'SYNTHESIS' })}
+                      className="sc-btn-glass text-xs sm:text-sm"
+                    >
+                      <Layers className="w-4 h-4 text-[#EDC5FC] shrink-0" />
+                      <span>{t('Open Full Workspace', 'पूर्ण ड्यासबोर्ड')}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT (7 cols): Live Decision Score & 10-Day Readiness Curve */}
+              <div className="lg:col-span-7 rounded-2xl bg-white/[0.035] border border-white/10 p-5 sm:p-6 flex flex-col justify-between gap-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-[#DDB5FC] shrink-0" />
+                    <span className="text-sm font-semibold text-white">
+                      {t(`Today’s Timing — ${cityDisplay}`, `आजको शुभ साइत — ${cityDisplay}`)}
+                    </span>
+                  </div>
+
+                  <div
+                    role="tablist"
+                    aria-label="Preview life decision"
+                    className="inline-flex flex-wrap gap-1 p-1 rounded-xl bg-black/40 border border-white/10 max-w-full"
                   >
-                    <Compass className="w-4 h-4 text-[var(--accent)] shrink-0" />
-                    <span>{t('Open Dashboard', 'ड्यासबोर्ड खोल्नुहोस्')}</span>
-                  </button>
+                    {HERO_PREVIEW_ACTIONS.map((act) => {
+                      const active = act.id === previewActionId;
+                      return (
+                        <button
+                          key={act.id}
+                          role="tab"
+                          aria-selected={active}
+                          type="button"
+                          onClick={() => setPreviewActionId(act.id)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                            active
+                              ? 'bg-white text-[#0C0B0C]'
+                              : 'text-white/70 hover:text-white'
+                          }`}
+                        >
+                          {trActionShort(act.id, act.label, lang)}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* RIGHT (7 cols): Live Decision & 10-Day Forecast Card */}
-            <div className="lg:col-span-7 obs-card overflow-hidden flex flex-col justify-between">
-              {/* Matching Card Header Strip with Contained Segmented Tabs */}
-              <div className="px-5 py-3 bg-[var(--bg-elevated)] border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3 min-h-[54px]">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[var(--accent)] shrink-0" />
-                  <span className="text-sm font-bold text-[var(--text)]">
-                    {t(
-                      `Today’s Timing — ${cityDisplay}`,
-                      `आजको शुभ साइत — ${cityDisplay}`
-                    )}
-                  </span>
-                </div>
-
-                <div
-                  role="tablist"
-                  aria-label="Preview life decision"
-                  className="inline-flex flex-wrap gap-1 p-0.5 rounded-lg bg-[var(--surface)] border border-[var(--border)] max-w-full"
-                >
-                  {HERO_PREVIEW_ACTIONS.map((act) => {
-                    const active = act.id === previewActionId;
-                    return (
-                      <button
-                        key={act.id}
-                        role="tab"
-                        aria-selected={active}
-                        type="button"
-                        onClick={() => setPreviewActionId(act.id)}
-                        className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                          active
-                            ? 'bg-[var(--accent-bg)] text-[var(--accent)]'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-                        }`}
-                      >
-                        {trActionShort(act.id, act.label, lang)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="p-5 space-y-5 flex-1 flex flex-col justify-between">
-                {/* 3 Uniform Mini KPI Cards (Identical 3-Row Anatomy & Badge Footer) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  <div className="obs-panel p-3.5 flex flex-col justify-between gap-2">
-                    <div className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                      {t('Today’s Score', 'आजको मुहूर्त अंक')}
+                {/* 3 Cosmic KPI Tiles */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-xl bg-black/35 border border-white/10 p-3.5 flex flex-col justify-between gap-2">
+                    <div className="text-xs text-white/65">
+                      {t('Today’s Readiness', 'आजको मुहूर्त अंक')}
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold tabular-nums text-[var(--text)] leading-none">
+                    <div className="text-2xl font-bold tabular-nums text-white leading-none">
                       {liveEval.score}
-                      <span className="text-sm font-medium text-[var(--text-muted)]">/100</span>
+                      <span className="text-sm font-normal text-white/50">/100</span>
                     </div>
-                    <div className="flex items-center justify-between gap-1.5 pt-0.5">
+                    <div className="flex items-center justify-between gap-1.5">
                       <StatusBadge
                         tone={
                           liveEval.score >= 70
@@ -781,29 +1169,29 @@ export const LandingPage: React.FC<Props> = ({
                             : t('Wait', 'प्रतीक्षा')
                         }
                       />
-                      <span className="text-xs text-[var(--text-muted)] tabular-nums">
+                      <span className="text-[11px] text-white/50 tabular-nums">
                         {t('70+ ideal', '७०+ उत्तम')}
                       </span>
                     </div>
                   </div>
 
-                  <div className="obs-panel p-3.5 flex flex-col justify-between gap-2">
-                    <div className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                  <div className="rounded-xl bg-black/35 border border-white/10 p-3.5 flex flex-col justify-between gap-2">
+                    <div className="text-xs text-white/65">
                       {t('Best Day (Next 10d)', 'आगामी १० दिनको उत्तम दिन')}
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold text-[var(--text)] tabular-nums leading-none">
+                    <div className="text-xl sm:text-2xl font-bold text-white tabular-nums leading-none">
                       {formatDisplayDate(
                         bestUpcoming?.dateStr || panchangReport.dateStr,
                         lang,
                         false
                       )}
                     </div>
-                    <div className="flex items-center justify-between gap-1.5 pt-0.5">
+                    <div className="flex items-center justify-between gap-1.5">
                       <StatusBadge
                         tone="optimal"
                         label={`${bestUpcoming?.score ?? liveEval.score}/100`}
                       />
-                      <span className="text-xs text-[var(--text-muted)] truncate">
+                      <span className="text-[11px] text-white/55 truncate">
                         {shortNakshatraLabel(
                           bestUpcoming?.nakshatraName || panchangReport.nakshatra.name,
                           lang
@@ -812,39 +1200,38 @@ export const LandingPage: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <div className="obs-panel p-3.5 flex flex-col justify-between gap-2">
-                    <div className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                      {t('Strongest Chart Area', 'सबैभन्दा बलियो भाव')}
+                  <div className="rounded-xl bg-black/35 border border-white/10 p-3.5 flex flex-col justify-between gap-2">
+                    <div className="text-xs text-white/65">
+                      {t('Peak Chart House', 'सबैभन्दा बलियो भाव')}
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold text-[var(--text)] tabular-nums leading-none">
+                    <div className="text-xl sm:text-2xl font-bold text-white tabular-nums leading-none">
                       {t(`House ${topSavHouse.house}`, `भाव ${topSavHouse.house}`)}
-                      <span className="text-sm font-medium text-[var(--text-muted)]">
+                      <span className="text-xs font-normal text-white/55">
                         {' '}
                         · {topSavHouse.bindus} {t('pts', 'बिन्दु')}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-1.5 pt-0.5">
+                    <div className="flex items-center justify-between gap-1.5">
                       <StatusBadge tone="info" label={topHouseShort} />
-                      <span className="text-xs text-[var(--text-muted)] tabular-nums">
+                      <span className="text-[11px] text-white/50 tabular-nums">
                         {t('28 avg', 'औसत २८')}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Synchronized 10-Day Trend Chart */}
-                <div className="space-y-1.5">
-                  <div>
-                    <h2 className="text-sm sm:text-base font-bold text-[var(--text)]">
-                      {t('10-Day Timing Forecast', '१०-दिने शुभ समय पूर्वानुमान')} —{' '}
+                {/* Live 10-Day Score Trend Chart */}
+                <div className="rounded-xl bg-black/30 border border-white/10 p-3.5 sm:p-4 space-y-2">
+                  <div className="text-xs sm:text-sm font-semibold text-white">
+                    {t('10-Day Cosmic Timing Curve', '१०-दिने शुभ समय रेखा')} —{' '}
+                    <span className="text-[#EDC5FC]">
                       {trActionTitle(liveEval.action.id, liveEval.action.title, lang)}
-                    </h2>
+                    </span>
                   </div>
-
                   <ScoreTrendChart
                     points={forecastPoints}
                     benchmarkValue={70}
-                    benchmarkLabel={t('70+ Best Days', '७०+ उत्तम दिन')}
+                    benchmarkLabel={t('70+ Optimal', '७०+ उत्तम दिन')}
                     selectedId={forecastPoints[0]?.id}
                     onSelectPoint={() =>
                       onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })
@@ -855,7 +1242,7 @@ export const LandingPage: React.FC<Props> = ({
                         onClick={() =>
                           onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })
                         }
-                        className="text-xs sm:text-sm font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1"
+                        className="text-xs font-semibold text-[#DDB5FC] hover:underline inline-flex items-center gap-1"
                       >
                         <span>
                           {t('Test all 20 life decisions →', 'सबै २० जीवन निर्णयहरू जाँच्नुहोस् →')}
@@ -866,22 +1253,23 @@ export const LandingPage: React.FC<Props> = ({
                   />
                 </div>
 
-                {/* Plain-Language Action Takeaway */}
-                <div className="obs-panel p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Plain-Language Action Verdict Strip */}
+                <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-0.5 max-w-xl">
-                    <div className="text-sm font-bold text-[var(--text)]">
+                    <div className="text-sm font-semibold text-white">
                       {liveOutcomeDisp.headline}
                     </div>
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                    <p className="text-xs sm:text-[13px] text-white/65 leading-relaxed">
                       {liveOutcomeDisp.consequence}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })}
-                    className="btn-editorial-secondary text-sm shrink-0"
+                    className="sc-btn-glass text-xs sm:text-sm whitespace-nowrap shrink-0"
                   >
-                    {t('See Full Timing', 'पूरा विवरण')}
+                    <span>{t('See Full Timing', 'पूरा विवरण')}</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -889,392 +1277,699 @@ export const LandingPage: React.FC<Props> = ({
           </div>
         </section>
 
-        <LotusVineDivider
-          label={t(
-            'Live Sky, Horai Planetary Hours & Sacred Time',
-            'आजको आकाश, प्रत्यक्ष ग्रह होरा र शुभ पञ्चाङ्ग समय'
-          )}
-        />
-
-        {/* ==================== TODAY'S LOCAL SKY SNAPSHOT ==================== */}
-        <section className="border-y border-[var(--border)] bg-[var(--surface)] py-14">
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-8 space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-[var(--text)]">
-                  {t(
-                    `Today’s Sky & Horai in Plain English — ${cityDisplay}`,
-                    `आजको पञ्चाङ्ग र प्रत्यक्ष होरा — ${cityDisplay}`
-                  )}
-                </h2>
-                <p className="text-base text-[var(--text-secondary)] tabular-nums">
-                  {t('Nepali B.S.:', 'विक्रम संवत्:')} {panchangReport.bikramSambat.formatted} •{' '}
-                  {trVara(panchangReport.vara.name, lang)} • {t('Sunrise', 'सूर्योदय')}{' '}
-                  {panchangReport.sunriseTime} – {t('Sunset', 'सूर्यास्त')}{' '}
-                  {panchangReport.sunsetTime}
-                </p>
+        {/* ==================== 4. MONUMENTAL BACKDROP + 4 STAGGERED CONSTELLATION CARDS ==================== */}
+        <section id="sc-how" className="scroll-mt-24 py-20 sm:py-28 px-4 sm:px-8 relative overflow-hidden">
+          <div className="max-w-[1200px] mx-auto relative">
+            {/* Monumental Backdrop Typography */}
+            <div className="text-center mb-12 sm:mb-16 select-none">
+              <div className="font-scDisplay font-semibold text-[clamp(2.6rem,8.4vw,6.8rem)] leading-[0.98] tracking-[-0.05em] text-white">
+                {t('Decode Your', 'कुण्डलीको')}
               </div>
-              <button
-                type="button"
-                onClick={() => onNavigate('HORAI')}
-                className="text-sm sm:text-base font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1.5"
-              >
-                <span>
-                  {t(
-                    'Open 24-Petal Horai Flower Clock & Gowri',
-                    '२४-पत्रे होरा कमल घडी र गौरी पञ्चाङ्ग खोल्नुहोस्'
-                  )}
-                </span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="font-scSerif italic font-normal text-[clamp(2.3rem,7.2vw,5.8rem)] leading-[1.06] text-[#9A93B0] mt-1">
+                {t('Destiny', 'गहिरो रहस्य')}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-              <KpiStatCard
-                label={t('Active Horai Right Now', 'अहिले चलिरहेको ग्रह होरा')}
-                value={activeHoraiDisp.horaiName}
-                subvalue={activeHoraiDisp.lordLabel}
-                plainHint={t(
-                  `Gowri: ${panchangReport.activeGowri.name} • Best Window ${panchangReport.nallaNeram[0].startTime}–${panchangReport.nallaNeram[0].endTime}`,
-                  `गौरी: ${trGowriName(
-                    panchangReport.activeGowri.name,
-                    'ne'
-                  )} • शुभ वेला ${panchangReport.nallaNeram[0].startTime}–${
-                    panchangReport.nallaNeram[0].endTime
-                  }`
-                )}
-                benchmarkText={t(
-                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime}`,
-                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime}`
-                )}
-                status={{
-                  tone: panchangReport.activeHorai.tone,
-                  label: activeHoraiDisp.quality,
-                }}
-                icon={
-                  <SacredFlowerIcon
-                    variety={panchangReport.activeHorai.sacredFlower.variety}
-                    primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
-                    secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
-                    size={18}
-                  />
-                }
-                actionLabel={t('Open 24h Horai Clock', '२४-घण्टा होरा घडी')}
-                onAction={() => onNavigate('HORAI')}
-              />
-
-              <KpiStatCard
-                label={t('Today’s Moon Star (Nakshatra)', 'आजको चन्द्र नक्षत्र')}
-                value={trNakshatra(panchangReport.nakshatra.name, lang)}
-                subvalue={t(
-                  `Pada ${panchangReport.nakshatra.pada}`,
-                  `चरण ${panchangReport.nakshatra.pada}`
-                )}
-                plainHint={t(
-                  `Sets today’s overall mood: ${panchangReport.nakshatra.natureGroup}`,
-                  `आजको नक्षत्र स्वभाव: ${trNakNature(
-                    panchangReport.nakshatra.natureGroup,
-                    'ne',
-                    false
-                  )}`
-                )}
-                benchmarkText={trHoursRemaining(panchangReport.nakshatra.hoursRemaining, lang)}
-                status={{
-                  tone: 'info',
-                  label: trNakNature(panchangReport.nakshatra.natureGroup, lang, true),
-                }}
-                icon={<Sparkles className="w-4 h-4" />}
-                actionLabel={t('Read about this star', 'यस नक्षत्रबारे पढ्नुहोस्')}
-                onAction={() =>
-                  onNavigate('NAKSHATRAS', { nakIdx: panchangReport.nakshatra.zeroIndex })
-                }
-              />
-
-              <KpiStatCard
-                label={t('Personal Star Harmony (Tarabala)', 'तपाईंको व्यक्तिगत ताराबल')}
-                value={
-                  panchangReport.personalTarabala.isAuspicious
-                    ? t('Supportive', 'अनुकूल / शुभ')
-                    : t('Pace Carefully', 'धैर्यपूर्वक चल्ने')
-                }
-                plainHint={t(
-                  `How today’s Moon aligns with your Birth Star (${moonPlanet.nakshatraName})`,
-                  `तपाईंको जन्म नक्षत्र (${trNakshatra(
-                    moonPlanet.nakshatraName,
-                    'ne'
-                  )}) सँग आजको चन्द्रमाको तालमेल`
-                )}
-                benchmarkText={t(
-                  `Moon in House ${panchangReport.personalTarabala.chandrabalaHouse}`,
-                  `चन्द्रबल भाव ${panchangReport.personalTarabala.chandrabalaHouse}`
-                )}
-                status={{
-                  tone: panchangReport.personalTarabala.isAuspicious ? 'optimal' : 'mixed',
-                  label: trTaraName(
-                    panchangReport.personalTarabala.taraName.split(' ')[0],
-                    lang
+            {/* 4 Staggered Lavender-Bordered Constellation Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10 items-start">
+              {[
+                {
+                  step: '01',
+                  pill: t('0.01° Arc Precision', '०.०१° सूक्ष्म गणना'),
+                  title: t(
+                    'Astronomical Ephemeris Meets Sidereal Jyotish',
+                    'सूक्ष्म खगोलीय गणना र वैदिक सिद्धान्तको संगम'
                   ),
-                }}
-                icon={<Compass className="w-4 h-4" />}
-                actionLabel={t('Check a decision today', 'आजको शुभ साइत जाँच्नुहोस्')}
-                onAction={() => onNavigate('WHAT_HAPPENS_IF')}
-              />
+                  desc: t(
+                    'Your birth moment is computed directly in your browser using Swiss-grade Moshier planetary series—generating exact Lahiri Sidereal D1, Navamsha D9, Dashamsha D10, and Chara Karaka degrees with zero server tracking.',
+                    'तपाईंको जन्म मिति, समय र सहरका आधारमा ब्राउजरभित्रै सूक्ष्म ग्रह-गणितबाट लग्न (D1), नवांश (D9), दशमांश (D10) र जैमिनी आत्मकारक अंशहरू शतप्रतिशत गोपनीयताका साथ तयार हुन्छन्।'
+                  ),
+                  offset: false,
+                  action: () => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' }),
+                  cta: t('Explore Vedic & D9 Charts', 'लग्न र नवांश चार्ट हेर्नुहोस्'),
+                },
+                {
+                  step: '02',
+                  pill: t('8 Classical Canons', '८ प्रामाणिक ग्रन्थ'),
+                  title: t(
+                    'Synthesized from 8 Classical & Modern Books',
+                    '८ प्राचीन र आधुनिक ग्रन्थबाट सरल संश्लेषण'
+                  ),
+                  desc: t(
+                    'Instead of generic one-liners, Oceanology cross-examines Brihat Parashara Hora Shastra, Phaladeepika, Saravali, Jaimini Sutras, Ayurvedic Prakriti, and Cheiro/Decoz numerology—with a 1-click Plain vs Classical toggle.',
+                    'बृहत् पाराशर होरा शास्त्र, फलदीपिका, सारावली, जैमिनी सूत्र, आयुर्वेदिक त्रिदोष र अंक ज्योतिषलाई जोडेर सामान्य पाठक र अध्येता दुवैका लागि स्पष्ट फलादेश प्रस्तुत गरिन्छ।'
+                  ),
+                  offset: true,
+                  action: () => onNavigate('FULL_REPORT'),
+                  cta: t('Read 10-Chapter Dossier', '१०-अध्याय रिपोर्ट पढ्नुहोस्'),
+                },
+                {
+                  step: '03',
+                  pill: t(`↑ ${liveEval.score}/100 Live`, `↑ ${liveEval.score}/१०० प्रत्यक्ष`),
+                  title: t(
+                    'Align Daily Decisions with Graha Horai & Tarabala',
+                    'प्रत्यक्ष ग्रह होरा र ताराबलअनुसार सही निर्णय'
+                  ),
+                  desc: t(
+                    'Track Sunrise-to-Sunrise planetary hours (Sukra, Guru, Budha, Suriya), 8-fold Gowri Panchangam, Rahu Kalam, and 20-action Muhurta curves so you know precisely when to sign, invest, travel, or rest.',
+                    'सूर्योदयदेखि सूर्योदयसम्मका २४ ग्रह होरा, गौरी पञ्चाङ्ग, राहुकाल र २० जीवन-निर्णयको शुभ साइत हेरेर सम्झौता, लगानी वा यात्राको सर्वोत्तम घडी छान्नुहोस्।'
+                  ),
+                  offset: false,
+                  action: () => onNavigate('HORAI'),
+                  cta: t('Open 24h Horai Clock', '२४-घण्टा होरा घडी खोल्नुहोस्'),
+                },
+                {
+                  step: '04',
+                  pill: t('17-Page Vector PDF', '१७-पृष्ठ PDF दर्पण'),
+                  title: t(
+                    'Keep or Share Your 17-Page Printable Life Dossier',
+                    '१७-पृष्ठको व्यावसायिक PDF रिपोर्ट सुरक्षित गर्नुहोस्'
+                  ),
+                  desc: t(
+                    'Export a publication-grade 17-page vector PDF complete with North & South Indian Kundalis, 5-Domain Scorecard, Turning-Point Ages (16–48), Gochara transits, and Classical Remedies.',
+                    'उत्तर र दक्षिण भारतीय कुण्डली, ५-क्षेत्र स्कोरकार्ड, १६ देखि ४८ वर्षका निर्णायक मोड, शनि/गुरु गोचर र वैदिक उपायहरूसहितको १७-पृष्ठ PDF तुरुन्त डाउनलोड गर्नुहोस्।'
+                  ),
+                  offset: true,
+                  action: handleQuickPdf,
+                  cta: t('Export Printable PDF', 'PDF रिपोर्ट डाउनलोड गर्नुहोस्'),
+                },
+              ].map((card, i) => (
+                <div
+                  key={card.step}
+                  onClick={card.action}
+                  className={`sc-card-lavender relative overflow-hidden p-7 sm:p-9 cursor-pointer group ${
+                    card.offset ? 'md:mt-16' : ''
+                  }`}
+                >
+                  <ConstellationWireframe />
 
-              <KpiStatCard
-                label={t('Your Personal Year & Life Path', 'व्यक्तिगत अंक वर्ष र मूलांक')}
-                value={t(
-                  `Year ${numerologyReport.personalYear.final}`,
-                  `वर्ष ${numerologyReport.personalYear.final}`
-                )}
-                subvalue={t(
-                  `Life Path #${numerologyReport.lifePath.final}`,
-                  `मूलांक #${numerologyReport.lifePath.final}`
-                )}
-                plainHint={
-                  lang === 'ne'
-                    ? `व्यक्तिगत वर्ष ${numerologyReport.personalYear.final} — सक्रिय उन्नति र लक्ष्य प्राप्ति`
-                    : numerologyReport.personalYear.meaning.split('.')[0]
-                }
-                benchmarkText={t(
-                  `Month ${numerologyReport.personalMonth.singleDigit} • Day ${numerologyReport.personalDay.singleDigit}`,
-                  `महिना ${numerologyReport.personalMonth.singleDigit} • दिन ${numerologyReport.personalDay.singleDigit}`
-                )}
-                status={{
-                  tone: 'info',
-                  label:
-                    lang === 'ne'
-                      ? numerologyReport.system === 'CHALDEAN'
-                        ? 'कल्डियन'
-                        : 'पाइथागोरियन'
-                      : 'Pythagorean',
-                }}
-                actionLabel={t('Open 25-year forecast', '२५-वर्षे अंक चक्र हेर्नुहोस्')}
-                onAction={() => onNavigate('OBSERVATORY', { studioTab: 'NUMEROLOGY' })}
-              />
+                  <div className="relative z-10 flex items-center justify-between gap-3 mb-7">
+                    {/* Lavender Sacred Geometry Circle Badge */}
+                    <div className="w-12 h-12 rounded-full border border-[#DDB5FC]/55 bg-[#9780FF]/10 flex items-center justify-center text-[#EDC5FC]">
+                      {i === 0 && (
+                        <svg viewBox="-16 -16 32 32" className="w-6 h-6">
+                          <polygon points="0,-11 9.5,5.5 -9.5,5.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                          <polygon points="0,11 9.5,-5.5 -9.5,-5.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                        </svg>
+                      )}
+                      {i === 1 && <SeedOfLifeMark size={24} />}
+                      {i === 2 && (
+                        <svg viewBox="-16 -16 32 32" className="w-6 h-6">
+                          <circle cx="0" cy="-4" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                          <circle cx="-4.5" cy="4" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                          <circle cx="4.5" cy="4" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                        </svg>
+                      )}
+                      {i === 3 && (
+                        <svg viewBox="-16 -16 32 32" className="w-6 h-6">
+                          <polygon points="0,-12 10,0 0,12 -10,0" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                          <circle cx="0" cy="0" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                        </svg>
+                      )}
+                    </div>
+
+                    {/* Floating Metric Pill */}
+                    <span className="px-3 py-1 rounded-full bg-white text-[#0C0B0C] text-xs font-semibold shadow-sm">
+                      {card.pill}
+                    </span>
+                  </div>
+
+                  <div className="relative z-10 space-y-3">
+                    <h3 className="text-xl sm:text-2xl font-medium tracking-[-0.02em] text-white group-hover:text-[#EDC5FC] transition leading-snug">
+                      {card.title}
+                    </h3>
+                    <p className="text-sm sm:text-[15px] text-white/65 leading-relaxed">
+                      {card.desc}
+                    </p>
+                    <div className="pt-2 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#DDB5FC]">
+                      <span>{card.cta}</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* ==================== CLEAN CAPABILITIES BENTO GRID ==================== */}
-        <section className="max-w-[1280px] mx-auto px-4 sm:px-8 py-16 space-y-8">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">
-              {t(
-                'Everything in one clean workspace—from plain-English readings to sacred timing',
-                'सरल व्यक्तिगत फलादेशदेखि २४-घण्टा होरा र कुण्डली विश्लेषणसम्म एउटै स्वच्छ ड्यासबोर्डमा'
-              )}
-            </h2>
-            <p className="text-base text-[var(--text-secondary)]">
-              {t(
-                'Start with your personal reading, interactive 24-petal Horai clock, and downloadable PDF report, or open any specialized studio below.',
-                'आफ्नो सरल व्यक्तिगत फलादेश, २४-पत्रे होरा कमल घडी र PDF रिपोर्टबाट सुरु गर्नुहोस् वा तलका विशेष कुण्डली र मुहूर्त उपकरणहरू खोल्नुहोस्।'
-              )}
-            </p>
-          </div>
+        {/* ==================== 5. 3-COLUMN HAIRLINE-DIVIDED INTERACTIVE BENTO ==================== */}
+        <section id="sc-features" className="scroll-mt-24 border-y border-white/10 bg-[#0D0C10]">
+          <div className="max-w-[1320px] mx-auto grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-white/10">
+            {/* COLUMN 1: Concentric Horai Frequency Rings */}
+            <div
+              onClick={() => onNavigate('HORAI')}
+              className="p-7 sm:p-10 flex flex-col items-center justify-between gap-8 text-center cursor-pointer group"
+            >
+              <div className="relative w-full max-w-[280px] rounded-3xl bg-[#17151E] border border-white/[0.08] p-6 pt-8 flex flex-col items-center">
+                {/* Top-Left Mini Frequency Badge */}
+                <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-[#1C1926] border border-[#DDB5FC]/45 flex items-center justify-center text-[#EDC5FC]">
+                  <Activity className="w-4 h-4" />
+                </div>
 
-          {/* Featured Full-Width Horai & Sacred Clock Card */}
-          <div
-            onClick={() => onNavigate('HORAI')}
-            className="obs-card p-6 sm:p-8 hover:border-[var(--accent)] transition cursor-pointer flex flex-col lg:flex-row lg:items-center justify-between gap-6 group"
-          >
-            <div className="space-y-2.5 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 obs-badge-brass text-xs font-semibold">
-                <SacredFlowerIcon
-                  variety="lotus"
-                  primaryHex="#6366F1"
-                  secondaryHex="#E0E7FF"
-                  size={15}
-                  animated={floralMotion}
-                />
-                <span>
+                {/* Concentric Lavender Ellipses */}
+                <svg viewBox="0 0 200 130" className="w-44 h-auto" aria-hidden="true">
+                  <ellipse cx="100" cy="62" rx="76" ry="48" fill="none" stroke="#DDB5FC" strokeOpacity="0.32" strokeWidth="1" />
+                  <ellipse cx="100" cy="70" rx="54" ry="34" fill="none" stroke="#DDB5FC" strokeOpacity="0.52" strokeWidth="1" />
+                  <ellipse cx="100" cy="78" rx="34" ry="21" fill="none" stroke="#EDC5FC" strokeOpacity="0.78" strokeWidth="1.2" />
+                </svg>
+
+                <div className="-mt-6 w-9 h-9 rounded-full bg-[#DDB5FC] text-[#0C0B0C] flex items-center justify-center font-bold text-xs shadow-[0_0_24px_rgba(221,181,252,0.55)]">
+                  ✦
+                </div>
+
+                {/* Floating White Result Pill */}
+                <div className="mt-3 px-3 py-1 rounded-full bg-white text-[#0C0B0C] text-[11px] font-bold shadow-md tabular-nums">
+                  ↑ {activeHoraiDisp.horaiName} • {panchangReport.activeHorai.minutesRemaining}m
+                </div>
+
+                <div className="mt-3 text-xs text-white/65">
+                  {t('Sunrise to Sunrise • Live Hora', 'सूर्योदयदेखि सूर्योदय • प्रत्यक्ष होरा')}
+                </div>
+              </div>
+
+              <div className="space-y-2 max-w-xs">
+                <h3 className="text-xl sm:text-2xl font-medium text-white group-hover:text-[#EDC5FC] transition">
+                  {t('24-Hour Graha Horai Sessions', '२४-पत्रे ग्रह होरा र गौरी घडी')}
+                </h3>
+                <p className="text-sm text-white/65 leading-relaxed">
                   {t(
-                    '24-Hour Graha Horai • Gowri Panchangam • Nalla Neram',
-                    '२४-घण्टा ग्रह होरा • गौरी पञ्चाङ्ग • शुभ नल्ल नेरम'
+                    `Tap into your city’s live planetary hour (${activeHoraiDisp.lordLabel}) & ${trGowriName(
+                      panchangReport.activeGowri.name,
+                      'en'
+                    )} Gowri window.`,
+                    `${cityDisplay} को प्रत्यक्ष ग्रह होरा (${activeHoraiDisp.lordLabel}) र ${trGowriName(
+                      panchangReport.activeGowri.name,
+                      'ne'
+                    )} गौरी पञ्चाङ्ग तुरुन्त हेर्नुहोस्।`
                   )}
+                </p>
+              </div>
+            </div>
+
+            {/* COLUMN 2: Concentric Iridescent Coral-to-Violet Portal Rings */}
+            <div className="p-7 sm:p-10 flex flex-col items-center justify-between gap-8 text-center">
+              <div className="space-y-2 max-w-xs">
+                <h3 className="text-xl sm:text-2xl font-medium text-white">
+                  {t('Deep Life Activations', '१०-अध्याय जीवन कुण्डली दर्पण')}
+                </h3>
+                <p className="text-sm text-white/65 leading-relaxed">
+                  {t(
+                    'Book-grounded chapters on Career, Indu Lagna Wealth, Partner Portrait, Prakriti & Remedies',
+                    'करियर, इन्दु लग्न धन, जीवनसाथी चित्रण, आयुर्वेदिक प्रकृति र वैदिक उपायहरूको पूर्ण अध्ययन'
+                  )}
+                </p>
+              </div>
+
+              {/* Multi-Ring Iridescent Portal */}
+              <div className="relative py-4 flex items-center justify-center w-full max-w-[300px]">
+                <div className="w-full rounded-[56px] p-[1px] bg-gradient-to-r from-[#E73825]/65 via-[#7B5CE0]/70 to-[#DDB5FC]/45">
+                  <div className="rounded-[55px] bg-[#0D0C10] p-3.5">
+                    <div className="rounded-[44px] p-[1px] bg-gradient-to-r from-[#E73825]/55 via-[#7B5CE0]/65 to-[#9780FF]/45">
+                      <div className="rounded-[43px] bg-[#0D0C10] p-3.5">
+                        <div className="rounded-[34px] p-[1px] bg-gradient-to-r from-[#E73825]/45 to-[#9780FF]/65">
+                          <div className="rounded-[33px] bg-[#14121A] px-5 py-4 flex items-center justify-center relative">
+                            <button
+                              type="button"
+                              onClick={() => onNavigate('FULL_REPORT')}
+                              className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white hover:text-[#0C0B0C] text-white text-xs sm:text-sm font-semibold border border-white/15 transition shadow-[0_0_24px_rgba(123,92,224,0.3)]"
+                            >
+                              {t('Start Full Reading', 'पूर्ण रिपोर्ट खोल्नुहोस्')}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Orbiting Sacred Vector Nodes */}
+                <span
+                  aria-hidden="true"
+                  className="absolute -top-1 left-7 w-8 h-8 rounded-full bg-[#241F2E] border border-white/15 flex items-center justify-center text-[#EDC5FC]"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1/2 -translate-y-1/2 right-4 w-9 h-9 rounded-full bg-[#DDB5FC] text-[#0C0B0C] flex items-center justify-center shadow-lg"
+                >
+                  <Compass className="w-4 h-4" />
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[#221D2B] border border-[#DDB5FC]/40 flex items-center justify-center text-[#EDC5FC]"
+                >
+                  <SeedOfLifeMark size={18} />
                 </span>
               </div>
-              <h3 className="text-2xl font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition">
-                {t(
-                  'Interactive 24-Petal Horai Sacred Flower Clock',
-                  'अन्तर्क्रियात्मक २४-पत्रे ग्रह होरा पवित्र कमल घडी'
-                )}
-              </h3>
-              <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-                {lang === 'ne' ? (
-                  <>
-                    सूर्योदयदेखि भोलिपल्ट सूर्योदयसम्मका प्रत्येक ग्रह होरा—<strong>शुक्र</strong>,{' '}
-                    <strong>गुरु</strong>, <strong>बुध</strong>, <strong>चन्द्र</strong>,{' '}
-                    <strong>सूर्य</strong>, <strong>मङ्गल</strong> र <strong>शनि होरा</strong>—साथै दिन/रातको
-                    ८-भाग <strong>गौरी पञ्चाङ्ग</strong>, बिहान/बेलुकाको <strong>शुभ वेला (नल्ल नेरम)</strong> र{' '}
-                    <strong>राहुकाल</strong> प्रत्यक्ष हेर्नुहोस्।
-                  </>
-                ) : (
-                  <>
-                    Track every planetary hour from Sunrise to Sunrise—<strong>Sukra</strong>,{' '}
-                    <strong>Guru</strong>, <strong>Budha</strong>, <strong>Chandra</strong>,{' '}
-                    <strong>Suriya</strong>, <strong>Sevvai</strong> &amp; <strong>Sani Horai</strong>—plus
-                    8-fold Day &amp; Night <strong>Gowri Panchangam</strong>, Morning/Evening{' '}
-                    <strong>Nalla Neram</strong>, and <strong>Rahu Kalam</strong>.
-                  </>
-                )}
-              </p>
             </div>
-            <div className="shrink-0">
-              <span className="btn-editorial-primary inline-flex items-center gap-2 text-sm">
-                <Clock className="w-4 h-4" />
-                <span>{t('Explore Live Horai Clock', 'प्रत्यक्ष होरा घडी खोल्नुहोस्')}</span>
-                <ArrowRight className="w-4 h-4" />
-              </span>
+
+            {/* COLUMN 3: Split Top (Lavender Spline Forecast) & Bottom (Daily Patro Card) */}
+            <div className="divide-y divide-white/10 flex flex-col justify-between">
+              {/* Top Cell */}
+              <div
+                onClick={() => onNavigate('WHAT_HAPPENS_IF')}
+                className="p-7 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-5 cursor-pointer group"
+              >
+                <div className="relative w-full sm:w-44 shrink-0 rounded-2xl bg-[#15131C] border border-white/[0.08] p-3.5">
+                  <span className="w-8 h-8 rounded-full bg-[#DDB5FC] text-[#0C0B0C] flex items-center justify-center mb-2">
+                    <Scale className="w-4 h-4" />
+                  </span>
+                  <svg viewBox="0 0 160 82" className="w-full h-auto" aria-hidden="true">
+                    {[18, 46, 74, 102, 130].map((x, idx) => {
+                      const h = [34, 48, 42, 62, 54][idx];
+                      return (
+                        <rect
+                          key={x}
+                          x={x}
+                          y={76 - h}
+                          width="18"
+                          height={h}
+                          rx="5"
+                          fill="rgba(255,255,255,0.07)"
+                        />
+                      );
+                    })}
+                    <path
+                      d="M 10 64 Q 44 38, 72 44 T 148 16"
+                      fill="none"
+                      stroke="#9780FF"
+                      strokeWidth="2"
+                    />
+                    <path
+                      d="M 10 70 C 48 52, 86 58, 148 24"
+                      fill="none"
+                      stroke="#EDC5FC"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                </div>
+
+                <div className="space-y-1.5">
+                  <h3 className="text-lg sm:text-xl font-medium text-white group-hover:text-[#EDC5FC] transition">
+                    {t('20-Decision Muhurta Intelligence', '२० जीवन-निर्णय र शुभ साइत')}
+                  </h3>
+                  <p className="text-sm text-white/65 leading-relaxed">
+                    {t(
+                      'Test contracts, investments, debt repayment, marriage, and travel across 12-day & 12-year curves.',
+                      'सम्झौता, लगानी, ऋण मोचन, विवाह वा यात्राको १२-दिने र १२-वर्षे फलित रेखा जाँच्नुहोस्।'
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bottom Cell */}
+              <div
+                onClick={() => onNavigate('OBSERVATORY', { studioTab: 'PANCHANG' })}
+                className="p-7 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-5 cursor-pointer group"
+              >
+                <div className="relative w-full sm:w-44 shrink-0 rounded-2xl bg-[#17151F] border border-white/[0.08] p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-2xl font-bold text-white tabular-nums leading-none">
+                      {panchangReport.bikramSambat.ApproxGate}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-lg bg-[#DDB5FC] text-[#0C0B0C] text-[10px] font-bold">
+                      {t('B.S.', 'वि.सं.')}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-white/75 truncate">
+                    {panchangReport.bikramSambat.formatted}
+                  </div>
+                  <div className="text-[11px] text-[#EDC5FC] font-medium truncate">
+                    {trNakshatra(panchangReport.nakshatra.name, lang)} •{' '}
+                    {trVara(panchangReport.vara.name, lang)}
+                  </div>
+                  <div className="pt-1 flex items-center justify-between gap-1">
+                    <span className="px-2 py-0.5 rounded-full border border-[#DDB5FC]/45 text-[10px] text-[#EDC5FC]">
+                      {panchangReport.sunriseTime}
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-semibold">
+                      ● {t('Active', 'सक्रिय')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <h3 className="text-lg sm:text-xl font-medium text-white group-hover:text-[#EDC5FC] transition">
+                    {t('Daily Nepali Patro & 28 Stars', 'दैनिक नेपाली पञ्चाङ्ग र २८ नक्षत्र')}
+                  </h3>
+                  <p className="text-sm text-white/65 leading-relaxed">
+                    {t(
+                      'Live Bikram Sambat Tithi, Yoga, Karana, Rahu Kalam, and all 28 Nakshatras & 108 Padas.',
+                      'विक्रम संवत् तिथि, नक्षत्र, योग, करण, राहुकाल र २८ नक्षत्रका १०८ चरणहरूको पूर्ण विवरण।'
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== 6. DUAL IRIDESCENT COSMIC PRODUCT SHOWCASES ==================== */}
+        <section id="sc-dossier" className="scroll-mt-24 py-20 sm:py-28 px-4 sm:px-8 space-y-10 sm:space-y-14">
+          {/* SHOWCASE 1: For Individuals — Live 5-Domain Life Blueprint Preview */}
+          <div className="max-w-[1280px] mx-auto sc-card-iridescent sc-starfield p-6 sm:p-10 lg:p-14 relative overflow-hidden">
+            {/* Diagonal Cosmic Violet Beam */}
+            <div className="pointer-events-none absolute -right-20 top-0 bottom-0 w-[440px] bg-gradient-to-tr from-[#4700D6]/35 via-[#7B5CE0]/25 to-transparent blur-3xl" />
+
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              <div className="lg:col-span-6 space-y-5">
+                <div className="text-sm font-medium text-[#9780FF]">
+                  {t(
+                    'For Individuals • 10-Chapter Commercial Life Dossier',
+                    'व्यक्तिगत प्रयोजनका लागि • १०-अध्याय बृहत् जीवन दर्पण'
+                  )}
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-medium tracking-[-0.035em] text-white leading-[1.1]">
+                  {t(
+                    'Understand Your Complete Life Blueprint',
+                    'आफ्नो सम्पूर्ण जीवन-नक्सा स्पष्ट र गहिराइमा बुझ्नुहोस्'
+                  )}
+                </h2>
+
+                <p className="text-sm sm:text-base text-white/70 leading-relaxed">
+                  {t(
+                    'Go far beyond sun-sign horoscopes. Read plain-English + classical analyses of your Atmakaraka soul purpose, Dashamsha (D10) career authority, Indu Lagna wealth retention, Upapada & Darakaraka spouse portrait, Ayurvedic Prakriti constitution, Turning-Point Maturity Ages (16–48), live Saturn/Jupiter transits, and Vedic remedies.',
+                    'सामान्य राशिफलभन्दा धेरै गहिरो अध्ययन: आत्मकारक जीवन-उद्देश्य, दशमांश (D10) करियर अधिकार, इन्दु लग्न र धन योग, उपपद लग्न र दाराकारक जीवनसाथी चित्रण, आयुर्वेदिक वात-पित्त-कफ प्रकृति, १६–४८ वर्षका ग्रह परिपक्वता मोड र वैदिक उपायहरू सरल भाषामा पढ्नुहोस्।'
+                  )}
+                </p>
+
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('FULL_REPORT')}
+                    className="sc-btn-white text-sm"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>{t('Read 10-Chapter Report', '१०-अध्याय रिपोर्ट पढ्नुहोस्')}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pdfDownloading}
+                    onClick={handleQuickPdf}
+                    className="sc-btn-glass text-sm disabled:opacity-60"
+                  >
+                    <Download className="w-4 h-4 text-[#EDC5FC]" />
+                    <span>
+                      {pdfDownloading
+                        ? t('Exporting PDF…', 'PDF बन्दैछ…')
+                        : t('Download 17-Page PDF', '१७-पृष्ठ PDF डाउनलोड')}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Live 5-Domain Scorecard Interactive Preview */}
+              <div className="lg:col-span-6 rounded-3xl bg-[#12101A]/90 border border-white/15 p-5 sm:p-7 shadow-[0_24px_60px_rgba(0,0,0,0.65)] space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-[#EDC5FC] font-semibold">
+                      {t('Live 5-Domain Scorecard', 'तपाईंको ५-क्षेत्र जीवन स्कोरकार्ड')}
+                    </div>
+                    <div className="text-base font-semibold text-white">
+                      {profile.firstName} {profile.lastName} •{' '}
+                      <span className="text-white/65 text-sm font-normal">
+                        {deepReport.wellnessBlueprint.dominantDosha}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-[#9780FF]/20 border border-[#DDB5FC]/40 text-xs font-semibold text-[#EDC5FC] tabular-nums">
+                    {t(
+                      `Age ${nextMaturityMilestone.maturityAge} (${nextMaturityMilestone.calendarYear})`,
+                      `उमेर ${nextMaturityMilestone.maturityAge} (${nextMaturityMilestone.calendarYear})`
+                    )}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {deepReport.domainScorecard.map((item) => (
+                    <div key={item.id} className="space-y-1">
+                      <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                        <span className="font-medium text-white truncate">{item.title}</span>
+                        <span className="font-bold text-[#EDC5FC] tabular-nums shrink-0">
+                          {item.score}/100 · {item.verdictLabel}
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/[0.08] overflow-hidden">
+                        <div
+                          style={{ width: `${item.score}%` }}
+                          className="h-full rounded-full bg-gradient-to-r from-[#7B5CE0] via-[#9780FF] to-[#EDC5FC]"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-white/65 border-t border-white/10">
+                  <span>
+                    {t('Spouse Archetype:', 'दाराकारक ग्रह:')}{' '}
+                    <strong className="text-white">
+                      {deepReport.relationshipBlueprint.darakarakaPlanet}
+                    </strong>{' '}
+                    • {t('Wealth Sign:', 'इन्दु लग्न:')}{' '}
+                    <strong className="text-white">
+                      {deepReport.wealthBlueprint.induLagnaSign}
+                    </strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('FULL_REPORT')}
+                    className="text-[#EDC5FC] font-semibold hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>{t('Inspect all 10 chapters', 'सबै १० अध्याय हेर्नुहोस्')}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {[
-              {
-                icon: <FileText className="w-5 h-5 text-[var(--accent)]" />,
-                badge: t('Plain-English + PDF', 'सरल भाषा + PDF'),
-                title: t(
-                  'Full Personal Reading & Printable PDF Report',
-                  'पूर्ण व्यक्तिगत फलादेश र प्रिन्टयोग्य PDF रिपोर्ट'
-                ),
-                desc: t(
-                  'Read your complete horoscope in clear, everyday language—covering personality, current life chapter, 12 life areas, D1/D9 Kundali charts, Horai windows, and best upcoming dates—and save it as a multi-page PDF.',
-                  'तपाईंको व्यक्तित्व, हालको महादशा अध्याय, १२ जीवन-क्षेत्र, लग्न र नवांश (D1/D9) कुण्डली, शुभ होरा र आगामी उत्तम मितिहरू सरल भाषामा पढ्नुहोस् र PDF मा सुरक्षित गर्नुहोस्।'
-                ),
-                cta: t('Open Easy Report & PDF', 'सरल रिपोर्ट र PDF खोल्नुहोस्'),
-                onClick: () => onNavigate('FULL_REPORT'),
-              },
-              {
-                icon: <Scale className="w-5 h-5 text-[var(--accent)]" />,
-                badge: t('20 Life Decisions + Horai', '२० जीवन निर्णय + होरा'),
-                title: t(
-                  'Best Days & Horai Hours to Sign, Invest, Marry or Travel',
-                  'सम्झौता, लगानी, विवाह वा यात्राका लागि सर्वोत्तम दिन र होरा'
-                ),
-                desc: t(
-                  'Check whether today is favorable for contracts, loans, debt repayment, marriage, property, or medical care—paired with exact daily Horai planetary hours and 12-day forecasts.',
-                  'सम्झौता हस्ताक्षर, ऋण लेनदेन, विवाह, घर-जग्गा वा औषधोपचारका लागि आजको दिन कत्तिको अनुकूल छ भन्ने कुरा दैनिक होरा र १२-दिने पूर्वानुमानसहित जाँच्नुहोस्।'
-                ),
-                cta: t('Check Best Dates & Horais', 'शुभ मिति र होरा जाँच्नुहोस्'),
-                onClick: () => onNavigate('WHAT_HAPPENS_IF'),
-              },
-              {
-                icon: <Globe className="w-5 h-5 text-[var(--accent)]" />,
-                badge: t('World Map + Matchmaking', 'विश्व नक्सा + गुण मिलान'),
-                title: t(
-                  'Best Cities for You & Relationship Compatibility',
-                  'तपाईंका लागि फाप्ने विश्वका सहर र ३६-गुण विवाह मिलान'
-                ),
-                desc: t(
-                  'Discover which cities worldwide support your career, peace of mind, and relationships, plus check 36-point Vedic marriage compatibility with a partner.',
-                  'विश्वका कुन सहरहरू तपाईंको करियर, धन र मानसिक शान्तिका लागि उत्तम छन् पत्ता लगाउनुहोस् र जीवनसाथीसँग ३६-गुण अष्टकूट मिलान जाँच्नुहोस्।'
-                ),
-                cta: t('Explore World Map & Compatibility', 'विश्व नक्सा र गुण मिलान हेर्नुहोस्'),
-                onClick: () => onNavigate('OBSERVATORY', { studioTab: 'ASTROCARTOGRAPHY' }),
-              },
-              {
-                icon: <BookOpen className="w-5 h-5 text-[var(--accent)]" />,
-                badge: t('28 Stars & 9 Classics', '२८ नक्षत्र र ९ शास्त्रीय ग्रन्थ'),
-                title: t(
-                  '28 Birth Stars (Nakshatras) & Classical Library',
-                  '२८ जन्म नक्षत्र विश्वकोश र शास्त्रीय ज्योतिष पुस्तकालय'
-                ),
-                desc: t(
-                  'Explore readable guides to all 28 Vedic birth stars, 108 quarters (Padas), and personalized readings from 9 foundational astrology texts.',
-                  'सबै २८ वैदिक नक्षत्र, १०८ चरण (पाद) र बृहत् पाराशर होरा शास्त्र लगायत ९ प्राचीन ग्रन्थहरूको व्यक्तिगत व्याख्या अध्ययन गर्नुहोस्।'
-                ),
-                cta: t('Browse Birth Stars & Books', 'नक्षत्र र ग्रन्थहरू पढ्नुहोस्'),
-                onClick: () => onNavigate('NAKSHATRAS'),
-              },
-            ].map((card) => (
-              <div
-                key={card.title}
-                onClick={card.onClick}
-                className="obs-card p-6 hover:border-[var(--accent)] transition cursor-pointer flex flex-col justify-between gap-5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--accent-bg)] flex items-center justify-center shrink-0">
-                      {card.icon}
-                    </div>
-                    <span className="px-2.5 py-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border)] text-xs font-semibold text-[var(--text-secondary)]">
-                      {card.badge}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold text-[var(--text)] group-hover:text-[var(--accent)] transition">
-                    {card.title}
-                  </h3>
-                  <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-                    {card.desc}
-                  </p>
+          {/* SHOWCASE 2: For Deep Seekers & Couples — 11-Module Observatory */}
+          <div className="max-w-[1280px] mx-auto sc-card-iridescent sc-starfield p-6 sm:p-10 lg:p-14 relative overflow-hidden">
+            <div className="pointer-events-none absolute -left-20 top-0 bottom-0 w-[420px] bg-gradient-to-br from-[#E73825]/15 via-[#7B5CE0]/22 to-transparent blur-3xl" />
+
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              <div className="lg:col-span-5 space-y-5">
+                <div className="text-sm font-medium text-[#DDB5FC]">
+                  {t(
+                    'For Deep Seekers & Couples • Complete Observatory',
+                    'गहिरो अध्ययन र जोडी मिलान • ११ विशेष स्टुडियो'
+                  )}
                 </div>
 
-                <div className="text-sm font-semibold text-[var(--accent)] inline-flex items-center gap-1.5">
-                  <span>{card.cta}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <h2 className="text-3xl sm:text-4xl font-medium tracking-[-0.035em] text-white leading-[1.12]">
+                  {t(
+                    'Every Classical & Global Studio in One Place',
+                    'कुण्डली मिलान, विश्व नक्सा र शास्त्रीय पुस्तकालय'
+                  )}
+                </h2>
+
+                <p className="text-sm sm:text-base text-white/70 leading-relaxed">
+                  {t(
+                    'Switch effortlessly into the full sidebar Observatory to compare 36-Guna Ashtakoota partner compatibility, map your planetary lines across 80+ global cities, inspect 249 KP sub-lords, or read 9 classical treatises.',
+                    '३६-गुण अष्टकूट विवाह मिलान, ८०+ विश्व सहरहरूको एस्ट्रोकार्टोग्राफी नक्सा, २५-वर्षे अंक-कलर चार्ट, २४९ केपी सब-लर्ड र ९ शास्त्रीय ग्रन्थहरू एउटै कार्यशालामा अध्ययन गर्नुहोस्।'
+                  )}
+                </p>
+
+                <div className="pt-1 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('OBSERVATORY', { studioTab: 'SYNTHESIS' })}
+                    className="sc-btn-white text-sm"
+                  >
+                    <Compass className="w-4 h-4" />
+                    <span>{t('Launch Observatory', 'वेधशाला खोल्नुहोस्')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('OBSERVATORY', { studioTab: 'SYNASTRY' })}
+                    className="sc-btn-glass text-sm"
+                  >
+                    <HeartHandshake className="w-4 h-4 text-[#EDC5FC]" />
+                    <span>{t('36-Guna Compatibility', '३६-गुण विवाह मिलान')}</span>
+                  </button>
                 </div>
               </div>
-            ))}
+
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {[
+                  {
+                    icon: <Compass className="w-4 h-4 text-[#EDC5FC]" />,
+                    title: t('Vedic Kundali, D9 & SAV', 'वैदिक कुण्डली, नवांश र अष्टकवर्ग'),
+                    sub: t('North/South styles + 337 bindu chart', 'उत्तर/दक्षिण शैली र ३३७ बिन्दु'),
+                    onClick: () => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' }),
+                  },
+                  {
+                    icon: <HeartHandshake className="w-4 h-4 text-[#EDC5FC]" />,
+                    title: t('36-Guna Partner Synastry', '३६-गुण अष्टकूट विवाह मिलान'),
+                    sub: t('8-Koota compatibility + dual wheel', '८-कूट गुण मिलान र द्वि-चक्र'),
+                    onClick: () => onNavigate('OBSERVATORY', { studioTab: 'SYNASTRY' }),
+                  },
+                  {
+                    icon: <Globe className="w-4 h-4 text-[#EDC5FC]" />,
+                    title: t('World Relocation Map', 'विश्व एस्ट्रोकार्टोग्राफी नक्सा'),
+                    sub: t('Career, wealth & peace lines worldwide', 'तपाईंका लागि फाप्ने विश्वका सहर'),
+                    onClick: () => onNavigate('OBSERVATORY', { studioTab: 'ASTROCARTOGRAPHY' }),
+                  },
+                  {
+                    icon: <Hash className="w-4 h-4 text-[#EDC5FC]" />,
+                    title: t('25-Year Color Numerology', '२५-वर्षे अंक र कलर चार्ट'),
+                    sub: t('Pythagorean & Chaldean cycles', 'मूलांक, भाग्यांक र व्यक्तिगत वर्ष'),
+                    onClick: () => onNavigate('OBSERVATORY', { studioTab: 'NUMEROLOGY' }),
+                  },
+                  {
+                    icon: <Sparkles className="w-4 h-4 text-[#EDC5FC]" />,
+                    title: t('28 Birth Stars & 108 Padas', '२८ जन्म नक्षत्र र १०८ चरण'),
+                    sub: t('Deities, Shaktis, remedies & padas', 'देवता, शक्ति, मन्त्र र चरण फल'),
+                    onClick: () => onNavigate('NAKSHATRAS'),
+                  },
+                  {
+                    icon: <BookOpen className="w-4 h-4 text-[#EDC5FC]" />,
+                    title: t('9 Classical Astrology Books', '९ शास्त्रीय ज्योतिष ग्रन्थ'),
+                    sub: t('BPHS, Phaladeepika, Saravali & more', 'पाराशर, फलदीपिका र सारावली'),
+                    onClick: () => onNavigate('CANON'),
+                  },
+                ].map((tile) => (
+                  <button
+                    key={tile.title}
+                    type="button"
+                    onClick={tile.onClick}
+                    className="text-left rounded-2xl bg-[#14121C]/90 hover:bg-[#1D1929] border border-white/12 hover:border-[#DDB5FC]/50 p-4 transition flex items-start justify-between gap-3 group"
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="w-7 h-7 rounded-lg bg-[#9780FF]/15 border border-[#DDB5FC]/30 flex items-center justify-center shrink-0">
+                          {tile.icon}
+                        </span>
+                        <span className="text-sm font-semibold text-white group-hover:text-[#EDC5FC] transition truncate">
+                          {tile.title}
+                        </span>
+                      </div>
+                      <p className="text-xs text-white/60 pl-9">{tile.sub}</p>
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-white/40 group-hover:text-[#EDC5FC] shrink-0 mt-1 transition" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       </main>
 
-      {/* ==================== CLEAN MINIMAL FOOTER ==================== */}
-      <footer className="border-t border-[var(--border)] bg-[var(--surface)] py-8 px-4 sm:px-8 text-sm text-[var(--text-muted)]">
-        <div className="max-w-[1280px] mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <SacredFlowerIcon
-              variety="lotus"
-              primaryHex="#6366F1"
-              secondaryHex="#E0E7FF"
-              size={18}
-              animated={false}
-            />
-            <span className="font-bold text-[var(--text)]">Oceanology</span>
-            <span>•</span>
-            <span>
-              {t(
-                'Easy-to-Read Horoscope, Live Horai Clock & Printable PDF Reports',
-                'सरल कुण्डली फलादेश, प्रत्यक्ष होरा घडी र प्रिन्टयोग्य PDF रिपोर्ट'
-              )}
-            </span>
+      {/* ==================== 7. MONUMENTAL STARFIELD CLOSING CTA & NEBULA FOOTER ==================== */}
+      <footer className="sc-starfield sc-nebula-footer border-t border-white/10 pt-16 sm:pt-20 pb-10 px-4 sm:px-8 relative overflow-hidden">
+        <div className="max-w-[1280px] mx-auto space-y-12 relative z-10">
+          {/* Top Split Closing CTA */}
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            <div className="space-y-2">
+              <div className="text-xs sm:text-sm font-medium text-white/55">
+                {t(
+                  'Live Consciously • Act on Sacred Time',
+                  'सचेत जीवन • शुभ समयमा सही कदम'
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => onNavigate('FULL_REPORT')}
+                className="text-2xl sm:text-4xl font-scDisplay font-medium tracking-[-0.03em] text-white/85 hover:text-white transition text-left"
+              >
+                {t('Read your 10-chapter dossier →', 'आफ्नो १०-अध्याय जीवन दर्पण पढ्नुहोस् →')}
+              </button>
+            </div>
+
+            <div className="space-y-3 lg:text-right">
+              <div className="text-base sm:text-lg font-medium text-white/85">
+                {t('Upgrade Your Cosmic Clarity', 'आफ्नो जीवन-दिशा स्पष्ट पार्नुहोस्')}
+              </div>
+              <div className="flex flex-wrap lg:justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('FULL_REPORT')}
+                  className="sc-btn-white text-sm"
+                >
+                  <span>{t('Open Personal Report', 'व्यक्तिगत रिपोर्ट')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('HORAI')}
+                  className="sc-btn-glass text-sm"
+                >
+                  <span>{t('24h Horai Clock', '२४-घण्टा होरा घडी')}</span>
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-5 font-medium">
+
+          {/* Clean Navigation Row */}
+          <div className="pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm text-white/65">
             <button
               type="button"
               onClick={() => onNavigate('FULL_REPORT')}
-              className="text-[var(--accent)] hover:underline"
+              className="hover:text-white transition"
             >
-              {t('Full Report & PDF', 'पूर्ण रिपोर्ट र PDF')}
+              {t('10-Chapter Report & PDF', '१०-अध्याय रिपोर्ट र PDF')}
             </button>
             <button
               type="button"
               onClick={() => onNavigate('HORAI')}
-              className="hover:text-[var(--text)]"
+              className="hover:text-white transition"
             >
-              {t('Live Horai Clock', 'प्रत्यक्ष होरा घडी')}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate('OBSERVATORY')}
-              className="hover:text-[var(--text)]"
-            >
-              {t('Dashboard', 'ड्यासबोर्ड')}
+              {t('24-Petal Horai Clock', '२४-पत्रे होरा घडी')}
             </button>
             <button
               type="button"
               onClick={() => onNavigate('WHAT_HAPPENS_IF')}
-              className="hover:text-[var(--text)]"
+              className="hover:text-white transition"
             >
-              {t('Best Dates', 'शुभ साइत')}
+              {t('20-Decision Best Dates', '२० जीवन-निर्णय शुभ साइत')}
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' })}
+              className="hover:text-white transition"
+            >
+              {t('Vedic Kundali & SAV', 'वैदिक कुण्डली र अष्टकवर्ग')}
             </button>
             <button
               type="button"
               onClick={() => onNavigate('NAKSHATRAS')}
-              className="hover:text-[var(--text)]"
+              className="hover:text-white transition"
             >
-              {t('28 Birth Stars', '२८ नक्षत्र')}
+              {t('28 Birth Stars', '२८ जन्म नक्षत्र')}
             </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('CANON')}
+              className="hover:text-white transition"
+            >
+              {t('9 Classical Books', '९ शास्त्रीय ग्रन्थ')}
+            </button>
+          </div>
+
+          {/* Monumental Edge-to-Edge Uppercase Horizon Wordmark */}
+          <div className="pt-4 border-t border-white/10 text-center select-none">
+            <div className="font-scDisplay font-semibold text-[clamp(2.6rem,11.5vw,9.8rem)] leading-[0.88] tracking-[-0.04em] bg-gradient-to-b from-white/70 via-white/40 to-white/10 bg-clip-text text-transparent">
+              OCEANOLOGY
+            </div>
+          </div>
+
+          {/* Bottom Legal / Privacy Trust Line */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-white/45">
+            <span>
+              © {new Date().getFullYear()} Oceanology •{' '}
+              {t(
+                '100% Client-Side Ephemeris & Private Birth Calculations',
+                '१००% ब्राउजरभित्रै सुरक्षित र गोप्य कुण्डली गणना'
+              )}
+            </span>
+            <span>
+              {t(
+                'Lahiri Sidereal • Tropical • Graha Horai • 8 Classical Canons',
+                'लाहिरी निरयन • सायन • ग्रह होरा • ८ शास्त्रीय ग्रन्थ'
+              )}
+            </span>
           </div>
         </div>
       </footer>
