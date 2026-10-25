@@ -5,10 +5,11 @@ import {
   ChevronRight,
   Compass,
   Scale,
-  CheckCircle2,
+  Sparkles,
+  Activity,
+  ShieldCheck,
   AlertTriangle,
-  XCircle,
-  ArrowUpRight,
+  CheckCircle2,
 } from 'lucide-react';
 import { CityLocation } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
@@ -19,6 +20,13 @@ import {
   LIFE_ACTIONS,
   scanUpcomingBestWindows,
 } from '../data/karmaAndMuhurtaCodex';
+import {
+  KpiStatCard,
+  ScoreTrendChart,
+  SegmentedTabs,
+  StatusBadge,
+  SemanticTone,
+} from './ui/DashboardPrimitives';
 
 interface Props {
   chart: NatalChartResult;
@@ -27,7 +35,8 @@ interface Props {
   onInspectNakshatra?: (nakIdx: number) => void;
 }
 
-const CATEGORIES: ActionCategory[] = [
+const CATEGORIES: ('All' | ActionCategory)[] = [
+  'All',
   'Wealth & Debt',
   'Enterprise & Law',
   'Home & Construction',
@@ -43,9 +52,13 @@ export const ActionConsequenceLab: React.FC<Props> = ({
   onInspectNakshatra,
 }) => {
   const [labTab, setLabTab] = useState<'MUHURTA_ORACLE' | 'BEHAVIORAL_KARMA'>('MUHURTA_ORACLE');
-  const [selectedActionId, setSelectedActionId] = useState<string>(initialActionId || 'LEND_MONEY');
-  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [selectedCategory, setSelectedCategory] = useState<'All' | ActionCategory>('All');
+  const [selectedActionId, setSelectedActionId] = useState<string>(initialActionId || 'SIGN_CONTRACT');
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() =>
+    new Date().toISOString().slice(0, 10)
+  );
   const [selectedTimeStr, setSelectedTimeStr] = useState<string>('10:30');
+  const [detailTab, setDetailTab] = useState<'FACTORS' | 'WINDOWS' | 'PARIHARA'>('FACTORS');
   const [selectedKarmaPlanet, setSelectedKarmaPlanet] = useState<string>('Saturn');
 
   useEffect(() => {
@@ -54,6 +67,11 @@ export const ActionConsequenceLab: React.FC<Props> = ({
       setLabTab('MUHURTA_ORACLE');
     }
   }, [initialActionId]);
+
+  const filteredActions = useMemo(() => {
+    if (selectedCategory === 'All') return LIFE_ACTIONS;
+    return LIFE_ACTIONS.filter((a) => a.category === selectedCategory);
+  }, [selectedCategory]);
 
   const moonPlanet = chart.planets.find((p) => p.id === 'Moon') || chart.planets[0];
   const natalMoonSignIdx = Math.floor(moonPlanet.siderealLongitude / 30);
@@ -90,6 +108,39 @@ export const ActionConsequenceLab: React.FC<Props> = ({
     [selectedActionId, probeDate, location, moonPlanet.nakshatraIndex, natalMoonSignIdx]
   );
 
+  const horizonTrendPoints = useMemo(() => {
+    const [yr, mo, dy] = selectedDateStr.split('-').map((n) => parseInt(n, 10));
+    const [hr, mn] = selectedTimeStr.split(':').map((n) => parseInt(n, 10));
+    return Array.from({ length: 12 }).map((_, idx) => {
+      const localUtcMs = Date.UTC(yr || 2026, (mo || 1) - 1, (dy || 1) + idx, hr || 10, mn || 30, 0);
+      const dt = new Date(localUtcMs - location.timezoneOffsetHours * 3600000);
+      const dayIso = new Date(Date.UTC(yr || 2026, (mo || 1) - 1, (dy || 1) + idx))
+        .toISOString()
+        .slice(0, 10);
+      const ev = evaluateActionConsequence(
+        selectedActionId,
+        dt,
+        location,
+        moonPlanet.nakshatraIndex,
+        natalMoonSignIdx
+      );
+      const shortDate = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return {
+        id: dayIso,
+        label: idx === 0 ? shortDate : shortDate,
+        sublabel: ev.panchang.nakshatra.name.slice(0, 5),
+        value: ev.score,
+      };
+    });
+  }, [
+    selectedActionId,
+    selectedDateStr,
+    selectedTimeStr,
+    location,
+    moonPlanet.nakshatraIndex,
+    natalMoonSignIdx,
+  ]);
+
   const shiftDateByDays = (delta: number) => {
     const [yr, mo, dy] = selectedDateStr.split('-').map((n) => parseInt(n, 10));
     const d = new Date(Date.UTC(yr, mo - 1, dy + delta));
@@ -101,410 +152,592 @@ export const ActionConsequenceLab: React.FC<Props> = ({
     BEHAVIORAL_KARMA_VIPAKA[0];
   const natalKarmaPlanet = chart.planets.find((p) => p.id === activeKarmaEntry.planetId);
 
-  const tierTone = (tier: string) => {
-    if (tier.includes('Supreme')) return 'text-[var(--sage)] border-[var(--sage)] bg-[var(--sage-bg)]';
-    if (tier.includes('Auspicious')) return 'text-[var(--brass)] border-[var(--brass)] bg-[var(--brass-bg)]';
-    if (tier.includes('Contraindicated')) return 'text-[var(--crimson)] border-[var(--crimson)] bg-[var(--crimson-bg)]';
-    return 'text-[var(--text)] border-[var(--border-strong)] bg-[var(--surface-muted)]';
+  const readinessStatus: { tone: SemanticTone; label: string } =
+    report.score >= 70
+      ? { tone: 'optimal', label: 'Optimal Window' }
+      : report.score >= 48
+      ? { tone: 'mixed', label: 'Mixed / Caution' }
+      : { tone: 'avoid', label: 'Postpone' };
+
+  const factorTone = (status: string): { tone: SemanticTone; label: string } => {
+    if (status === 'Positive') return { tone: 'optimal', label: 'Supportive' };
+    if (status === 'Caution') return { tone: 'mixed', label: 'Caution' };
+    if (status === 'Critical') return { tone: 'avoid', label: 'Avoid' };
+    return { tone: 'neutral', label: 'Neutral' };
   };
 
   return (
-    <div className="space-y-10">
-      {/* Masthead */}
-      <section className="border-b border-[var(--border)] pb-8">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="space-y-3 max-w-3xl">
-            <div className="editorial-eyebrow">
-              Muhurta Chintamani • Brihat Samhita • BPHS Karma-Vipaka
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-serif font-normal text-[var(--text)] leading-[1.08]">
-              Action, Timing &amp; Consequence Simulator
-            </h1>
-            <p className="literary-prose">
-              In classical Jyotish, fate is never sealed in a vacuum: every earthly action interacts with two laws—<strong>Muhurta</strong> (what happens when an undertaking is initiated under a specific lunar star, tithi, weekday, karana, and direction) and <strong>Karma-Vipaka</strong> (what happens when daily ethical conduct nourishes or starves a natal Graha).
-            </p>
-          </div>
-
-          {/* Chapter Switcher */}
-          <div className="flex border border-[var(--border-strong)] bg-[var(--surface)]">
-            <button
-              onClick={() => setLabTab('MUHURTA_ORACLE')}
-              className={`px-4 py-2.5 text-xs font-semibold transition flex items-center gap-2 ${
-                labTab === 'MUHURTA_ORACLE'
-                  ? 'bg-[var(--text)] text-[var(--surface)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span>I. Electional "What Happens If..." (20 Actions)</span>
-            </button>
-            <button
-              onClick={() => setLabTab('BEHAVIORAL_KARMA')}
-              className={`px-4 py-2.5 text-xs font-semibold transition flex items-center gap-2 border-l border-[var(--border-strong)] ${
-                labTab === 'BEHAVIORAL_KARMA'
-                  ? 'bg-[var(--text)] text-[var(--surface)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
-            >
-              <Scale className="w-3.5 h-3.5" />
-              <span>II. Behavioral Karma-Vipaka (9 Grahas)</span>
-            </button>
-          </div>
+    <div className="space-y-6">
+      {/* ==================== PAGE HEADER & MODE SWITCHER ==================== */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+            Action Timing &amp; Consequence Planner
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Evaluate 20 major life decisions against Muhurta electional rules, personal Tarabala, and
+            planetary conduct.
+          </p>
         </div>
-      </section>
 
-      {/* ==================== CHAPTER I: MUHURTA CONSEQUENCE SIMULATOR ==================== */}
+        <SegmentedTabs
+          ariaLabel="Action planner mode"
+          value={labTab}
+          onChange={setLabTab}
+          items={[
+            { id: 'MUHURTA_ORACLE', label: 'Action Timing', count: 20 },
+            { id: 'BEHAVIORAL_KARMA', label: 'Planetary Karma-Vipaka', count: 9 },
+          ]}
+        />
+      </div>
+
+      {/* ==================== MODE 1: MUHURTA DECISION DASHBOARD ==================== */}
       {labTab === 'MUHURTA_ORACLE' && (
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-          {/* Left Column (4 cols): 20 Classical Life Actions Directory */}
-          <aside className="xl:col-span-4 space-y-5">
-            {/* Date & Time Bar */}
-            <div className="obs-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-[var(--brass)]">
-                  Test Moment &amp; Horizon
-                </span>
-                <span className="font-mono text-[11px] text-[var(--text-muted)]">
-                  {location.name}
-                </span>
+        <div className="space-y-6">
+          {/* Global Control Bar (Action Filter + Date/Time Picker) */}
+          <div className="obs-card p-4 space-y-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {/* Category Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {CATEGORIES.map((cat) => {
+                  const active = cat === selectedCategory;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        if (cat !== 'All') {
+                          const firstInCat = LIFE_ACTIONS.find((a) => a.category === cat);
+                          if (firstInCat && report.action.category !== cat) {
+                            setSelectedActionId(firstInCat.id);
+                          }
+                        }
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                        active
+                          ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold border border-[var(--accent)]/30'
+                          : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="grid grid-cols-12 gap-2">
+              <span className="text-xs text-[var(--text-muted)] font-mono">
+                Location: {location.name}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center pt-1 border-t border-[var(--border)]">
+              {/* Action Selector */}
+              <div className="lg:col-span-6 flex items-center gap-2.5">
+                <label
+                  htmlFor="ocean-action-select"
+                  className="text-xs font-semibold text-[var(--text-secondary)] whitespace-nowrap"
+                >
+                  Action:
+                </label>
+                <select
+                  id="ocean-action-select"
+                  value={selectedActionId}
+                  onChange={(e) => setSelectedActionId(e.target.value)}
+                  className="w-full obs-input font-medium text-sm"
+                >
+                  {filteredActions.map((act) => (
+                    <option key={act.id} value={act.id}>
+                      {act.title} — ({act.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date & Time Controls */}
+              <div className="lg:col-span-6 flex flex-wrap items-center justify-end gap-2">
                 <input
                   type="date"
+                  aria-label="Evaluation date"
                   value={selectedDateStr}
                   onChange={(e) => setSelectedDateStr(e.target.value)}
-                  className="col-span-7 obs-input font-mono text-xs"
+                  className="obs-input font-mono text-xs w-[142px]"
                 />
                 <input
                   type="time"
+                  aria-label="Evaluation time"
                   value={selectedTimeStr}
                   onChange={(e) => setSelectedTimeStr(e.target.value)}
-                  className="col-span-5 obs-input font-mono text-xs"
+                  className="obs-input font-mono text-xs w-[108px]"
                 />
-              </div>
-
-              <div className="flex items-center justify-between gap-2 text-xs">
-                <button
-                  onClick={() => shiftDateByDays(-1)}
-                  className="flex-1 py-1.5 border border-[var(--border)] hover:border-[var(--brass)] flex items-center justify-center gap-1"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" /> Prev Day
-                </button>
-                <button
-                  onClick={() => setSelectedDateStr(new Date().toISOString().slice(0, 10))}
-                  className="px-3 py-1.5 border border-[var(--border)] hover:border-[var(--brass)] font-mono text-[11px]"
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => shiftDateByDays(1)}
-                  className="flex-1 py-1.5 border border-[var(--border)] hover:border-[var(--brass)] flex items-center justify-center gap-1"
-                >
-                  Next Day <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="inline-flex rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => shiftDateByDays(-1)}
+                    aria-label="Previous day"
+                    className="px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)] inline-flex items-center gap-1"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Prev</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDateStr(new Date().toISOString().slice(0, 10))}
+                    className="px-2.5 py-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => shiftDateByDays(1)}
+                    aria-label="Next day"
+                    className="px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)] inline-flex items-center gap-1"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Grouped 20 Actions */}
-            <div className="obs-card p-4 space-y-4 max-h-[680px] overflow-y-auto">
-              {CATEGORIES.map((cat) => (
-                <div key={cat} className="space-y-1.5">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)] border-b border-[var(--border)] pb-1">
-                    {cat}
-                  </div>
-                  {LIFE_ACTIONS.filter((a) => a.category === cat).map((act) => {
-                    const active = act.id === selectedActionId;
-                    return (
-                      <button
-                        key={act.id}
-                        onClick={() => setSelectedActionId(act.id)}
-                        className={`w-full text-left px-3 py-2 text-xs transition border-l-2 ${
-                          active
-                            ? 'border-l-[var(--brass)] bg-[var(--brass-bg)] font-semibold text-[var(--text)]'
-                            : 'border-l-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-muted)]/60 hover:text-[var(--text)]'
-                        }`}
-                      >
-                        <div>{act.title}</div>
-                        <div className="font-mono text-[10px] text-[var(--text-muted)] mt-0.5">
-                          {act.sanskritTitle}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </aside>
+          {/* ROW 1: 4 CONTEXTUAL KPI STAT CARDS (Inverted Pyramid Top) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <KpiStatCard
+              label="Action Readiness Score"
+              value={`${report.score}/100`}
+              benchmarkText={
+                report.score >= 70
+                  ? `+${report.score - 70} pts vs 70 safe benchmark`
+                  : `${70 - report.score} pts below 70 benchmark`
+              }
+              status={readinessStatus}
+              icon={<Activity className="w-4 h-4" />}
+            />
 
-          {/* Right Column (8 cols): Live Shastra Evaluation Sheet */}
-          <article className="xl:col-span-8 folio-sheet p-6 sm:p-10 space-y-8">
-            {/* Header Verdict */}
-            <header className="border-b border-[var(--border)] pb-6">
-              <div className="flex flex-wrap items-start justify-between gap-6">
-                <div className="space-y-2 max-w-xl">
-                  <div className="editorial-eyebrow">
-                    {report.action.category} • {report.action.sanskritTitle}
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl font-serif font-normal text-[var(--text)]">
-                    {report.action.shortPrompt}
-                  </h2>
-                  <p className="font-mono text-xs text-[var(--text-muted)]">
-                    Evaluated for {report.panchang.dateStr} ({report.panchang.bikramSambat.formatted}) •{' '}
-                    {report.panchang.vara.name} • Moon in{' '}
-                    <button
-                      onClick={() => onInspectNakshatra?.(report.panchang.nakshatra.zeroIndex)}
-                      className="underline text-[var(--brass)] hover:opacity-80 inline-flex items-center gap-0.5"
-                    >
-                      {report.panchang.nakshatra.name} P{report.panchang.nakshatra.pada}
-                      <ArrowUpRight className="w-3 h-3" />
-                    </button>
-                  </p>
-                </div>
+            <KpiStatCard
+              label="Best Date (Next 12 Days)"
+              value={bestWindows[0]?.dateStr || selectedDateStr}
+              subvalue={bestWindows[0] ? `${bestWindows[0].score}/100` : undefined}
+              benchmarkText={
+                bestWindows[0]
+                  ? `${bestWindows[0].weekdayName} • ${bestWindows[0].nakshatraName}`
+                  : 'Current horizon'
+              }
+              status={{ tone: 'optimal', label: 'Peak Window' }}
+              icon={<Calendar className="w-4 h-4" />}
+              actionLabel={
+                bestWindows[0] && bestWindows[0].dateStr !== selectedDateStr
+                  ? 'Select peak date'
+                  : undefined
+              }
+              onAction={
+                bestWindows[0] ? () => setSelectedDateStr(bestWindows[0].dateStr) : undefined
+              }
+            />
 
-                {/* Architectural Score Box */}
-                <div className={`border px-5 py-4 text-center min-w-[160px] ${tierTone(report.verdictTier)}`}>
-                  <div className="font-mono text-[10px] uppercase tracking-widest opacity-80">
-                    Shastra Index
-                  </div>
-                  <div className="text-4xl font-serif font-bold tabular-nums my-0.5">
-                    {report.score}
-                    <span className="text-base font-normal opacity-70">/100</span>
-                  </div>
-                  <div className="font-mono text-[11px] font-semibold">
-                    {report.verdictTier}
-                  </div>
-                </div>
-              </div>
-            </header>
+            <KpiStatCard
+              label="Transit Nakshatra"
+              value={report.panchang.nakshatra.name}
+              subvalue={`Pada ${report.panchang.nakshatra.pada}`}
+              benchmarkText={`${report.panchang.nakshatra.hoursRemaining} remaining`}
+              status={{
+                tone: 'info',
+                label: report.panchang.nakshatra.natureGroup.split(' ')[0],
+              }}
+              icon={<Sparkles className="w-4 h-4" />}
+              actionLabel={onInspectNakshatra ? 'Inspect Nakshatra' : undefined}
+              onAction={
+                onInspectNakshatra
+                  ? () => onInspectNakshatra(report.panchang.nakshatra.zeroIndex)
+                  : undefined
+              }
+            />
 
-            {/* Primary Consequence Narrative */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="border border-[var(--border)] p-5 bg-[var(--bg-elevated)] space-y-2">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-[var(--brass)] font-semibold">
-                  If Performed Under This Sky
-                </div>
-                <p className="literary-prose text-base text-[var(--text)]">
-                  {report.whatHappensIfDoneNow}
-                </p>
-              </div>
+            <KpiStatCard
+              label="Personal Tarabala"
+              value={`Tara #${report.panchang.personalTarabala.taraNumber}`}
+              subvalue={report.panchang.personalTarabala.taraName.split(' ')[0]}
+              benchmarkText={`Moon in House ${report.panchang.personalTarabala.chandrabalaHouse}`}
+              status={{
+                tone: report.panchang.personalTarabala.isAuspicious ? 'optimal' : 'mixed',
+                label: report.panchang.personalTarabala.isAuspicious
+                  ? 'Supportive'
+                  : 'Needs Parihara',
+              }}
+              icon={<Compass className="w-4 h-4" />}
+            />
+          </div>
 
-              <div className="border border-[var(--border)] p-5 space-y-3">
+          {/* ROW 2: VISUAL FORECAST CHART + DECISION SUMMARY CARD */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            {/* 12-Day Score Trend Line Chart */}
+            <div className="lg:col-span-7 obs-card p-5 flex flex-col justify-between space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Classical Treatise Principle ({report.action.classicalSource})
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1">
-                    {report.action.baseRuleSummary}
+                  <h2 className="text-base font-bold text-[var(--text)]">
+                    12-Day Electional Score Horizon — {report.action.title}
+                  </h2>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Click any date point to inspect its exact Panchang, Tithi, and Tarabala factors
                   </p>
                 </div>
-                <div className="pt-3 border-t border-[var(--border)]">
-                  <div className="font-mono text-[11px] uppercase tracking-wider text-[var(--sage)] font-semibold">
-                    Strategic Timing Counsel
+                <span className="text-xs font-mono text-[var(--text-secondary)]">
+                  {report.panchang.bikramSambat.formatted}
+                </span>
+              </div>
+
+              <ScoreTrendChart
+                points={horizonTrendPoints}
+                benchmarkValue={70}
+                benchmarkLabel="70+ Optimal window"
+                selectedId={selectedDateStr}
+                onSelectPoint={(dateIso) => setSelectedDateStr(dateIso)}
+                ariaLabel={`12-day timing favorability trend for ${report.action.title}`}
+              />
+            </div>
+
+            {/* Decision Verdict & Consequence Summary */}
+            <div className="lg:col-span-5 obs-card p-5 flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <StatusBadge tone={readinessStatus.tone} label={report.verdictTier} size="md" />
+                  <span className="text-xs font-mono text-[var(--text-muted)]">
+                    {report.action.sanskritTitle}
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-bold text-[var(--text)] leading-snug">
+                  {report.action.shortPrompt}
+                </h3>
+
+                <div className="obs-panel p-3.5 space-y-1.5">
+                  <div className="text-xs font-semibold text-[var(--text)]">
+                    Expected Outcome If Initiated Now
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1">
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    {report.whatHappensIfDoneNow}
+                  </p>
+                </div>
+
+                <div className="obs-panel p-3.5 space-y-1.5">
+                  <div className="text-xs font-semibold text-[var(--sage)]">
+                    Timing Recommendation
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     {report.whatHappensIfDelayed}
                   </p>
                 </div>
               </div>
-            </section>
 
-            {/* Itemized Panchang & Personal Factor Ledger */}
-            <section className="space-y-4">
-              <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-2">
-                <h3 className="text-2xl font-serif font-semibold text-[var(--text)]">
-                  Itemized Shastra Factor Ledger
-                </h3>
-                <span className="font-mono text-[11px] text-[var(--text-muted)]">
-                  {report.factors.length} Celestial &amp; Personal Rules Checked
-                </span>
+              <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+                <span>Source: {report.action.classicalSource}</span>
+                <span>{report.panchang.vara.name}</span>
               </div>
-
-              <div className="divide-y divide-[var(--border)] border border-[var(--border)]">
-                {report.factors.map((f, idx) => (
-                  <div key={idx} className="p-4 flex items-start gap-3.5">
-                    <div className="mt-0.5 shrink-0">
-                      {f.status === 'Positive' && <CheckCircle2 className="w-4 h-4 text-[var(--sage)]" />}
-                      {f.status === 'Neutral' && <Compass className="w-4 h-4 text-[var(--text-muted)]" />}
-                      {f.status === 'Caution' && <AlertTriangle className="w-4 h-4 text-[var(--brass)]" />}
-                      {f.status === 'Critical' && <XCircle className="w-4 h-4 text-[var(--crimson)]" />}
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-semibold text-xs text-[var(--text)]">{f.factor}</span>
-                        <span className="font-mono text-[11px] text-[var(--brass)]">{f.ruleCited}</span>
-                      </div>
-                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{f.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Classical Pariharas */}
-            <section className="border-l-2 border-l-[var(--brass)] pl-5 space-y-2">
-              <div className="font-mono text-[11px] uppercase tracking-wider text-[var(--brass)] font-semibold">
-                Classical Parihara Protocol (If Action Must Proceed Today)
-              </div>
-              <ul className="space-y-1.5 text-xs text-[var(--text-secondary)] list-disc list-inside">
-                {report.pariharaRemedies.map((rem, i) => (
-                  <li key={i}>{rem}</li>
-                ))}
-              </ul>
-            </section>
-
-            {/* 12-Day Upcoming Best Windows Scanner */}
-            <section className="space-y-4 pt-4 border-t border-[var(--border)]">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-2xl font-serif font-semibold text-[var(--text)]">
-                    Best Upcoming Windows (Next 12 Days)
-                  </h3>
-                  <p className="text-xs text-[var(--text-muted)]">
-                    Click any candidate date below to load its full Panchang &amp; Tarabala breakdown
-                  </p>
-                </div>
-                <Calendar className="w-4 h-4 text-[var(--brass)]" />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                {bestWindows.map((win) => (
-                  <button
-                    key={win.dateStr}
-                    onClick={() => setSelectedDateStr(win.dateStr)}
-                    className={`p-4 text-left border transition hover:border-[var(--brass)] ${
-                      selectedDateStr === win.dateStr
-                        ? 'border-[var(--brass)] bg-[var(--brass-bg)]'
-                        : 'border-[var(--border)] bg-[var(--surface)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between font-mono text-xs">
-                      <span className="font-semibold text-[var(--text)]">{win.dateStr}</span>
-                      <span className="text-[var(--sage)] font-bold">{win.score}/100</span>
-                    </div>
-                    <div className="font-serif text-lg font-semibold text-[var(--text)] mt-1">
-                      {win.weekdayName} • {win.nakshatraName}
-                    </div>
-                    <div className="text-[11px] text-[var(--text-muted)] font-mono mt-0.5">
-                      {win.tithiName}
-                    </div>
-                    <div className="text-[11px] text-[var(--brass)] font-mono mt-2 pt-2 border-t border-[var(--border)]">
-                      Peak: {win.bestWindowTime}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
-          </article>
-        </div>
-      )}
-
-      {/* ==================== CHAPTER II: BEHAVIORAL KARMA-VIPAKA ==================== */}
-      {labTab === 'BEHAVIORAL_KARMA' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Planet Selector */}
-          <div className="lg:col-span-4 obs-card divide-y divide-[var(--border)]">
-            <div className="p-4 font-mono text-[11px] uppercase tracking-widest text-[var(--text-muted)]">
-              Select Navagraha Force
             </div>
-            {BEHAVIORAL_KARMA_VIPAKA.map((item) => {
-              const pChart = chart.planets.find((p) => p.id === item.planetId);
-              const isSelected = item.planetId === selectedKarmaPlanet;
-              return (
-                <button
-                  key={item.planetId}
-                  onClick={() => setSelectedKarmaPlanet(item.planetId)}
-                  className={`w-full p-4 text-left flex items-center justify-between transition ${
-                    isSelected ? 'bg-[var(--brass-bg)]' : 'hover:bg-[var(--surface-muted)]/60'
-                  }`}
-                >
-                  <div>
-                    <div className="font-serif text-lg font-semibold text-[var(--text)]">
-                      {pChart?.symbol} {item.planetName}
-                    </div>
-                    {pChart && (
-                      <div className="font-mono text-[11px] text-[var(--text-muted)]">
-                        Natal: {pChart.signName} • House {pChart.house} ({pChart.dignity})
-                      </div>
-                    )}
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-[var(--brass)]" />
-                </button>
-              );
-            })}
           </div>
 
-          {/* Behavioral Cause-Effect Treatise */}
-          <article className="lg:col-span-8 folio-sheet p-6 sm:p-10 space-y-8">
-            <header className="border-b border-[var(--border)] pb-6 space-y-2">
-              <div className="editorial-eyebrow">{activeKarmaEntry.sanskritTitle}</div>
-              <h2 className="text-3xl sm:text-4xl font-serif font-normal text-[var(--text)]">
-                {activeKarmaEntry.planetName}: Behavioral Cause &amp; Ripened Consequence
-              </h2>
-              <p className="text-xs text-[var(--text-secondary)]">
-                <strong>Governed Significations:</strong> {activeKarmaEntry.governedDomains}
-              </p>
-              {natalKarmaPlanet && (
-                <div className="mt-3 pt-3 border-t border-[var(--border)] font-mono text-xs text-[var(--brass)]">
-                  In Your Natal Chart: {natalKarmaPlanet.symbol} {natalKarmaPlanet.name} stands in{' '}
-                  {natalKarmaPlanet.signName} ({natalKarmaPlanet.formattedDMS}), House {natalKarmaPlanet.house},{' '}
-                  Nakshatra {natalKarmaPlanet.nakshatraName} Pada {natalKarmaPlanet.nakshatraPada} — Dignity:{' '}
-                  {natalKarmaPlanet.dignity}
-                </div>
-              )}
-            </header>
+          {/* ROW 3: PROGRESSIVE DISCLOSURE DETAIL TABS */}
+          <div className="obs-card p-5 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
+              <SegmentedTabs
+                ariaLabel="Electional detail sections"
+                value={detailTab}
+                onChange={setDetailTab}
+                items={[
+                  {
+                    id: 'FACTORS',
+                    label: 'Rule-by-Rule Breakdown',
+                    count: report.factors.length,
+                  },
+                  {
+                    id: 'WINDOWS',
+                    label: 'Top Upcoming Dates',
+                    count: bestWindows.length,
+                  },
+                  {
+                    id: 'PARIHARA',
+                    label: 'Classical Principle & Remedies',
+                    count: report.pariharaRemedies.length,
+                  },
+                ]}
+              />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Affliction Path */}
-              <div className="border border-[var(--crimson)]/35 bg-[var(--crimson-bg)]/40 p-5 space-y-4">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-[var(--crimson)] font-semibold">
-                  What Happens When Dishonored in Daily Conduct
-                </div>
-                <p className="text-xs text-[var(--text)] leading-relaxed">
-                  {activeKarmaEntry.ifDishonoredBehavior}
-                </p>
-                <div className="space-y-1.5 pt-2 border-t border-[var(--crimson)]/20">
-                  <div className="font-mono text-[10px] uppercase text-[var(--crimson)]">
-                    Ripened Warning Symptoms:
+              <span className="text-xs text-[var(--text-muted)] font-mono">
+                Evaluated at {selectedDateStr} {selectedTimeStr} ({location.name})
+              </span>
+            </div>
+
+            {detailTab === 'FACTORS' && (
+              <div className="divide-y divide-[var(--border)]">
+                {report.factors.map((f, idx) => {
+                  const st = factorTone(f.status);
+                  return (
+                    <div
+                      key={idx}
+                      className="py-3.5 first:pt-0 last:pb-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start"
+                    >
+                      <div className="md:col-span-3 flex items-center gap-2.5">
+                        <StatusBadge tone={st.tone} label={st.label} />
+                        <span className="text-xs font-semibold text-[var(--text)]">{f.factor}</span>
+                      </div>
+                      <div className="md:col-span-6 text-xs text-[var(--text-secondary)] leading-relaxed">
+                        {f.detail}
+                      </div>
+                      <div className="md:col-span-3 md:text-right text-xs font-mono text-[var(--text-muted)]">
+                        {f.ruleCited}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {detailTab === 'WINDOWS' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                {bestWindows.map((win) => {
+                  const active = selectedDateStr === win.dateStr;
+                  return (
+                    <button
+                      key={win.dateStr}
+                      type="button"
+                      onClick={() => setSelectedDateStr(win.dateStr)}
+                      className={`p-4 rounded-lg text-left border transition ${
+                        active
+                          ? 'border-[var(--accent)] bg-[var(--accent-bg)]'
+                          : 'border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--accent)]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-xs font-bold text-[var(--text)]">
+                          {win.dateStr}
+                        </span>
+                        <StatusBadge
+                          tone={win.score >= 70 ? 'optimal' : 'mixed'}
+                          label={`${win.score}/100`}
+                        />
+                      </div>
+                      <div className="text-sm font-bold text-[var(--text)] mt-2">
+                        {win.weekdayName} • {win.nakshatraName}
+                      </div>
+                      <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                        {win.tithiName}
+                      </div>
+                      <div className="text-[11px] font-mono text-[var(--accent)] mt-2.5 pt-2 border-t border-[var(--border)]">
+                        Best window: {win.bestWindowTime}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {detailTab === 'PARIHARA' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="obs-panel p-4 space-y-2">
+                  <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                    <Scale className="w-4 h-4 text-[var(--accent)]" />
+                    <span>Classical Electional Rule ({report.action.classicalSource})</span>
                   </div>
-                  <ul className="space-y-1.5 text-xs text-[var(--text-secondary)] list-disc list-inside">
-                    {activeKarmaEntry.consequenceSymptoms.map((s, i) => (
-                      <li key={i}>{s}</li>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                    {report.action.baseRuleSummary}
+                  </p>
+                </div>
+
+                <div className="obs-panel p-4 space-y-2.5">
+                  <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-[var(--sage)]" />
+                    <span>Parihara Protocol (If Action Cannot Be Delayed)</span>
+                  </div>
+                  <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
+                    {report.pariharaRemedies.map((rem, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[var(--sage)] shrink-0 mt-0.5" />
+                        <span>{rem}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      )}
 
-              {/* Alignment Path */}
-              <div className="border border-[var(--sage)]/35 bg-[var(--sage-bg)]/40 p-5 space-y-4">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-[var(--sage)] font-semibold">
-                  What Happens When Honored Through Sattvic Action
+      {/* ==================== MODE 2: BEHAVIORAL KARMA-VIPAKA ==================== */}
+      {labTab === 'BEHAVIORAL_KARMA' && (
+        <div className="space-y-6">
+          {/* 9-Graha Clean Selector Bar */}
+          <div className="obs-card p-4 space-y-3">
+            <div className="text-xs font-semibold text-[var(--text-secondary)]">
+              Select Planetary Force (Navagraha)
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-2">
+              {BEHAVIORAL_KARMA_VIPAKA.map((item) => {
+                const pChart = chart.planets.find((p) => p.id === item.planetId);
+                const isSelected = item.planetId === selectedKarmaPlanet;
+                return (
+                  <button
+                    key={item.planetId}
+                    type="button"
+                    onClick={() => setSelectedKarmaPlanet(item.planetId)}
+                    className={`p-2.5 rounded-lg border text-left transition ${
+                      isSelected
+                        ? 'border-[var(--accent)] bg-[var(--accent-bg)]'
+                        : 'border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--border-strong)]'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-[var(--text)] truncate">
+                      {pChart?.symbol} {item.planetName.split(' ')[0]}
+                    </div>
+                    {pChart && (
+                      <div className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5">
+                        H{pChart.house} • {pChart.signName.slice(0, 3)}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4 Natal Context KPIs for Selected Planet */}
+          {natalKarmaPlanet && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <KpiStatCard
+                label="Natal Sign & Longitude"
+                value={`${natalKarmaPlanet.signSymbol} ${natalKarmaPlanet.signName}`}
+                benchmarkText={natalKarmaPlanet.formattedDMS}
+                status={{ tone: 'info', label: activeKarmaEntry.sanskritTitle }}
+              />
+              <KpiStatCard
+                label="Natal Bhava (House)"
+                value={`House ${natalKarmaPlanet.house}`}
+                benchmarkText={natalKarmaPlanet.isRetrograde ? 'Retrograde (Vakri)' : 'Direct motion'}
+                status={{
+                  tone: [1, 4, 5, 7, 9, 10, 11].includes(natalKarmaPlanet.house)
+                    ? 'favorable'
+                    : 'neutral',
+                  label: [1, 4, 7, 10].includes(natalKarmaPlanet.house)
+                    ? 'Kendra'
+                    : [5, 9].includes(natalKarmaPlanet.house)
+                    ? 'Trikona'
+                    : 'Bhava',
+                }}
+              />
+              <KpiStatCard
+                label="Natal Nakshatra"
+                value={natalKarmaPlanet.nakshatraName}
+                subvalue={`Pada ${natalKarmaPlanet.nakshatraPada}`}
+                benchmarkText={`Lord: ${natalKarmaPlanet.nakshatraLord}`}
+                actionLabel={onInspectNakshatra ? 'View Nakshatra' : undefined}
+                onAction={
+                  onInspectNakshatra
+                    ? () => onInspectNakshatra(natalKarmaPlanet.nakshatraIndex)
+                    : undefined
+                }
+              />
+              <KpiStatCard
+                label="Essential Dignity"
+                value={natalKarmaPlanet.dignity}
+                benchmarkText={`Speed: ${natalKarmaPlanet.speedDegPerDay.toFixed(2)}°/day`}
+                status={{
+                  tone:
+                    natalKarmaPlanet.dignity === 'Exalted' || natalKarmaPlanet.dignity === 'Own Sign'
+                      ? 'optimal'
+                      : natalKarmaPlanet.dignity === 'Debilitated'
+                      ? 'avoid'
+                      : 'neutral',
+                  label: natalKarmaPlanet.dignity,
+                }}
+              />
+            </div>
+          )}
+
+          {/* 3-Column Cause, Effect & Daily Alignment */}
+          <div className="obs-card p-6 space-y-5">
+            <div className="border-b border-[var(--border)] pb-4 space-y-1">
+              <h2 className="text-xl font-bold text-[var(--text)]">
+                {activeKarmaEntry.planetName} — Behavioral Cause &amp; Consequence
+              </h2>
+              <p className="text-xs text-[var(--text-secondary)]">
+                <strong>Governed Domains:</strong> {activeKarmaEntry.governedDomains}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {/* Column 1: Conduct That Strengthens */}
+              <div className="obs-panel p-4 space-y-3 border-emerald-500/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[var(--sage)]">
+                    Conduct That Strengthens
+                  </span>
+                  <StatusBadge tone="optimal" label="Sattvic Alignment" />
                 </div>
                 <p className="text-xs text-[var(--text)] leading-relaxed">
                   {activeKarmaEntry.ifAlignedBehavior}
                 </p>
-                <div className="space-y-1.5 pt-2 border-t border-[var(--sage)]/20">
-                  <div className="font-mono text-[10px] uppercase text-[var(--sage)]">
-                    Ripened Dharmic Fruits:
+                <div className="pt-2 border-t border-[var(--border)] space-y-1.5">
+                  <div className="text-[11px] font-semibold text-[var(--text-secondary)]">
+                    Expected Positive Outcomes
                   </div>
-                  <ul className="space-y-1.5 text-xs text-[var(--text-secondary)] list-disc list-inside">
+                  <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
                     {activeKarmaEntry.alignedFruits.map((f, i) => (
-                      <li key={i}>{f}</li>
+                      <li key={i} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[var(--sage)] shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
               </div>
-            </div>
 
-            <div className="border-l-2 border-l-[var(--brass)] pl-5 py-1 space-y-1">
-              <div className="font-mono text-[11px] uppercase tracking-wider text-[var(--brass)] font-semibold">
-                Non-Superstitious Daily Practice (Living Upaya)
+              {/* Column 2: Conduct That Afflicts */}
+              <div className="obs-panel p-4 space-y-3 border-rose-500/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[var(--crimson)]">
+                    Conduct That Afflicts
+                  </span>
+                  <StatusBadge tone="avoid" label="Friction Pattern" />
+                </div>
+                <p className="text-xs text-[var(--text)] leading-relaxed">
+                  {activeKarmaEntry.ifDishonoredBehavior}
+                </p>
+                <div className="pt-2 border-t border-[var(--border)] space-y-1.5">
+                  <div className="text-[11px] font-semibold text-[var(--text-secondary)]">
+                    Early Warning Signs
+                  </div>
+                  <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
+                    {activeKarmaEntry.consequenceSymptoms.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-[var(--crimson)] shrink-0 mt-0.5" />
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <p className="literary-prose text-base text-[var(--text)]">
-                {activeKarmaEntry.livingDharmaPractice}
-              </p>
+
+              {/* Column 3: Practical Daily Habit */}
+              <div className="obs-panel p-4 space-y-3 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[var(--accent)]">
+                      Practical Daily Habit (Upaya)
+                    </span>
+                    <StatusBadge tone="info" label="Daily Practice" />
+                  </div>
+                  <p className="text-sm text-[var(--text)] leading-relaxed">
+                    {activeKarmaEntry.livingDharmaPractice}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
+                  Grounded in Brihat Parashara Hora Shastra behavioral remediation principles.
+                </div>
+              </div>
             </div>
-          </article>
+          </div>
         </div>
       )}
     </div>

@@ -1,20 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
   darkMode: 'class',
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        literary: ['"Newsreader"', 'Georgia', 'serif'],
-        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['Newsreader', 'Georgia', 'serif'],
+        literary: ['Newsreader', 'Georgia', 'serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
     },
   },
   plugins: [],
-}
+};

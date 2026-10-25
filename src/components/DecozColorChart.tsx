@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { DECOZ_COLORS, DecozYearCell, NumerologyReport, reduceNumber } from '../engines/numerologyEngine';
+import { Hash, Sparkles, Calendar, Activity } from 'lucide-react';
+import {
+  DECOZ_COLORS,
+  DecozYearCell,
+  NumerologyReport,
+  reduceNumber,
+} from '../engines/numerologyEngine';
 import { NumerologySystem } from '../types/oceanology';
 import { CHEIRO_COMPOUND_MEANINGS } from '../data/classicalCompendium';
+import { KpiStatCard, SegmentedTabs, StatusBadge } from './ui/DashboardPrimitives';
 
 interface Props {
   report: NumerologyReport;
@@ -14,21 +21,39 @@ type NumSubView = 'CORE_CHEIRO' | 'COLORCHART' | 'PROPORTIONAL_TUNER';
 export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChange }) => {
   const [subView, setSubView] = useState<NumSubView>('CORE_CHEIRO');
   const [selectedCell, setSelectedCell] = useState<DecozYearCell>(
-    report.colorChartYears.find(c => c.calendarYear === new Date().getFullYear()) ||
+    report.colorChartYears.find((c) => c.calendarYear === new Date().getFullYear()) ||
       report.colorChartYears[10] ||
       report.colorChartYears[0]
   );
   const [sandboxName, setSandboxName] = useState(report.currentNameUsed);
 
   const chaldeanTable: Record<string, number> = {
-    A: 1, I: 1, J: 1, Q: 1, Y: 1,
-    B: 2, K: 2, R: 2,
-    C: 3, G: 3, L: 3, S: 3,
-    D: 4, M: 4, T: 4,
-    E: 5, H: 5, N: 5, X: 5,
-    U: 6, V: 6, W: 6,
-    O: 7, Z: 7,
-    F: 8, P: 8,
+    A: 1,
+    I: 1,
+    J: 1,
+    Q: 1,
+    Y: 1,
+    B: 2,
+    K: 2,
+    R: 2,
+    C: 3,
+    G: 3,
+    L: 3,
+    S: 3,
+    D: 4,
+    M: 4,
+    T: 4,
+    E: 5,
+    H: 5,
+    N: 5,
+    X: 5,
+    U: 6,
+    V: 6,
+    W: 6,
+    O: 7,
+    Z: 7,
+    F: 8,
+    P: 8,
   };
 
   const sandboxSum = sandboxName
@@ -43,7 +68,9 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
       return acc + ((code - 1) % 9) + 1;
     }, 0);
   const sandboxReduced = reduceNumber(sandboxSum || 1, true);
-  const sandboxCheiro = CHEIRO_COMPOUND_MEANINGS[sandboxReduced.compound] || CHEIRO_COMPOUND_MEANINGS[sandboxReduced.final];
+  const sandboxCheiro =
+    CHEIRO_COMPOUND_MEANINGS[sandboxReduced.compound] ||
+    CHEIRO_COMPOUND_MEANINGS[sandboxReduced.final];
 
   const coreCards = [
     { label: 'Life Path Number', sub: 'Primary Evolutionary Trajectory', val: report.lifePath },
@@ -56,86 +83,112 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
 
   return (
     <div className="space-y-6">
-      {/* Header & Focused Sub-View Bar */}
-      <div className="obs-card p-5 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brass)]">
-              World Numerology (Hans Decoz) &amp; Cheiro’s Book of Numbers
-            </span>
-            <h2 className="text-2xl font-serif font-bold text-[var(--text)] mt-0.5">
-              Numerology Architecture &amp; ColorChart Chronology
-            </h2>
-            <p className="text-xs text-[var(--text-secondary)]">
-              Birth Name: <strong>{report.fullNameUsed}</strong> • Active Name: <strong>{report.currentNameUsed}</strong>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1 obs-panel p-1">
-            <button
-              onClick={() => onSystemChange('PYTHAGOREAN')}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
-                system === 'PYTHAGOREAN'
-                  ? 'bg-[var(--surface)] text-[var(--brass)] shadow-sm border border-[var(--border-strong)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
-              }`}
-            >
-              Pythagorean (Decoz)
-            </button>
-            <button
-              onClick={() => onSystemChange('CHALDEAN')}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
-                system === 'CHALDEAN'
-                  ? 'bg-[var(--surface)] text-[var(--brass)] shadow-sm border border-[var(--border-strong)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
-              }`}
-            >
-              Chaldean (Cheiro Mystic)
-            </button>
-          </div>
+      {/* ==================== CLEAN HEADER & SYSTEM SWITCHER ==================== */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+            Numerology &amp; 25-Year ColorChart
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Birth Name: <strong>{report.fullNameUsed}</strong> • Active Name:{' '}
+            <strong>{report.currentNameUsed}</strong>
+          </p>
         </div>
 
-        {/* Focused Sub-View Switcher */}
-        <div className="flex flex-wrap gap-1.5 pt-3 border-t border-[var(--border)] text-xs">
-          {[
-            { id: 'CORE_CHEIRO' as const, label: '1. Core Numbers & Cheiro Compound Lore' },
-            { id: 'COLORCHART' as const, label: '2. Interactive 25-Year Decoz ColorChart' },
-            { id: 'PROPORTIONAL_TUNER' as const, label: '3. Proportional Chart & Live Name Tuner' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setSubView(tab.id)}
-              className={`px-3.5 py-1.5 rounded font-semibold transition ${
-                subView === tab.id
-                  ? 'obs-badge-brass shadow-sm'
-                  : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedTabs
+          ariaLabel="Numerology calculation system"
+          value={system}
+          onChange={onSystemChange}
+          items={[
+            { id: 'PYTHAGOREAN', label: 'Pythagorean (Decoz)' },
+            { id: 'CHALDEAN', label: 'Chaldean (Cheiro)' },
+          ]}
+        />
       </div>
 
-      {/* SUB-VIEW 1: CORE NUMBERS & CHEIRO COMPOUND LORE */}
-      {subView === 'CORE_CHEIRO' && (
-        <div className="space-y-6">
+      {/* ==================== ROW 1: 4 CONTEXTUAL KPI STAT CARDS ==================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <KpiStatCard
+          label="Life Path Number"
+          value={report.lifePath.final}
+          subvalue={`(${report.lifePath.trail})`}
+          benchmarkText="Core life direction"
+          status={{ tone: 'info', label: system }}
+          icon={<Hash className="w-4 h-4" />}
+        />
+
+        <KpiStatCard
+          label="Expression (Destiny)"
+          value={report.expression.final}
+          subvalue={`(${report.expression.trail})`}
+          benchmarkText={`Soul Urge: ${report.heartsDesire.final}`}
+          status={{ tone: 'favorable', label: 'Full Name' }}
+          icon={<Sparkles className="w-4 h-4" />}
+        />
+
+        <KpiStatCard
+          label="Current Personal Year"
+          value={`Year ${report.personalYear.final}`}
+          benchmarkText={DECOZ_COLORS[report.personalYear.singleDigit]?.keyword || '9-Year Cycle'}
+          status={{ tone: 'optimal', label: `${new Date().getFullYear()} Cycle` }}
+          icon={<Calendar className="w-4 h-4" />}
+          actionLabel="Open 25-year matrix"
+          onAction={() => setSubView('COLORCHART')}
+        />
+
+        <KpiStatCard
+          label="Personal Month & Day"
+          value={`M${report.personalMonth.singleDigit} • D${report.personalDay.singleDigit}`}
+          benchmarkText={
+            report.karmicLessons.length > 0
+              ? `Missing digits: ${report.karmicLessons.join(', ')}`
+              : 'All 9 digits present'
+          }
+          status={{
+            tone: report.karmicLessons.length === 0 ? 'optimal' : 'neutral',
+            label: `Maturity #${report.maturity.final}`,
+          }}
+          icon={<Activity className="w-4 h-4" />}
+        />
+      </div>
+
+      {/* ==================== PROGRESSIVE DISCLOSURE SUB-VIEWS ==================== */}
+      <div className="obs-card p-5 space-y-5">
+        <div className="border-b border-[var(--border)] pb-4 flex flex-wrap items-center justify-between gap-3">
+          <SegmentedTabs
+            ariaLabel="Numerology sections"
+            value={subView}
+            onChange={setSubView}
+            items={[
+              { id: 'CORE_CHEIRO', label: 'Core Numbers & Compounds', count: 6 },
+              {
+                id: 'COLORCHART',
+                label: '25-Year ColorChart Matrix',
+                count: report.colorChartYears.length,
+              },
+              { id: 'PROPORTIONAL_TUNER', label: '1–9 Dominance & Name Tuner' },
+            ]}
+          />
+        </div>
+
+        {/* SUB-VIEW 1: CORE NUMBERS & CHEIRO COMPOUND LORE */}
+        {subView === 'CORE_CHEIRO' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {coreCards.map(c => {
+            {coreCards.map((c) => {
               const colorInfo =
                 DECOZ_COLORS[c.val.final] || DECOZ_COLORS[c.val.singleDigit] || DECOZ_COLORS[1];
               const cheiroCompound =
                 CHEIRO_COMPOUND_MEANINGS[c.val.compound] || CHEIRO_COMPOUND_MEANINGS[c.val.final];
               return (
-                <div key={c.label} className="obs-card p-5 flex flex-col justify-between">
+                <div key={c.label} className="obs-panel p-4 flex flex-col justify-between gap-3">
                   <div>
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <span className="text-xs text-[var(--text-muted)]">{c.sub}</span>
-                        <h3 className="text-lg font-serif font-bold text-[var(--text)]">{c.label}</h3>
+                        <h3 className="text-base font-bold text-[var(--text)] mt-0.5">{c.label}</h3>
                       </div>
                       <div
-                        className="w-11 h-11 rounded flex items-center justify-center font-serif font-bold text-xl text-neutral-950 shrink-0"
+                        className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg text-slate-950 shrink-0 tabular-nums"
                         style={{ backgroundColor: colorInfo.hex }}
                       >
                         {c.val.final}
@@ -143,21 +196,23 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
                     </div>
 
                     <div className="mt-3 pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs">
-                      <span className="font-mono text-[var(--brass)] font-semibold">
+                      <span className="font-mono text-[var(--accent)] font-semibold">
                         Reduction: {c.val.trail}
                       </span>
-                      <span className="text-[var(--text-secondary)] font-medium">{colorInfo.name}</span>
+                      <span className="text-[var(--text-secondary)] font-medium">
+                        {colorInfo.name}
+                      </span>
                     </div>
 
                     <p className="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed">
-                      <strong>Decoz Keynote:</strong> {c.val.meaning}
+                      <strong>Keynote:</strong> {c.val.meaning}
                     </p>
                   </div>
 
                   {cheiroCompound && (
-                    <div className="mt-3 pt-2.5 border-t border-[var(--border)] text-xs">
-                      <div className="font-serif font-bold text-[var(--brass)]">
-                        Cheiro Compound #{c.val.compound}: {cheiroCompound.title}
+                    <div className="pt-2.5 border-t border-[var(--border)] text-xs">
+                      <div className="font-bold text-[var(--text)]">
+                        Compound #{c.val.compound}: {cheiroCompound.title}
                       </div>
                       <p className="text-[var(--text-muted)] mt-0.5 leading-relaxed">
                         {cheiroCompound.meaning}
@@ -168,227 +223,258 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
               );
             })}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* SUB-VIEW 2: INTERACTIVE 25-YEAR DECOZ COLORCHART MATRIX */}
-      {subView === 'COLORCHART' && (
-        <div className="obs-card p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <div>
-              <h3 className="text-xl font-serif font-bold text-[var(--text)]">
-                Interactive 25-Year Decoz ColorChart Matrix
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Click any year column (Age {report.colorChartYears[0]?.age}–{report.colorChartYears.at(-1)?.age}) to inspect its Personal Year, Essence, Pinnacle, Challenge &amp; Letter Transits.
-              </p>
+        {/* SUB-VIEW 2: INTERACTIVE 25-YEAR DECOZ COLORCHART MATRIX */}
+        {subView === 'COLORCHART' && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-base font-bold text-[var(--text)]">
+                  Interactive 25-Year ColorChart Chronology
+                </h2>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  Click any year column (Age {report.colorChartYears[0]?.age}–
+                  {report.colorChartYears.at(-1)?.age}) to inspect its Personal Year, Essence,
+                  Pinnacle, Challenge, and Name Transits.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                  <span
+                    key={n}
+                    className="px-2 py-0.5 rounded text-xs font-mono font-bold text-slate-950"
+                    style={{ backgroundColor: DECOZ_COLORS[n].hex }}
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                <span
-                  key={n}
-                  className="px-2 py-0.5 rounded text-xs font-mono font-bold text-neutral-950"
-                  style={{ backgroundColor: DECOZ_COLORS[n].hex }}
-                >
-                  {n}
-                </span>
-              ))}
-            </div>
-          </div>
 
-          <div className="overflow-x-auto pb-2">
-            <table className="w-full min-w-[780px] text-center border-collapse text-xs font-mono">
-              <thead>
-                <tr className="text-[var(--text-muted)] border-b border-[var(--border)]">
-                  <th className="py-2 px-2 text-left font-sans">Cycle Layer</th>
-                  {report.colorChartYears.map(cell => {
-                    const isNow = cell.calendarYear === new Date().getFullYear();
-                    const isSel = selectedCell?.calendarYear === cell.calendarYear;
-                    return (
-                      <th
-                        key={cell.calendarYear}
-                        onClick={() => setSelectedCell(cell)}
-                        className={`py-1.5 px-1 cursor-pointer rounded-t transition ${
-                          isSel
-                            ? 'obs-badge-brass font-bold'
-                            : isNow
-                            ? 'bg-[var(--surface-muted)] text-[var(--text)]'
-                            : 'hover:bg-[var(--surface-muted)]'
-                        }`}
-                      >
-                        <div>{cell.calendarYear.toString().slice(-2)}</div>
-                        <div className="text-xs opacity-75">A{cell.age}</div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {[
-                  { label: 'Personal Year', field: 'personalYear' as const, isNum: true },
-                  { label: 'Essence Cycle', field: 'essence' as const, isNum: true },
-                  { label: 'Pinnacle', field: 'pinnacle' as const, isNum: true },
-                  { label: 'Challenge', field: 'challenge' as const, isNum: true },
-                  { label: 'Physical Transit', field: 'physicalTransit' as const, valField: 'physicalValue' as const },
-                  { label: 'Mental Transit', field: 'mentalTransit' as const, valField: 'mentalValue' as const },
-                  { label: 'Spiritual Transit', field: 'spiritualTransit' as const, valField: 'spiritualValue' as const },
-                ].map(row => (
-                  <tr key={row.label}>
-                    <td className="py-2 px-2 text-left font-sans font-medium text-[var(--text-secondary)] whitespace-nowrap">
-                      {row.label}
-                    </td>
-                    {report.colorChartYears.map(cell => {
-                      const numVal = row.isNum ? (cell[row.field] as number) : cell[row.valField!];
-                      const hex = DECOZ_COLORS[numVal]?.hex || '#C88A2E';
-                      const display = row.isNum ? numVal : `${cell[row.field]}`;
+            <div className="overflow-x-auto pb-2">
+              <table className="w-full min-w-[780px] text-center border-collapse text-xs font-mono">
+                <thead>
+                  <tr className="text-[var(--text-muted)] border-b border-[var(--border)]">
+                    <th className="py-2 px-2 text-left font-sans">Cycle Layer</th>
+                    {report.colorChartYears.map((cell) => {
+                      const isNow = cell.calendarYear === new Date().getFullYear();
+                      const isSel = selectedCell?.calendarYear === cell.calendarYear;
                       return (
-                        <td
+                        <th
                           key={cell.calendarYear}
                           onClick={() => setSelectedCell(cell)}
-                          className="p-0.5 cursor-pointer"
+                          className={`py-1.5 px-1 cursor-pointer rounded-t transition ${
+                            isSel
+                              ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-bold'
+                              : isNow
+                              ? 'bg-[var(--bg-elevated)] text-[var(--text)]'
+                              : 'hover:bg-[var(--bg-elevated)]'
+                          }`}
                         >
-                          <div
-                            className="py-1.5 rounded font-bold text-neutral-950 transition-transform hover:scale-105"
-                            style={{ backgroundColor: hex }}
-                          >
-                            {display}
-                          </div>
-                        </td>
+                          <div>{cell.calendarYear.toString().slice(-2)}</div>
+                          <div className="text-[11px] opacity-75">A{cell.age}</div>
+                        </th>
                       );
                     })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {[
+                    { label: 'Personal Year', field: 'personalYear' as const, isNum: true },
+                    { label: 'Essence Cycle', field: 'essence' as const, isNum: true },
+                    { label: 'Pinnacle', field: 'pinnacle' as const, isNum: true },
+                    { label: 'Challenge', field: 'challenge' as const, isNum: true },
+                    {
+                      label: 'Physical Transit',
+                      field: 'physicalTransit' as const,
+                      valField: 'physicalValue' as const,
+                    },
+                    {
+                      label: 'Mental Transit',
+                      field: 'mentalTransit' as const,
+                      valField: 'mentalValue' as const,
+                    },
+                    {
+                      label: 'Spiritual Transit',
+                      field: 'spiritualTransit' as const,
+                      valField: 'spiritualValue' as const,
+                    },
+                  ].map((row) => (
+                    <tr key={row.label}>
+                      <td className="py-2 px-2 text-left font-sans font-medium text-[var(--text-secondary)] whitespace-nowrap">
+                        {row.label}
+                      </td>
+                      {report.colorChartYears.map((cell) => {
+                        const numVal = row.isNum
+                          ? (cell[row.field] as number)
+                          : cell[row.valField!];
+                        const hex = DECOZ_COLORS[numVal]?.hex || '#818CF8';
+                        const display = row.isNum ? numVal : `${cell[row.field]}`;
+                        return (
+                          <td
+                            key={cell.calendarYear}
+                            onClick={() => setSelectedCell(cell)}
+                            className="p-0.5 cursor-pointer"
+                          >
+                            <div
+                              className="py-1.5 rounded font-bold text-slate-950 transition-transform hover:scale-105"
+                              style={{ backgroundColor: hex }}
+                            >
+                              {display}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-          {selectedCell && (
-            <div className="mt-4 obs-panel p-4 flex flex-wrap items-center justify-between gap-4">
+            {selectedCell && (
+              <div className="obs-panel p-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <StatusBadge
+                      tone="info"
+                      label={`Year ${selectedCell.calendarYear} (Age ${selectedCell.age})`}
+                    />
+                    <span className="text-sm font-bold text-[var(--text)]">
+                      Personal Year {selectedCell.personalYear} (
+                      {DECOZ_COLORS[selectedCell.personalYear]?.keyword}) + Essence{' '}
+                      {selectedCell.essence}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] font-mono">
+                    Transits: Physical [{selectedCell.physicalTransit}={selectedCell.physicalValue}]
+                    • Mental [{selectedCell.mentalTransit}={selectedCell.mentalValue}] • Spiritual [
+                    {selectedCell.spiritualTransit}={selectedCell.spiritualValue}] • Pinnacle{' '}
+                    {selectedCell.pinnacle} • Challenge {selectedCell.challenge}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SUB-VIEW 3: PROPORTIONAL CHART & LIVE NAME TUNER */}
+        {subView === 'PROPORTIONAL_TUNER' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="obs-panel p-5 space-y-4">
               <div>
-                <span className="text-xs font-mono font-semibold text-[var(--brass)]">
-                  TIMELINE YEAR: {selectedCell.calendarYear} (AGE {selectedCell.age})
-                </span>
-                <h4 className="text-lg font-serif font-bold text-[var(--text)] mt-0.5">
-                  Personal Year {selectedCell.personalYear} ({DECOZ_COLORS[selectedCell.personalYear]?.keyword}) + Essence {selectedCell.essence}
-                </h4>
-                <p className="text-xs text-[var(--text-secondary)] mt-1">
-                  Active Name Transits: Physical [{selectedCell.physicalTransit}={selectedCell.physicalValue}] • Mental [{selectedCell.mentalTransit}={selectedCell.mentalValue}] • Spiritual [{selectedCell.spiritualTransit}={selectedCell.spiritualValue}] • Pinnacle {selectedCell.pinnacle} • Challenge {selectedCell.challenge}
+                <h3 className="text-base font-bold text-[var(--text)]">
+                  Proportional Digit Frequency (1–9)
+                </h3>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  Weighted distribution of digits 1 through 9 across core positions and birth name
+                  letters.
                 </p>
               </div>
-              <div className="text-right text-xs">
-                <div className="text-[var(--text-muted)]">Current Personal Month / Day</div>
-                <div className="font-mono font-bold text-[var(--brass)] text-sm">
-                  Month {report.personalMonth.singleDigit} • Day {report.personalDay.singleDigit}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* SUB-VIEW 3: PROPORTIONAL CHART & LIVE NAME TUNER */}
-      {subView === 'PROPORTIONAL_TUNER' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="obs-card p-5">
-            <h3 className="text-xl font-serif font-bold text-[var(--text)]">
-              The Proportional Numerology Chart (1–9 Dominance)
-            </h3>
-            <p className="text-xs text-[var(--text-secondary)] mb-4">
-              Weighted frequency of numbers 1 through 9 across core positions and birth name letters.
-            </p>
-
-            <div className="space-y-2.5">
-              {report.proportionalBars.map(bar => (
-                <div key={bar.digit} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-[var(--text)]">
-                      Number {bar.digit} — <span className="text-[var(--text-secondary)] font-normal">{bar.label}</span>
-                    </span>
-                    <span className="font-mono font-bold text-[var(--text)]">{bar.percentage}%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-[var(--surface-muted)] rounded overflow-hidden">
-                    <div
-                      className="h-full rounded transition-all duration-500"
-                      style={{ width: `${Math.min(100, bar.percentage * 2.8)}%`, backgroundColor: bar.color }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="obs-card p-5 flex flex-col justify-between">
-            <div>
-              <h3 className="text-xl font-serif font-bold text-[var(--text)]">
-                Live Name Vibration Tuner &amp; Cheiro Compound Audit
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] mb-4">
-                Test any name, baby name, or brand spelling modification in real time.
-              </p>
-
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">
-                Test Name or Brand Vibration:
-              </label>
-              <div className="flex gap-2.5 items-center">
-                <input
-                  type="text"
-                  value={sandboxName}
-                  onChange={e => setSandboxName(e.target.value)}
-                  className="flex-1 obs-input py-2 text-sm"
-                  placeholder="Type any name..."
-                />
-                <div className="px-3.5 py-2 rounded font-mono font-bold text-xs obs-badge-brass whitespace-nowrap">
-                  Vibration: {sandboxReduced.trail}
-                </div>
-              </div>
-              <p className="text-xs text-[var(--brass)] mt-2 font-medium">
-                Decoz Archetype: {sandboxReduced.meaning}
-              </p>
-              {sandboxCheiro && (
-                <div className="mt-2 obs-panel p-3 text-xs">
-                  <div className="font-serif font-bold text-[var(--text)]">
-                    Cheiro Compound #{sandboxReduced.compound}: {sandboxCheiro.title}
-                  </div>
-                  <p className="text-[var(--text-secondary)] mt-0.5">{sandboxCheiro.meaning}</p>
-                </div>
-              )}
-
-              <div className="mt-5">
-                <div className="text-xs text-[var(--text-secondary)] mb-2">
-                  Birth Name Letter Breakdown (<span className="text-[var(--brass)] font-semibold">Gold = Vowel / Soul Urge</span>, Neutral = Consonant):
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {report.letterBreakdown.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className={`w-8 h-10 rounded flex flex-col items-center justify-center text-xs font-mono ${
-                        item.isVowel ? 'obs-badge-brass font-bold' : 'obs-panel text-[var(--text-secondary)]'
-                      }`}
-                    >
-                      <span>{item.char}</span>
-                      <span className="text-xs opacity-80">{item.value}</span>
+              <div className="space-y-2.5">
+                {report.proportionalBars.map((bar) => (
+                  <div key={bar.digit} className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="font-semibold text-[var(--text)]">
+                        Digit {bar.digit} —{' '}
+                        <span className="text-[var(--text-secondary)] font-normal">
+                          {bar.label}
+                        </span>
+                      </span>
+                      <span className="font-mono font-bold text-[var(--text)] tabular-nums">
+                        {bar.percentage}%
+                      </span>
                     </div>
-                  ))}
-                </div>
+                    <div className="w-full h-2.5 bg-[var(--surface)] rounded-full overflow-hidden border border-[var(--border)]">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.min(100, bar.percentage * 2.8)}%`,
+                          backgroundColor: bar.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div>
-                <span className="text-[var(--text-muted)]">Karmic Lessons (Missing Digits): </span>
-                <span className="font-mono text-[var(--crimson)] font-semibold">
-                  {report.karmicLessons.length > 0
-                    ? report.karmicLessons.join(', ')
-                    : 'None (All 9 Vibrations Present)'}
+            <div className="obs-panel p-5 flex flex-col justify-between gap-5">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-base font-bold text-[var(--text)]">
+                    Live Name &amp; Brand Vibration Tuner
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Test any personal name, baby name, or business spelling in real time.
+                  </p>
+                </div>
+
+                <div className="flex gap-2.5 items-center">
+                  <input
+                    type="text"
+                    aria-label="Test name vibration"
+                    value={sandboxName}
+                    onChange={(e) => setSandboxName(e.target.value)}
+                    className="flex-1 obs-input text-sm"
+                    placeholder="Type any name..."
+                  />
+                  <StatusBadge
+                    tone="info"
+                    size="md"
+                    label={`Vibration: ${sandboxReduced.trail}`}
+                  />
+                </div>
+
+                <p className="text-xs text-[var(--accent)] font-medium">
+                  Keynote: {sandboxReduced.meaning}
+                </p>
+
+                {sandboxCheiro && (
+                  <div className="p-3.5 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-xs space-y-1">
+                    <div className="font-bold text-[var(--text)]">
+                      Cheiro Compound #{sandboxReduced.compound}: {sandboxCheiro.title}
+                    </div>
+                    <p className="text-[var(--text-secondary)] leading-relaxed">
+                      {sandboxCheiro.meaning}
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="text-xs text-[var(--text-secondary)]">
+                    Birth Name Letter Breakdown (Highlighted = Vowel / Soul Urge):
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {report.letterBreakdown.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-8 h-10 rounded-md flex flex-col items-center justify-center text-xs font-mono border ${
+                          item.isVowel
+                            ? 'bg-[var(--accent-bg)] border-[var(--accent)]/40 text-[var(--accent)] font-bold'
+                            : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)]'
+                        }`}
+                      >
+                        <span>{item.char}</span>
+                        <span className="text-[11px] opacity-80">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[var(--text-muted)]">
+                <span>
+                  Planes: Phys {report.planesOfExpression.physical} • Ment{' '}
+                  {report.planesOfExpression.mental} • Emot {report.planesOfExpression.emotional} •
+                  Int {report.planesOfExpression.intuitive}
                 </span>
               </div>
-              <div className="font-mono text-[var(--text-muted)]">
-                Planes: Phys {report.planesOfExpression.physical} • Ment {report.planesOfExpression.mental} • Emot {report.planesOfExpression.emotional} • Int {report.planesOfExpression.intuitive}
-              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

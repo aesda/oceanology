@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
+import { HeartHandshake, Sparkles, Compass, Search } from 'lucide-react';
 import { NatalChartResult, searchEphemerisEvents } from '../engines/astronomyEngine';
 import { calculateAshtakootaMatch } from '../engines/vedicEngine';
 import { BirthProfile } from '../types/oceanology';
 import { NatalWheelSvg } from './NatalWheelSvg';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
+import {
+  EmptyStateCard,
+  KpiStatCard,
+  SegmentedTabs,
+  StatusBadge,
+} from './ui/DashboardPrimitives';
 
 interface Props {
   primaryProfile: BirthProfile;
@@ -29,98 +36,136 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
   const matchReport = calculateAshtakootaMatch(primaryChart, partnerChart);
   const ephemerisHits = searchEphemerisEvents(searchYear, filterPlanet);
 
+  const moonA = primaryChart.planets.find((p) => p.id === 'Moon') || primaryChart.planets[0];
+  const moonB = partnerChart.planets.find((p) => p.id === 'Moon') || partnerChart.planets[0];
+
   return (
     <div className="space-y-6">
-      {/* Top Bar with Sub-View Switcher */}
-      <div className="obs-card p-5 flex flex-wrap items-center justify-between gap-4">
+      {/* ==================== CLEAN HEADER & SUB-VIEW SWITCHER ==================== */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brass)]">
-            Astro-Seek Bi-Wheel Synastry + AstroSage 36-Guna Ashtakoota Milan
-          </span>
-          <h2 className="text-2xl font-serif font-bold text-[var(--text)] mt-0.5">
-            Relationship Compatibility &amp; Multi-Century Ephemeris Search
-          </h2>
+          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+            Compatibility &amp; Ephemeris Aspect Finder
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)]">
+            36-Guna Ashtakoota matchmaking, bi-wheel synastry aspects, and multi-century planetary
+            aspect search.
+          </p>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 text-xs">
-          <button
-            onClick={() => setSubView('SYNASTRY_MILAN')}
-            className={`px-3.5 py-1.5 rounded font-semibold transition ${
-              subView === 'SYNASTRY_MILAN'
-                ? 'obs-badge-brass shadow-sm'
-                : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
-            }`}
-          >
-            1. Bi-Wheel Synastry &amp; 36-Guna Milan
-          </button>
-          <button
-            onClick={() => setSubView('EPHEMERIS_SEARCH')}
-            className={`px-3.5 py-1.5 rounded font-semibold transition ${
-              subView === 'EPHEMERIS_SEARCH'
-                ? 'obs-badge-brass shadow-sm'
-                : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
-            }`}
-          >
-            2. Ephemeris Aspect &amp; Ingress Finder
-          </button>
-        </div>
+        <SegmentedTabs
+          ariaLabel="Compatibility or ephemeris mode"
+          value={subView}
+          onChange={setSubView}
+          items={[
+            { id: 'SYNASTRY_MILAN', label: '36-Guna & Bi-Wheel' },
+            { id: 'EPHEMERIS_SEARCH', label: 'Ephemeris Aspect Finder', count: ephemerisHits.length },
+          ]}
+        />
       </div>
 
-      {/* SUB-VIEW 1: SYNASTRY & 36-GUNA ASHTAKOOTA MILAN */}
+      {/* ==================== SUB-VIEW 1: SYNASTRY & 36-GUNA MILAN ==================== */}
       {subView === 'SYNASTRY_MILAN' && (
-        <div className="obs-card p-5 space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
-            <div>
-              <h3 className="text-xl font-serif font-bold text-[var(--text)]">
-                {primaryProfile.firstName} &amp; {partnerProfile.firstName} — Vedic Ashtakoota &amp; Western Synastry
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Evaluating Lunar Nakshatra 8-Koota harmony alongside Kuja (Manglik) Dosha and ecliptic bi-wheel aspects.
-              </p>
-            </div>
+        <div className="space-y-6">
+          {/* Row 1: 4 Contextual KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <KpiStatCard
+              label="Ashtakoota Guna Score"
+              value={`${matchReport.totalPoints} / 36`}
+              subvalue={`${matchReport.percentage}%`}
+              benchmarkText="18+ pts classical threshold"
+              status={{
+                tone:
+                  matchReport.totalPoints >= 25
+                    ? 'optimal'
+                    : matchReport.totalPoints >= 18
+                    ? 'favorable'
+                    : 'mixed',
+                label:
+                  matchReport.totalPoints >= 25
+                    ? 'Strong Match'
+                    : matchReport.totalPoints >= 18
+                    ? 'Compatible'
+                    : 'Review Remedies',
+              }}
+              icon={<HeartHandshake className="w-4 h-4" />}
+            />
 
-            <div className="flex items-center gap-3 obs-panel px-4 py-2">
-              <div className="text-right">
-                <div className="text-xs text-[var(--text-muted)]">Ashtakoota Guna Score</div>
-                <div className="text-xl font-serif font-bold text-[var(--brass)]">
-                  {matchReport.totalPoints} / 36 ({matchReport.percentage}%)
-                </div>
-              </div>
-              <span className="px-3 py-1 rounded obs-badge-sage text-xs font-semibold">
-                {matchReport.verdict.split('(')[0].trim()}
-              </span>
-            </div>
+            <KpiStatCard
+              label="Match Verdict"
+              value={matchReport.verdict.split('(')[0].trim()}
+              benchmarkText={`${primaryProfile.firstName} & ${partnerProfile.firstName}`}
+              status={{ tone: 'info', label: '8 Kootas' }}
+              icon={<Sparkles className="w-4 h-4" />}
+            />
+
+            <KpiStatCard
+              label="Kuja / Manglik Balance"
+              value={matchReport.manglikStatus.split('(')[0].trim()}
+              benchmarkText="Mars 1/2/4/7/8/12 check"
+              status={{
+                tone: matchReport.manglikStatus.toLowerCase().includes('balanced')
+                  ? 'optimal'
+                  : 'mixed',
+                label: 'Dosha Check',
+              }}
+              icon={<Compass className="w-4 h-4" />}
+            />
+
+            <KpiStatCard
+              label="Moon Nakshatra Pair"
+              value={moonA.nakshatraName}
+              subvalue={`↔ ${moonB.nakshatraName}`}
+              benchmarkText={`${moonA.signName} ↔ ${moonB.signName}`}
+              status={{ tone: 'neutral', label: 'Janma Stars' }}
+            />
           </div>
 
-          {/* Partner Profile Editor with Global & Nepal Location Picker */}
-          <div className="obs-panel p-4 space-y-3 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {/* Partner Birth Profile Control Card */}
+          <div className="obs-card p-5 space-y-4">
+            <div className="text-xs font-bold text-[var(--text)]">
+              Partner Birth Profile ({partnerProfile.firstName})
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="text-[var(--text-muted)] block mb-1 font-medium">Partner First Name</label>
+                <label className="text-[var(--text-secondary)] block mb-1 font-medium">
+                  Partner first name
+                </label>
                 <input
                   type="text"
                   value={partnerProfile.firstName}
-                  onChange={e => onPartnerChange({ ...partnerProfile, firstName: e.target.value })}
+                  onChange={(e) =>
+                    onPartnerChange({ ...partnerProfile, firstName: e.target.value })
+                  }
                   className="w-full obs-input"
                 />
               </div>
               <div>
-                <label className="text-[var(--text-muted)] block mb-1 font-medium">Partner Birth Year</label>
+                <label className="text-[var(--text-secondary)] block mb-1 font-medium">
+                  Birth year
+                </label>
                 <input
                   type="number"
                   value={partnerProfile.year}
-                  onChange={e => onPartnerChange({ ...partnerProfile, year: parseInt(e.target.value, 10) || 1995 })}
+                  onChange={(e) =>
+                    onPartnerChange({
+                      ...partnerProfile,
+                      year: parseInt(e.target.value, 10) || 1995,
+                    })
+                  }
                   className="w-full obs-input font-mono"
                 />
               </div>
               <div>
-                <label className="text-[var(--text-muted)] block mb-1 font-medium">Birth Month (1–12)</label>
+                <label className="text-[var(--text-secondary)] block mb-1 font-medium">
+                  Birth month (1–12)
+                </label>
                 <input
                   type="number"
                   min={1}
                   max={12}
                   value={partnerProfile.month}
-                  onChange={e =>
+                  onChange={(e) =>
                     onPartnerChange({
                       ...partnerProfile,
                       month: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)),
@@ -130,13 +175,15 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
                 />
               </div>
               <div>
-                <label className="text-[var(--text-muted)] block mb-1 font-medium">Birth Day (1–31)</label>
+                <label className="text-[var(--text-secondary)] block mb-1 font-medium">
+                  Birth day (1–31)
+                </label>
                 <input
                   type="number"
                   min={1}
                   max={31}
                   value={partnerProfile.day}
-                  onChange={e =>
+                  onChange={(e) =>
                     onPartnerChange({
                       ...partnerProfile,
                       day: Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1)),
@@ -148,77 +195,91 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
             </div>
 
             <GlobalLocationPicker
-              label="Partner Birth Location (Nepal & Worldwide)"
+              label="Partner birth city (Nepal & global)"
               value={partnerProfile.location}
-              onChange={loc => onPartnerChange({ ...partnerProfile, location: loc })}
+              onChange={(loc) => onPartnerChange({ ...partnerProfile, location: loc })}
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <div>
-              <div className="text-xs text-[var(--text-secondary)] mb-2 flex items-center justify-between">
-                <span>
-                  Outer Ring: <strong>{primaryProfile.firstName}</strong> • Inner Ring:{' '}
-                  <strong className="text-[var(--crimson)]">{partnerProfile.firstName}</strong>
+          {/* Bi-Wheel + 8-Koota Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-6 obs-card p-5 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-[var(--text)]">
+                  Bi-Wheel Synastry ({primaryProfile.firstName} Outer • {partnerProfile.firstName}{' '}
+                  Inner)
                 </span>
-                <span className="font-mono text-[var(--brass)]">{matchReport.manglikStatus.split('(')[0]}</span>
+                <StatusBadge tone="info" label="Ecliptic Overlay" />
               </div>
               <NatalWheelSvg chart={primaryChart} partnerChart={partnerChart} showBiWheel={true} />
             </div>
 
-            <div className="space-y-2.5">
-              <h4 className="text-lg font-serif font-bold text-[var(--text)] mb-2">
-                8-Koota Ashtakoota Breakdown ({primaryProfile.firstName} &amp; {partnerProfile.firstName})
-              </h4>
-              {matchReport.kootas.map(k => (
-                <div key={k.name} className="obs-panel p-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-semibold text-[var(--text)]">
-                        {k.name} ({k.sanskrit})
-                      </span>{' '}
-                      <span className="text-[var(--text-muted)]">— {k.domain}</span>
+            <div className="lg:col-span-6 obs-card p-5 space-y-3">
+              <h2 className="text-base font-bold text-[var(--text)]">
+                8-Koota Ashtakoota Breakdown
+              </h2>
+              <div className="space-y-2.5">
+                {matchReport.kootas.map((k) => {
+                  const ratio = k.maxPoints > 0 ? k.scoredPoints / k.maxPoints : 1;
+                  return (
+                    <div key={k.name} className="obs-panel p-3.5 text-xs space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <span className="font-bold text-[var(--text)]">
+                            {k.name} ({k.sanskrit})
+                          </span>{' '}
+                          <span className="text-[var(--text-muted)]">— {k.domain}</span>
+                        </div>
+                        <StatusBadge
+                          tone={ratio >= 0.7 ? 'optimal' : ratio >= 0.4 ? 'mixed' : 'avoid'}
+                          label={`${k.scoredPoints} / ${k.maxPoints} pts`}
+                        />
+                      </div>
+                      <div className="text-[var(--text-secondary)]">
+                        {primaryProfile.firstName}: <strong>{k.personAValue}</strong> •{' '}
+                        {partnerProfile.firstName}: <strong>{k.personBValue}</strong>
+                      </div>
+                      <p className="text-[var(--text-muted)] leading-relaxed">{k.summary}</p>
                     </div>
-                    <span className="font-mono font-bold text-[var(--brass)]">
-                      {k.scoredPoints} / {k.maxPoints} pts
-                    </span>
-                  </div>
-                  <div className="mt-1 text-xs text-[var(--text-secondary)]">
-                    {primaryProfile.firstName}: <strong>{k.personAValue}</strong> • {partnerProfile.firstName}:{' '}
-                    <strong>{k.personBValue}</strong>
-                  </div>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">{k.summary}</p>
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* SUB-VIEW 2: EPHEMERIS ASPECT SEARCH ENGINE */}
+      {/* ==================== SUB-VIEW 2: EPHEMERIS ASPECT SEARCH ENGINE ==================== */}
       {subView === 'EPHEMERIS_SEARCH' && (
-        <div className="obs-card p-5">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brass)]">
-                Astro-Seek Ephemeris &amp; Aspect Search Engine
-              </span>
-              <h3 className="text-xl font-serif font-bold text-[var(--text)]">
-                Multi-Century Planetary Aspect &amp; Ingress Finder
-              </h3>
+        <div className="obs-card p-5 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-[var(--accent)]" />
+              <div>
+                <h2 className="text-base font-bold text-[var(--text)]">
+                  Planetary Aspect &amp; Ingress Finder
+                </h2>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Scan exact geocentric planetary aspects across any calendar year
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs">
-              <label className="text-[var(--text-secondary)]">Year:</label>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <label htmlFor="eph-year-input" className="text-[var(--text-secondary)] font-medium">
+                Year:
+              </label>
               <input
+                id="eph-year-input"
                 type="number"
                 value={searchYear}
-                onChange={e => setSearchYear(parseInt(e.target.value, 10) || 2026)}
+                onChange={(e) => setSearchYear(parseInt(e.target.value, 10) || 2026)}
                 className="w-24 obs-input font-mono"
               />
               <select
+                aria-label="Filter planet"
                 value={filterPlanet}
-                onChange={e => setFilterPlanet(e.target.value)}
+                onChange={(e) => setFilterPlanet(e.target.value)}
                 className="obs-input"
               >
                 <option value="ALL">All Major Planets</option>
@@ -231,23 +292,40 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
-            {ephemerisHits.map((hit, i) => (
-              <div key={i} className="obs-panel px-3.5 py-2.5 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-[var(--text)]">
-                    {hit.planetA} <span className="text-[var(--brass)]">{hit.aspectSymbol}</span> {hit.planetB}
+          {ephemerisHits.length === 0 ? (
+            <EmptyStateCard
+              title="No aspects matched this filter"
+              description="Try selecting All Major Planets or testing a nearby calendar year."
+              actionLabel="Reset filter"
+              onAction={() => {
+                setFilterPlanet('ALL');
+                setSearchYear(new Date().getFullYear());
+              }}
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {ephemerisHits.map((hit, i) => (
+                <div
+                  key={i}
+                  className="obs-panel p-3.5 flex items-center justify-between gap-2"
+                >
+                  <div>
+                    <div className="font-bold text-[var(--text)]">
+                      {hit.planetA}{' '}
+                      <span className="text-[var(--accent)]">{hit.aspectSymbol}</span>{' '}
+                      {hit.planetB}
+                    </div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                      {hit.aspectName} in {hit.signName} ({hit.exactDegree})
+                    </div>
                   </div>
-                  <div className="text-xs text-[var(--text-secondary)]">
-                    {hit.aspectName} in {hit.signName} ({hit.exactDegree})
-                  </div>
+                  <span className="font-mono text-xs bg-[var(--surface)] border border-[var(--border)] px-2 py-1 rounded text-[var(--text)]">
+                    {hit.dateStr}
+                  </span>
                 </div>
-                <span className="font-mono text-xs obs-badge-brass px-2 py-0.5 rounded">
-                  {hit.dateStr}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

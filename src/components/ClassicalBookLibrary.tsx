@@ -14,6 +14,7 @@ import { VedicReport } from '../engines/vedicEngine';
 import { HOUSE_TREATISES, PLANET_TREATISES } from '../data/classicalCompendium';
 import { CLASSICAL_CANON_BOOKS, PLANET_IN_BHAVA_RULINGS } from '../data/canonAnthology';
 import { STANDARD_27_NAKSHATRAS } from '../data/nakshatraCodex';
+import { SegmentedTabs, StatusBadge } from './ui/DashboardPrimitives';
 
 interface Props {
   chart: NatalChartResult;
@@ -22,7 +23,7 @@ interface Props {
   onInspectNakshatra?: (nakIdx: number) => void;
 }
 
-type ReadingMode = 'CANON_BOOKS' | 'PLANETS' | 'HOUSES' | 'YOGAS_REMEDIES';
+type ReadingMode = 'PLANETS' | 'YOGAS_REMEDIES' | 'HOUSES' | 'CANON_BOOKS';
 
 export const ClassicalBookLibrary: React.FC<Props> = ({
   chart,
@@ -31,7 +32,7 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
   onInspectNakshatra,
 }) => {
   const [readingMode, setReadingMode] = useState<ReadingMode>(
-    initialBookId ? 'CANON_BOOKS' : 'CANON_BOOKS'
+    initialBookId ? 'CANON_BOOKS' : 'PLANETS'
   );
   const [selectedBookId, setSelectedBookId] = useState<string>(
     initialBookId || CLASSICAL_CANON_BOOKS[0].id
@@ -65,172 +66,50 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
     STANDARD_27_NAKSHATRAS[moonPlanet.nakshatraIndex] || STANDARD_27_NAKSHATRAS[0];
 
   return (
-    <div className="space-y-8">
-      {/* Monograph Header & Chapter Bar */}
-      <div className="folio-sheet p-6 sm:p-7 space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl space-y-1.5">
-            <div className="editorial-eyebrow flex items-center gap-2">
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Sacred &amp; Classical Source Anthology • Personal Chart Exegesis</span>
-            </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-[var(--text)]">
-              The Nine Canonical Volumes &amp; Personal Folio
-            </h2>
-            <p className="literary-prose">
-              Study the primary Sanskrit, Hellenistic, and depth-psychological texts encoded into
-              Oceanology alongside your exact 108 Planet-in-Bhava rulings, Parashari Yogas, and
-              living Nakshatra Upayas.
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* ==================== CLEAN HEADER & SEGMENTED SWITCHER ==================== */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+            Classical Source Library &amp; Natal Readings
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)]">
+            108 Planet-in-House rulings, detected Parashari Yogas, 12 Bhava domains, and 9 primary
+            source texts.
+          </p>
         </div>
 
-        {/* 4 Clean Monograph Chapter Tabs */}
-        <div className="flex flex-wrap gap-2 pt-4 border-t border-[var(--border)] text-xs font-mono">
-          {[
-            { id: 'CANON_BOOKS' as const, label: 'I. Nine Canonical Books & Sutras' },
-            { id: 'PLANETS' as const, label: 'II. Personal Graha & Bhava Rulings' },
-            { id: 'HOUSES' as const, label: 'III. Twelve Bhavas Architecture' },
-            {
-              id: 'YOGAS_REMEDIES' as const,
-              label: `IV. Active Yogas (${vedic.yogas.length}) & Upayas`,
-            },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setReadingMode(tab.id)}
-              className={`px-3.5 py-2 border transition ${
-                readingMode === tab.id
-                  ? 'border-[var(--text)] bg-[var(--text)] text-[var(--surface)] font-semibold'
-                  : 'border-[var(--border-strong)] bg-[var(--surface)] text-[var(--text-secondary)] hover:border-[var(--brass)]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedTabs
+          ariaLabel="Library reading sections"
+          value={readingMode}
+          onChange={setReadingMode}
+          items={[
+            { id: 'PLANETS', label: 'Planet Readings', count: chart.planets.length },
+            { id: 'YOGAS_REMEDIES', label: 'Yogas & Remedies', count: vedic.yogas.length },
+            { id: 'HOUSES', label: '12 Houses', count: 12 },
+            { id: 'CANON_BOOKS', label: 'Source Books', count: CLASSICAL_CANON_BOOKS.length },
+          ]}
+        />
       </div>
 
-      {/* ==================== CHAPTER I: NINE CANONICAL BOOKS ==================== */}
-      {readingMode === 'CANON_BOOKS' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Bibliographic Spine (4 cols) */}
-          <div className="lg:col-span-4 obs-card divide-y divide-[var(--border)]">
-            <div className="px-4 py-3 bg-[var(--bg-elevated)] text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
-              Select Canonical Volume (I – IX)
-            </div>
-            {CLASSICAL_CANON_BOOKS.map((book) => {
-              const active = book.id === activeBook.id;
-              return (
-                <button
-                  key={book.id}
-                  onClick={() => setSelectedBookId(book.id)}
-                  className={`w-full px-4 py-3.5 text-left transition flex items-start justify-between gap-3 ${
-                    active
-                      ? 'bg-[var(--brass-bg)] border-l-2 border-l-[var(--brass)]'
-                      : 'hover:bg-[var(--surface-muted)]/60'
-                  }`}
-                >
-                  <div>
-                    <div className="text-[11px] font-mono text-[var(--brass)] font-semibold">
-                      VOL. {book.number} • {book.tradition}
-                    </div>
-                    <div className="font-serif text-lg font-bold text-[var(--text)] leading-snug mt-0.5">
-                      {book.title}
-                    </div>
-                    <div className="text-xs text-[var(--text-muted)] mt-0.5">{book.author}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Right Book Manuscript Reader (8 cols) */}
-          <div className="lg:col-span-8 folio-sheet p-6 sm:p-8 space-y-6">
-            <div className="border-b border-[var(--border)] pb-5 space-y-2">
-              <div className="editorial-eyebrow">
-                Volume {activeBook.number} • {activeBook.eraAndLineage}
-              </div>
-              <h3 className="font-serif text-3xl sm:text-4xl font-bold text-[var(--text)]">
-                {activeBook.title}
-              </h3>
-              <div className="font-serif italic text-lg text-[var(--brass)]">
-                {activeBook.sanskritOrOriginal}
-              </div>
-              <div className="text-xs font-mono text-[var(--text-muted)]">
-                Authorship &amp; Transmission: {activeBook.author}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
-                Central Doctrinal Thesis
-              </div>
-              <p className="literary-prose">{activeBook.thesis}</p>
-            </div>
-
-            <div className="p-4 bg-[var(--bg-elevated)] border-l-2 border-l-[var(--brass)] text-xs space-y-1">
-              <div className="font-mono uppercase tracking-wider text-[var(--brass)] font-semibold">
-                How This Text Is Computed in Oceanology
-              </div>
-              <p className="text-[var(--text-secondary)] leading-relaxed">
-                {activeBook.engineIntegration}
-              </p>
-            </div>
-
-            {/* Key Sutras & Commentaries */}
-            <div className="space-y-4 pt-2">
-              <div className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] border-b border-[var(--border)] pb-2">
-                Foundational Sutras, Aphorisms &amp; Exegesis
-              </div>
-              {activeBook.sutras.map((sutra, idx) => (
-                <div
-                  key={idx}
-                  className="p-5 border border-[var(--border)] bg-[var(--bg-elevated)]/60 space-y-2.5"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h4 className="font-serif text-xl font-bold text-[var(--text)]">
-                      {sutra.title}
-                    </h4>
-                    <span className="text-[11px] font-mono text-[var(--brass)]">
-                      {sutra.chapterRef}
-                    </span>
-                  </div>
-                  <blockquote className="font-serif italic text-base text-[var(--text)] border-l-2 border-[var(--brass)] pl-3.5 py-0.5">
-                    {sutra.aphorism}
-                  </blockquote>
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {sutra.commentary}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== CHAPTER II: PERSONAL GRAHA & 108 BHAVA RULINGS ==================== */}
+      {/* ==================== TAB 1: PLANET-IN-HOUSE READINGS ==================== */}
       {readingMode === 'PLANETS' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Spine: Planet Selector Index (4 cols) */}
-          <div className="lg:col-span-4 obs-card divide-y divide-[var(--border)]">
-            <div className="px-4 py-3 bg-[var(--bg-elevated)] text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
-              Select Natal Graha / Planet
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Planet Selector Rail */}
+          <div className="lg:col-span-4 obs-card p-3 space-y-1">
             {chart.planets.map((p) => {
               const active = p.id === activePlanet.id;
               return (
                 <button
                   key={p.id}
+                  type="button"
                   onClick={() => setSelectedPlanetId(p.id)}
-                  className={`w-full px-4 py-3 text-left flex items-center justify-between text-xs transition ${
-                    active
-                      ? 'bg-[var(--brass-bg)] border-l-2 border-l-[var(--brass)]'
-                      : 'hover:bg-[var(--surface-muted)]/60'
+                  className={`w-full px-3 py-2.5 rounded-lg text-left flex items-center justify-between text-xs transition ${
+                    active ? 'bg-[var(--accent-bg)]' : 'hover:bg-[var(--bg-elevated)]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-serif" style={{ color: p.color }}>
+                    <span className="text-base font-bold" style={{ color: p.color }}>
                       {p.symbol}
                     </span>
                     <div>
@@ -245,72 +124,60 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                       </div>
                     </div>
                   </div>
-                  <span
-                    className={`px-2 py-0.5 text-[11px] font-mono ${
+                  <StatusBadge
+                    tone={
                       p.dignity === 'Exalted' || p.dignity === 'Own Sign'
-                        ? 'obs-badge-sage'
+                        ? 'optimal'
                         : p.dignity === 'Debilitated'
-                        ? 'obs-badge-crimson'
-                        : 'obs-panel text-[var(--text-secondary)]'
-                    }`}
-                  >
-                    {p.dignity}
-                  </span>
+                        ? 'avoid'
+                        : 'neutral'
+                    }
+                    label={p.dignity}
+                  />
                 </button>
               );
             })}
           </div>
 
-          {/* Right Folio: Editorial Planet & Specific Bhava Ruling (8 cols) */}
-          <div className="lg:col-span-8 folio-sheet p-6 sm:p-8 space-y-6">
+          {/* Planet Detail Card */}
+          <div className="lg:col-span-8 obs-card p-6 space-y-5">
             <div className="border-b border-[var(--border)] pb-4 flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="editorial-eyebrow">
+                <div className="text-xs font-mono text-[var(--accent)] font-semibold">
                   {treatise.sanskritName} • {treatise.greekName}
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[var(--text)] mt-1">
-                  {activePlanet.symbol} {activePlanet.name} in {activePlanet.signName} (
-                  {activePlanet.sanskritSign}) — House {activePlanet.house}
-                </h3>
+                <h2 className="text-2xl font-bold text-[var(--text)] mt-1">
+                  {activePlanet.symbol} {activePlanet.name} in {activePlanet.signName} — House{' '}
+                  {activePlanet.house}
+                </h2>
                 <p className="text-xs font-mono text-[var(--text-secondary)] mt-1">
-                  Position: {activePlanet.formattedDMS} • Nakshatra: {activePlanet.nakshatraName}{' '}
-                  (Pada {activePlanet.nakshatraPada}, Lord {activePlanet.nakshatraLord}) • Dignity:{' '}
-                  {activePlanet.dignity}
+                  {activePlanet.formattedDMS} • {activePlanet.nakshatraName} Pada{' '}
+                  {activePlanet.nakshatraPada} (Lord: {activePlanet.nakshatraLord})
                 </p>
               </div>
-              {activePlanet.isRetrograde && (
-                <span className="px-3 py-1 obs-badge-crimson text-xs font-mono font-bold">
-                  RETROGRADE (VAKRI)
-                </span>
-              )}
+              {activePlanet.isRetrograde && <StatusBadge tone="mixed" label="Retrograde (Vakri)" />}
             </div>
 
-            {/* Classical Sanskrit Shloka Quote */}
-            <blockquote className="p-4 bg-[var(--bg-elevated)] border-l-2 border-l-[var(--brass)] italic text-base font-serif text-[var(--text)] leading-relaxed">
-              {treatise.classicalCitation}
-            </blockquote>
-
-            {/* Specific 1-of-108 Classical Planet-in-Bhava Ruling */}
-            <div className="p-5 border border-[var(--border-strong)] bg-[var(--bg-elevated)] space-y-2">
-              <div className="editorial-eyebrow">
-                Specific Classical Ruling — {activePlanet.name} in House {activePlanet.house} (
-                {planetHouseTreatise.sanskrit.split('•')[0].trim()})
+            {/* Specific 1-of-108 Planet-in-House Ruling */}
+            <div className="obs-panel p-4 space-y-2">
+              <div className="text-xs font-bold text-[var(--accent)]">
+                Classical Placement Interpretation — {activePlanet.name} in House{' '}
+                {activePlanet.house} ({planetHouseTreatise.sanskrit.split('•')[0].trim()})
               </div>
-              <p className="literary-prose text-[var(--text)]">
+              <p className="text-sm text-[var(--text)] leading-relaxed">
                 {exactBhavaRuling ||
                   `Occupying ${planetHouseTreatise.name} (${planetHouseTreatise.trikonaType}), ${activePlanet.name} channels its planetary archetype directly into ${planetHouseTreatise.bphsSummary}`}
               </p>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed pt-1 border-t border-[var(--border)]">
-                <strong>Psychological Expression ({planetHouseTreatise.name}):</strong>{' '}
-                {planetHouseTreatise.westernDepth}
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed pt-2 border-t border-[var(--border)]">
+                <strong>Psychological Domain:</strong> {planetHouseTreatise.westernDepth}
               </p>
             </div>
 
-            {/* Nakshatra Shakti Bridge */}
-            <div className="p-4 border border-[var(--border)] flex flex-wrap items-center justify-between gap-4">
+            {/* Nakshatra Bridge */}
+            <div className="obs-panel p-4 flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1 max-w-xl">
-                <div className="text-xs font-mono uppercase text-[var(--brass)] font-semibold">
-                  Stellar Root: {activePlanetNak.name} ({activePlanetNak.shaktiName})
+                <div className="text-xs font-bold text-[var(--text)]">
+                  Nakshatra Root: {activePlanetNak.name} ({activePlanetNak.shaktiName})
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                   <strong>Pada {activePlanet.nakshatraPada}</strong> (
@@ -320,34 +187,35 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
               </div>
               {onInspectNakshatra && (
                 <button
+                  type="button"
                   onClick={() => onInspectNakshatra(activePlanet.nakshatraIndex)}
-                  className="btn-editorial-secondary text-xs inline-flex items-center gap-1.5"
+                  className="btn-editorial-secondary text-xs py-1.5 px-3 min-h-[34px] inline-flex items-center gap-1.5"
                 >
-                  <span>Open {activePlanetNak.name} Treatise</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-[var(--brass)]" />
+                  <span>Inspect {activePlanetNak.name}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Two-Column Synthesis: Parashara Jyotish vs Depth Psychology */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Parashara vs Psychological Synthesis */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="obs-panel p-4 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[var(--brass)]">
-                  <ScrollText className="w-3.5 h-3.5" />
-                  <span>Parashara BPHS Karaka &amp; Dharma</span>
+                <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                  <ScrollText className="w-3.5 h-3.5 text-[var(--accent)]" />
+                  <span>Parashara Karaka &amp; Dharma</span>
                 </div>
-                <p className="text-xs text-[var(--text)] font-medium leading-relaxed">
+                <p className="text-xs text-[var(--text)] leading-relaxed">
                   <strong>Significations:</strong> {treatise.parasharaBphsKaraka}
                 </p>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                  <strong>Evolutionary Lesson:</strong> {treatise.vedicSoulLesson}
+                  <strong>Soul Lesson:</strong> {treatise.vedicSoulLesson}
                 </p>
               </div>
 
               <div className="obs-panel p-4 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[var(--brass)]">
-                  <Compass className="w-3.5 h-3.5" />
-                  <span>Liz Greene &amp; Jungian Archetype</span>
+                <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                  <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
+                  <span>Depth Psychological Archetype</span>
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                   {treatise.westernPsychologicalArchetype}
@@ -355,12 +223,12 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Authentic 360° Sabian Symbol & Mahadasha Fruit */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Sabian Symbol & Mahadasha */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="obs-panel p-4 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[var(--brass)]">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Authentic 360° Sabian Mandala</span>
+                <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
+                  <span>360° Sabian Degree Symbol</span>
                 </div>
                 <p className="text-sm font-serif italic text-[var(--text)] leading-relaxed">
                   {activePlanet.sabianSymbol}
@@ -368,9 +236,9 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
               </div>
 
               <div className="obs-panel p-4 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[var(--brass)]">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Vimshottari Mahadasha &amp; Transit Fruit</span>
+                <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-[var(--accent)]" />
+                  <span>Vimshottari Mahadasha Theme</span>
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                   {treatise.dashaGeneralFruit}
@@ -378,10 +246,14 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Ayurveda Dhatu & Ratna/Mantra */}
-            <div className="obs-panel p-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t-2 border-t-[var(--sage)]">
+            {/* Classical Shloka & Ayurveda */}
+            <blockquote className="obs-panel p-4 border-l-4 border-l-[var(--accent)] italic font-serif text-sm text-[var(--text)]">
+              {treatise.classicalCitation}
+            </blockquote>
+
+            <div className="obs-panel p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[var(--sage)]">
+                <div className="text-xs font-bold text-[var(--sage)] flex items-center gap-1.5">
                   <HeartPulse className="w-3.5 h-3.5" />
                   <span>Ayurvedic Dosha &amp; Dhatu</span>
                 </div>
@@ -390,8 +262,8 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                 </p>
               </div>
               <div>
-                <div className="text-xs font-mono uppercase tracking-wider text-[var(--brass)]">
-                  Sacred Ratna &amp; Beej Mantra
+                <div className="text-xs font-bold text-[var(--accent)]">
+                  Traditional Ratna &amp; Mantra
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
                   {treatise.gemstoneAndMantra}
@@ -402,24 +274,119 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
         </div>
       )}
 
-      {/* ==================== CHAPTER III: 12 BHAVAS TREATISE ==================== */}
-      {readingMode === 'HOUSES' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-4 obs-card divide-y divide-[var(--border)]">
-            <div className="px-4 py-3 bg-[var(--bg-elevated)] text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
-              Select Bhava (House 1 – 12)
+      {/* ==================== TAB 2: ACTIVE YOGAS & REMEDIES ==================== */}
+      {readingMode === 'YOGAS_REMEDIES' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-7 obs-card p-6 space-y-4">
+            <div>
+              <h2 className="text-lg font-bold text-[var(--text)]">
+                Detected Classical Yogas ({vedic.yogas.length})
+              </h2>
+              <p className="text-xs text-[var(--text-muted)]">
+                Evaluated from Brihat Parashara Hora Shastra, Phaladeepika, and B.V. Raman
+                combinations
+              </p>
             </div>
+
+            <div className="space-y-3">
+              {vedic.yogas.map((y) => (
+                <div key={y.name} className="obs-panel p-4 space-y-1.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-sm font-bold text-[var(--text)]">
+                      {y.name}{' '}
+                      <span className="text-xs font-mono text-[var(--text-muted)] font-normal">
+                        ({y.sanskrit})
+                      </span>
+                    </h3>
+                    <StatusBadge
+                      tone={
+                        y.category === 'Dosha / Alert'
+                          ? 'avoid'
+                          : y.strength === 'High'
+                          ? 'optimal'
+                          : 'info'
+                      }
+                      label={`${y.category} • ${y.strength}`}
+                    />
+                  </div>
+                  {y.sourceText && (
+                    <div className="text-[11px] font-mono text-[var(--text-muted)]">
+                      Source: {y.sourceText}
+                    </div>
+                  )}
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    {y.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 obs-card p-6 space-y-4">
+            <div>
+              <h2 className="text-lg font-bold text-[var(--text)]">
+                Active Period &amp; Birth Star Remedies
+              </h2>
+              <p className="text-xs text-[var(--text-muted)]">
+                Practical alignment for your current Vimshottari Dasha and Janma Nakshatra
+              </p>
+            </div>
+
+            <div className="obs-panel p-4 space-y-2">
+              <div className="text-xs font-bold text-[var(--accent)]">
+                Active Dasha: {vedic.activeMahadasha.lord} – {vedic.activeAntardasha.lord}
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                {PLANET_TREATISES[vedic.activeMahadasha.lord]?.dashaGeneralFruit}
+              </p>
+              <p className="text-xs text-[var(--text)] leading-relaxed pt-2 border-t border-[var(--border)]">
+                <strong>Ratna &amp; Mantra:</strong>{' '}
+                {PLANET_TREATISES[vedic.activeMahadasha.lord]?.gemstoneAndMantra}
+              </p>
+            </div>
+
+            <div className="obs-panel p-4 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[var(--sage)] flex items-center gap-1.5">
+                  <Trees className="w-4 h-4" />
+                  <span>Birth Star Ecology: {janmaNakTreatise.name}</span>
+                </span>
+                {onInspectNakshatra && (
+                  <button
+                    type="button"
+                    onClick={() => onInspectNakshatra(janmaNakTreatise.index)}
+                    className="font-semibold text-[var(--accent)] hover:underline"
+                  >
+                    Open Star →
+                  </button>
+                )}
+              </div>
+              <p className="text-[var(--text-secondary)] leading-relaxed">
+                <strong>Sacred Tree:</strong> {janmaNakTreatise.sacredTree}
+              </p>
+              <p className="font-mono text-[var(--accent)]">{janmaNakTreatise.vedicMantra}</p>
+              <p className="text-[var(--text-secondary)] leading-relaxed">
+                <strong>Daily Practice:</strong> {janmaNakTreatise.behavioralUpaya}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== TAB 3: 12 HOUSES ==================== */}
+      {readingMode === 'HOUSES' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-4 obs-card p-3 space-y-1">
             {chart.houses.map((h) => {
               const active = h.house === selectedHouseNum;
               const occ = chart.planets.filter((p) => p.house === h.house);
               return (
                 <button
                   key={h.house}
+                  type="button"
                   onClick={() => setSelectedHouseNum(h.house)}
-                  className={`w-full px-4 py-3 text-left flex items-center justify-between text-xs transition ${
-                    active
-                      ? 'bg-[var(--brass-bg)] border-l-2 border-l-[var(--brass)]'
-                      : 'hover:bg-[var(--surface-muted)]/60'
+                  className={`w-full px-3 py-2.5 rounded-lg text-left flex items-center justify-between text-xs transition ${
+                    active ? 'bg-[var(--accent-bg)]' : 'hover:bg-[var(--bg-elevated)]'
                   }`}
                 >
                   <div>
@@ -432,7 +399,7 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                   </div>
                   <div className="flex items-center gap-1">
                     {occ.map((p) => (
-                      <span key={p.id} style={{ color: p.color }} className="text-sm font-serif">
+                      <span key={p.id} style={{ color: p.color }} className="text-sm font-bold">
                         {p.symbol}
                       </span>
                     ))}
@@ -442,28 +409,26 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
             })}
           </div>
 
-          <div className="lg:col-span-8 folio-sheet p-6 sm:p-8 space-y-6">
+          <div className="lg:col-span-8 obs-card p-6 space-y-5">
             <div className="border-b border-[var(--border)] pb-4">
-              <div className="editorial-eyebrow">
+              <div className="text-xs font-mono text-[var(--accent)] font-semibold">
                 {activeHouseTreatise.sanskrit} • {activeHouseTreatise.trikonaType}
               </div>
-              <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[var(--text)] mt-1">
+              <h2 className="text-2xl font-bold text-[var(--text)] mt-1">
                 {activeHouseTreatise.name} — Cusp in {activeHouseCusp.signSymbol}{' '}
                 {activeHouseCusp.signName} ({activeHouseCusp.formattedDMS})
-              </h3>
+              </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="obs-panel p-4 space-y-2">
-                <div className="text-xs font-mono uppercase tracking-wider text-[var(--brass)]">
-                  Parashara Hora Shastra Bhava Domain
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="text-xs font-bold text-[var(--text)]">Parashara Bhava Domain</div>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                   {activeHouseTreatise.bphsSummary}
                 </p>
               </div>
-              <div className="obs-panel p-4 space-y-2">
-                <div className="text-xs font-mono uppercase tracking-wider text-[var(--brass)]">
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="text-xs font-bold text-[var(--text)]">
                   Depth Psychological Sphere
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
@@ -473,30 +438,28 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
             </div>
 
             <div className="space-y-3">
-              <div className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] border-b border-[var(--border)] pb-2">
-                Natal Grahas Occupying House {selectedHouseNum}
-              </div>
+              <h3 className="text-sm font-bold text-[var(--text)]">
+                Natal Planets in House {selectedHouseNum}
+              </h3>
               {planetsInSelectedHouse.length === 0 ? (
                 <div className="obs-panel p-4 text-xs text-[var(--text-secondary)] leading-relaxed">
-                  No natal planets occupy House {selectedHouseNum} directly; in Parashari Jyotish
-                  this Bhava expresses its karma through the placement and dignity of the lord of{' '}
-                  <strong>{activeHouseCusp.signName}</strong> and aspects cast upon it.
+                  No natal planets occupy House {selectedHouseNum} directly; this house operates
+                  through the placement and dignity of the ruler of{' '}
+                  <strong>{activeHouseCusp.signName}</strong> and planetary aspects received.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {planetsInSelectedHouse.map((p) => (
-                    <div
-                      key={p.id}
-                      className="p-4 border border-[var(--border)] bg-[var(--bg-elevated)] space-y-1.5"
-                    >
+                    <div key={p.id} className="obs-panel p-4 space-y-1.5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="font-serif text-lg font-bold text-[var(--text)]">
+                        <div className="text-sm font-bold text-[var(--text)]">
                           <span style={{ color: p.color }}>{p.symbol}</span> {p.name} in{' '}
                           {p.signName} ({p.formattedDMS})
                         </div>
-                        <span className="text-xs font-mono obs-badge-brass px-2 py-0.5">
-                          {p.dignity} • {p.nakshatraName} P{p.nakshatraPada}
-                        </span>
+                        <StatusBadge
+                          tone="info"
+                          label={`${p.dignity} • ${p.nakshatraName} P${p.nakshatraPada}`}
+                        />
                       </div>
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                         {PLANET_IN_BHAVA_RULINGS[p.id]?.[selectedHouseNum] ||
@@ -511,107 +474,78 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
         </div>
       )}
 
-      {/* ==================== CHAPTER IV: CLASSICAL YOGAS & LIVING UPAYAS ==================== */}
-      {readingMode === 'YOGAS_REMEDIES' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-7 folio-sheet p-6 sm:p-7 space-y-5">
-            <div className="border-b border-[var(--border)] pb-3">
-              <div className="editorial-eyebrow">
-                BPHS, Phaladeepika &amp; B.V. Raman’s 300 Important Combinations
+      {/* ==================== TAB 4: 9 SOURCE BOOKS ==================== */}
+      {readingMode === 'CANON_BOOKS' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-4 obs-card p-3 space-y-1">
+            {CLASSICAL_CANON_BOOKS.map((book, index) => {
+              const active = book.id === activeBook.id;
+              return (
+                <button
+                  key={book.id}
+                  type="button"
+                  onClick={() => setSelectedBookId(book.id)}
+                  className={`w-full px-3 py-3 rounded-lg text-left transition ${
+                    active ? 'bg-[var(--accent-bg)]' : 'hover:bg-[var(--bg-elevated)]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[var(--accent)]">
+                    <span>#{index + 1}</span>
+                    <span>{book.tradition}</span>
+                  </div>
+                  <div className="text-sm font-bold text-[var(--text)] mt-0.5">{book.title}</div>
+                  <div className="text-xs text-[var(--text-muted)]">{book.author}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="lg:col-span-8 obs-card p-6 space-y-5">
+            <div className="border-b border-[var(--border)] pb-4 space-y-1">
+              <div className="flex items-center gap-2 text-xs text-[var(--accent)] font-semibold">
+                <BookOpen className="w-4 h-4" />
+                <span>{activeBook.eraAndLineage}</span>
               </div>
-              <h3 className="text-2xl font-serif font-bold text-[var(--text)] mt-1">
-                Active Classical Yogas Detected in Your Kundali ({vedic.yogas.length})
-              </h3>
+              <h2 className="text-2xl font-bold text-[var(--text)]">{activeBook.title}</h2>
+              <div className="text-sm font-serif italic text-[var(--text-secondary)]">
+                {activeBook.sanskritOrOriginal} — {activeBook.author}
+              </div>
             </div>
 
-            <div className="space-y-3.5">
-              {vedic.yogas.map((y) => (
-                <div
-                  key={y.name}
-                  className="p-4 border border-[var(--border)] bg-[var(--bg-elevated)] space-y-1.5"
-                >
+            <div className="space-y-1.5">
+              <div className="text-xs font-bold text-[var(--text)]">Core Thesis</div>
+              <p className="literary-prose text-sm">{activeBook.thesis}</p>
+            </div>
+
+            <div className="obs-panel p-4 space-y-1">
+              <div className="text-xs font-bold text-[var(--accent)]">
+                Computational Implementation in Oceanology
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                {activeBook.engineIntegration}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-[var(--text)]">
+                Key Sutras, Aphorisms &amp; Commentary
+              </h3>
+              {activeBook.sutras.map((sutra, idx) => (
+                <div key={idx} className="obs-panel p-4 space-y-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h4 className="font-serif font-bold text-lg text-[var(--text)]">
-                      {y.name}{' '}
-                      <span className="text-xs font-mono text-[var(--brass)] font-normal">
-                        ({y.sanskrit})
-                      </span>
-                    </h4>
-                    <span
-                      className={`px-2 py-0.5 text-[11px] font-mono ${
-                        y.category === 'Dosha / Alert'
-                          ? 'obs-badge-crimson'
-                          : y.strength === 'High'
-                          ? 'obs-badge-sage'
-                          : 'obs-badge-brass'
-                      }`}
-                    >
-                      {y.category} • {y.strength}
+                    <h4 className="text-sm font-bold text-[var(--text)]">{sutra.title}</h4>
+                    <span className="text-xs font-mono text-[var(--accent)]">
+                      {sutra.chapterRef}
                     </span>
                   </div>
-                  {y.sourceText && (
-                    <div className="text-[11px] font-mono text-[var(--text-muted)]">
-                      Citation: {y.sourceText}
-                    </div>
-                  )}
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {y.description}
+                  <blockquote className="font-serif italic text-sm text-[var(--text)] border-l-2 border-[var(--accent)] pl-3">
+                    {sutra.aphorism}
+                  </blockquote>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    {sutra.commentary}
                   </p>
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 folio-sheet p-6 sm:p-7 space-y-5">
-            <div className="border-b border-[var(--border)] pb-3">
-              <div className="editorial-eyebrow">Sattvic Harmonization &amp; Sacred Ecology</div>
-              <h3 className="text-2xl font-serif font-bold text-[var(--text)] mt-1">
-                Mahadasha &amp; Janma Nakshatra Upayas
-              </h3>
-            </div>
-
-            <div className="p-4 bg-[var(--bg-elevated)] border-l-2 border-l-[var(--brass)] space-y-2">
-              <div className="text-xs font-mono uppercase text-[var(--brass)] font-semibold">
-                Active Mahadasha Lord: {vedic.activeMahadasha.lord} (Antardasha:{' '}
-                {vedic.activeAntardasha.lord})
-              </div>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                {PLANET_TREATISES[vedic.activeMahadasha.lord]?.dashaGeneralFruit}
-              </p>
-              <p className="text-xs text-[var(--text)] leading-relaxed pt-1 border-t border-[var(--border)]">
-                <strong>Classical Ratna &amp; Mantra:</strong>{' '}
-                {PLANET_TREATISES[vedic.activeMahadasha.lord]?.gemstoneAndMantra}
-              </p>
-            </div>
-
-            <div className="p-4 bg-[var(--bg-elevated)] border-l-2 border-l-[var(--sage)] space-y-2.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-mono uppercase text-[var(--sage)] font-semibold flex items-center gap-1.5">
-                  <Trees className="w-3.5 h-3.5" />
-                  <span>Janma Star Ecology: {janmaNakTreatise.name}</span>
-                </span>
-                {onInspectNakshatra && (
-                  <button
-                    onClick={() => onInspectNakshatra(janmaNakTreatise.index)}
-                    className="font-mono text-[var(--brass)] hover:underline"
-                  >
-                    Full Star →
-                  </button>
-                )}
-              </div>
-              <p className="text-[var(--text-secondary)] leading-relaxed">
-                <strong>Aradhya Vriksha (Sacred Botanical Ally):</strong>{' '}
-                {janmaNakTreatise.sacredTree}
-              </p>
-              <p className="text-[var(--text-secondary)] leading-relaxed">
-                <strong>Taittiriya / Vedic Mantra:</strong>{' '}
-                <em className="font-serif text-sm text-[var(--text)]">
-                  {janmaNakTreatise.vedicMantra}
-                </em>
-              </p>
-              <p className="text-[var(--text-secondary)] leading-relaxed">
-                <strong>Behavioral Dharma Upaya:</strong> {janmaNakTreatise.behavioralUpaya}
-              </p>
             </div>
           </div>
         </div>

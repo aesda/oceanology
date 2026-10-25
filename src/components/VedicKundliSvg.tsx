@@ -90,12 +90,13 @@ export const VedicKundliSvg: React.FC<Props> = ({
           {VARGA_TABS.map((t) => (
             <button
               key={t.code}
+              type="button"
               onClick={() => setVarga(t.key)}
               title={`${t.title} — ${t.subtitle}`}
-              className={`px-2 py-1 text-[11px] font-mono transition ${
+              className={`px-2 py-1 rounded text-[11px] font-mono transition ${
                 varga === t.key
-                  ? 'obs-badge-brass font-bold'
-                  : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
+                  ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-bold border border-[var(--accent)]/30'
+                  : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
               }`}
             >
               {t.code}
@@ -103,22 +104,24 @@ export const VedicKundliSvg: React.FC<Props> = ({
           ))}
         </div>
 
-        <div className="flex obs-panel p-0.5 text-[11px] font-mono">
+        <div className="flex rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] p-0.5 text-[11px] font-medium">
           <button
+            type="button"
             onClick={() => setStyle('NORTH_INDIAN')}
-            className={`px-2.5 py-1 transition ${
+            className={`px-2.5 py-1 rounded-md transition ${
               style === 'NORTH_INDIAN'
-                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold'
+                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm'
                 : 'text-[var(--text-muted)]'
             }`}
           >
             North / Nepal
           </button>
           <button
+            type="button"
             onClick={() => setStyle('SOUTH_INDIAN')}
-            className={`px-2.5 py-1 transition ${
+            className={`px-2.5 py-1 rounded-md transition ${
               style === 'SOUTH_INDIAN'
-                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold'
+                ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm'
                 : 'text-[var(--text-muted)]'
             }`}
           >
@@ -133,41 +136,50 @@ export const VedicKundliSvg: React.FC<Props> = ({
           <span className="font-semibold text-[var(--text)]">
             {activeVargaMeta.code}: {activeVargaMeta.title} ({activeVargaMeta.subtitle})
           </span>
-          <span className="font-mono text-[var(--brass)] font-semibold">
+          <span className="font-mono text-[var(--accent)] font-semibold">
             Lagna: {ZODIAC_SIGNS[ascSignIdx].sanskrit} ({ZODIAC_SIGNS[ascSignIdx].name})
           </span>
         </div>
 
         {style === 'NORTH_INDIAN' ? (
-          <svg viewBox="0 0 400 400" className="w-full max-w-[375px] h-auto">
+          <svg
+            viewBox="0 0 400 400"
+            className="w-full max-w-[365px] h-auto"
+            role="img"
+            aria-label={`${activeVargaMeta.code} North Indian Kundali`}
+          >
             <rect
-              x="4"
-              y="4"
-              width="392"
-              height="392"
-              rx="2"
+              x="6"
+              y="6"
+              width="388"
+              height="388"
+              rx="6"
               fill="var(--chart-bg)"
-              stroke="var(--crimson)"
-              strokeWidth="1.8"
+              stroke="var(--border-strong)"
+              strokeWidth="1.5"
             />
-            <rect
-              x="10"
-              y="10"
-              width="380"
-              height="380"
-              rx="1"
-              fill="none"
-              stroke="var(--brass)"
-              strokeWidth="1"
-              strokeOpacity="0.6"
+            <line
+              x1="6"
+              y1="6"
+              x2="394"
+              y2="394"
+              stroke="var(--border-strong)"
+              strokeWidth="1.2"
             />
-            <line x1="10" y1="10" x2="390" y2="390" stroke="var(--brass)" strokeWidth="1.1" />
-            <line x1="390" y1="10" x2="10" y2="390" stroke="var(--brass)" strokeWidth="1.1" />
+            <line
+              x1="394"
+              y1="6"
+              x2="6"
+              y2="394"
+              stroke="var(--border-strong)"
+              strokeWidth="1.2"
+            />
             <polygon
-              points="200,10 390,200 200,390 10,200"
+              points="200,6 394,200 200,394 6,200"
               fill="none"
-              stroke="var(--crimson)"
+              stroke="var(--accent)"
               strokeWidth="1.4"
+              strokeOpacity="0.75"
             />
 
             {NORTH_HOUSE_POS.map((pos) => {
@@ -183,7 +195,7 @@ export const VedicKundliSvg: React.FC<Props> = ({
                     y={pos.signY}
                     textAnchor="middle"
                     dominantBaseline="central"
-                    fill="var(--crimson)"
+                    fill="var(--accent)"
                     fontSize="11"
                     fontFamily="JetBrains Mono, monospace"
                     fontWeight="700"
@@ -217,16 +229,21 @@ export const VedicKundliSvg: React.FC<Props> = ({
             })}
           </svg>
         ) : (
-          <svg viewBox="0 0 400 400" className="w-full max-w-[375px] h-auto">
+          <svg
+            viewBox="0 0 400 400"
+            className="w-full max-w-[365px] h-auto"
+            role="img"
+            aria-label={`${activeVargaMeta.code} South Indian Kundali`}
+          >
             <rect
               x="2"
               y="2"
               width="396"
               height="396"
-              rx="2"
+              rx="6"
               fill="var(--chart-bg)"
-              stroke="var(--crimson)"
-              strokeWidth="1.8"
+              stroke="var(--border-strong)"
+              strokeWidth="1.5"
             />
             <rect
               x="100"
@@ -234,24 +251,23 @@ export const VedicKundliSvg: React.FC<Props> = ({
               width="200"
               height="200"
               fill="var(--surface)"
-              stroke="var(--brass)"
-              strokeWidth="1.3"
+              stroke="var(--border-strong)"
+              strokeWidth="1.2"
             />
             <text
               x="200"
-              y="182"
+              y="184"
               textAnchor="middle"
               fill="var(--text)"
-              fontSize="18"
-              fontFamily="Cormorant Garamond, Georgia, serif"
+              fontSize="15"
               fontWeight="700"
             >
               {activeVargaMeta.code} • {activeVargaMeta.title}
             </text>
-            <text x="200" y="205" textAnchor="middle" fill="var(--brass)" fontSize="12">
+            <text x="200" y="205" textAnchor="middle" fill="var(--accent)" fontSize="11.5">
               South Indian Rashi Chakra
             </text>
-            <text x="200" y="226" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">
+            <text x="200" y="225" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">
               Lagna: {ZODIAC_SIGNS[ascSignIdx].sanskrit}
             </text>
 
@@ -269,9 +285,9 @@ export const VedicKundliSvg: React.FC<Props> = ({
                     y={box.y}
                     width="100"
                     height="100"
-                    fill={isAsc ? 'var(--brass-bg)' : 'none'}
+                    fill={isAsc ? 'var(--accent-bg)' : 'none'}
                     stroke="var(--chart-grid)"
-                    strokeWidth="1.1"
+                    strokeWidth="1"
                   />
                   <text
                     x={box.x + 8}
@@ -287,11 +303,11 @@ export const VedicKundliSvg: React.FC<Props> = ({
                       x={box.x + 82}
                       y={box.y + 16}
                       textAnchor="middle"
-                      fill="var(--crimson)"
+                      fill="var(--accent)"
                       fontSize="10"
                       fontWeight="700"
                     >
-                      LAG
+                      ASC
                     </text>
                   )}
                   {occupants.map((p, idx) => {

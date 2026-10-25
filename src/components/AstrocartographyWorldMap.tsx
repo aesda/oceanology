@@ -2,11 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { geoEquirectangular, geoGraticule10, geoPath } from 'd3-geo';
 import { feature } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
-import { Compass, Globe, Heart, Home, Sparkles, Briefcase, MapPin, Mountain, Info } from 'lucide-react';
+import { Globe, Heart, Home, Sparkles, Briefcase, MapPin, Info } from 'lucide-react';
 import { AstrocartographyLine, NatalChartResult } from '../engines/astronomyEngine';
 import { BirthProfile, CityLocation, WORLD_CITIES } from '../types/oceanology';
 import { ACG_LINE_INTERPRETATIONS } from '../data/classicalCompendium';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
+import { KpiStatCard, SegmentedTabs, StatusBadge } from './ui/DashboardPrimitives';
 
 interface Props {
   profile: BirthProfile;
@@ -46,11 +47,11 @@ const MAP_REGIONS: Record<
   MapRegionId,
   { label: string; center: [number, number]; scale: number }
 > = {
-  WORLD: { label: 'Global World Map', center: [15, 12], scale: 152 },
-  NEPAL_ASIA: { label: 'Nepal, Himalaya & South Asia', center: [84.1, 26.5], scale: 720 },
-  EUROPE: { label: 'Europe & Mediterranean', center: [12, 47], scale: 520 },
-  AMERICAS: { label: 'North & South America', center: [-82, 18], scale: 260 },
-  EAST_ASIA: { label: 'East Asia & Pacific', center: [128, 25], scale: 360 },
+  WORLD: { label: 'Global', center: [15, 12], scale: 152 },
+  NEPAL_ASIA: { label: 'Nepal & South Asia', center: [84.1, 26.5], scale: 720 },
+  EUROPE: { label: 'Europe', center: [12, 47], scale: 520 },
+  AMERICAS: { label: 'Americas', center: [-82, 18], scale: 260 },
+  EAST_ASIA: { label: 'East Asia', center: [128, 25], scale: 360 },
 };
 
 function normLonDiff(lonA: number, lonB: number): number {
@@ -89,7 +90,7 @@ export function evaluateLocationAstrocartography(
   const cosLat = Math.max(0.25, Math.cos((city.latitude * Math.PI) / 180));
 
   for (const line of chart.astrocartography) {
-    const planetObj = chart.planets.find(p => p.name === line.planet);
+    const planetObj = chart.planets.find((p) => p.name === line.planet);
     const dignity = planetObj?.dignity || 'Neutral';
     const dignityMult =
       dignity === 'Exalted'
@@ -117,7 +118,6 @@ export function evaluateLocationAstrocartography(
       if (c.lineLon === null) continue;
       const signedDiff = normLonDiff(city.longitude, c.lineLon);
       const orbDegrees = Math.abs(signedDiff);
-      // Consider planetary lines within 9.5 degrees of longitude (approx 950 km at mid-latitudes)
       if (orbDegrees <= 9.5) {
         const distanceKm = Math.round(orbDegrees * 111.32 * cosLat);
         const meta = acgMeta[c.angle];
@@ -142,9 +142,10 @@ export function evaluateLocationAstrocartography(
     }
   }
 
-  influences.sort((a, b) => b.scoreContribution - a.scoreContribution || a.orbDegrees - b.orbDegrees);
+  influences.sort(
+    (a, b) => b.scoreContribution - a.scoreContribution || a.orbDegrees - b.orbDegrees
+  );
 
-  // Also compute harmonic Parans / latitude resonance so every city has meaningful differentiators
   let careerScore = 52;
   let sanctuaryScore = 52;
   let loveScore = 50;
@@ -159,7 +160,6 @@ export function evaluateLocationAstrocartography(
     if (inf.domain === 'Love' || inf.domain === 'Sanctuary') {
       loveScore += inf.scoreContribution * 1.35;
     }
-    // Cross-domain spillover for benefic lines
     if (['Jupiter', 'Venus', 'Sun'].includes(inf.planet)) {
       careerScore += inf.scoreContribution * 0.4;
       sanctuaryScore += inf.scoreContribution * 0.4;
@@ -173,21 +173,24 @@ export function evaluateLocationAstrocartography(
 
   const overallScore = Math.min(
     99,
-    Math.round(Math.max(careerScore, sanctuaryScore, loveScore) * 0.65 + ((careerScore + sanctuaryScore + loveScore) / 3) * 0.35)
+    Math.round(
+      Math.max(careerScore, sanctuaryScore, loveScore) * 0.65 +
+        ((careerScore + sanctuaryScore + loveScore) / 3) * 0.35
+    )
   );
 
   const topInf = influences[0];
-  let primaryTag = 'Balanced Harmonic Zone';
+  let primaryTag = 'Balanced Clear-Sky Zone';
   if (topInf) {
-    if (topInf.domain === 'Career') primaryTag = 'Career & Prestige Power Line';
-    else if (topInf.domain === 'Sanctuary') primaryTag = 'Home Sanctuary & Peace Line';
-    else if (topInf.domain === 'Love') primaryTag = 'Partnership & Soulmate Line';
-    else primaryTag = 'Personal Vitality & Charisma Line';
+    if (topInf.domain === 'Career') primaryTag = 'Career & Prestige Line';
+    else if (topInf.domain === 'Sanctuary') primaryTag = 'Home Sanctuary Line';
+    else if (topInf.domain === 'Love') primaryTag = 'Partnership Line';
+    else primaryTag = 'Personal Vitality Line';
   }
 
   const headlineVerdict = topInf
     ? `Anchored by your ${topInf.symbol} ${topInf.title} (${topInf.distanceKm} km / ${topInf.orbDegrees}° orb). ${topInf.summary}`
-    : `Gentle, balanced equatorial/meridian zone free from harsh planetary cross-currents—suited for steady, self-directed living.`;
+    : `Balanced meridian zone free from intense angular pressure—suited for steady, self-directed living.`;
 
   return {
     city,
@@ -208,7 +211,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
   const [customCity, setCustomCity] = useState<CityLocation>(profile.location);
   const [activeCity, setActiveCity] = useState<CityLocation>(profile.location);
 
-  // Convert TopoJSON countries to GeoJSON features once
   const countriesGeo = useMemo(() => {
     const raw = countriesAtlas as any;
     return feature(raw, raw.objects.countries) as any;
@@ -216,7 +218,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
 
   const graticuleGeo = useMemo(() => geoGraticule10(), []);
 
-  // Configure D3 projection for the selected region
   const { projection, pathGenerator } = useMemo(() => {
     const cfg = MAP_REGIONS[region];
     const proj = geoEquirectangular()
@@ -227,19 +228,31 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
     return { projection: proj, pathGenerator: pathGen };
   }, [region]);
 
-  // Evaluate all cities in WORLD_CITIES + customCity
   const allEvaluations = useMemo(() => {
     const map = new Map<string, CityLocation>();
     for (const c of WORLD_CITIES) map.set(c.id, c);
     map.set(profile.location.id, profile.location);
     map.set(customCity.id, customCity);
 
-    return Array.from(map.values()).map(c => evaluateLocationAstrocartography(c, chart));
+    return Array.from(map.values()).map((c) => evaluateLocationAstrocartography(c, chart));
   }, [chart, profile.location, customCity]);
 
   const activeEvaluation = useMemo(
     () => evaluateLocationAstrocartography(activeCity, chart),
     [activeCity, chart]
+  );
+
+  const topCareerCity = useMemo(
+    () => [...allEvaluations].sort((a, b) => b.careerScore - a.careerScore)[0],
+    [allEvaluations]
+  );
+  const topSanctuaryCity = useMemo(
+    () => [...allEvaluations].sort((a, b) => b.sanctuaryScore - a.sanctuaryScore)[0],
+    [allEvaluations]
+  );
+  const topLoveCity = useMemo(
+    () => [...allEvaluations].sort((a, b) => b.loveScore - a.loveScore)[0],
+    [allEvaluations]
   );
 
   const filteredRecommendations = useMemo(() => {
@@ -253,7 +266,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
         return list.sort((a, b) => b.loveScore - a.loveScore).slice(0, 9);
       case 'NEPAL':
         return list
-          .filter(item => item.city.country === 'Nepal')
+          .filter((item) => item.city.country === 'Nepal')
           .sort((a, b) => b.overallScore - a.overallScore);
       case 'ALL_BEST':
       default:
@@ -261,7 +274,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
     }
   }, [allEvaluations, recFilter]);
 
-  // Helper to build SVG path segments for ASC/DSC curves without anti-meridian streaks
   const buildProjectedCurveSegments = (curve: { lat: number; lon: number }[]) => {
     const segments: string[] = [];
     let currentPts: [number, number][] = [];
@@ -271,7 +283,9 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
       if (i > 0 && Math.abs(pt.lon - curve[i - 1].lon) > 90) {
         if (currentPts.length > 1) {
           segments.push(
-            currentPts.map((p, idx) => `${idx === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
+            currentPts
+              .map((p, idx) => `${idx === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`)
+              .join(' ')
           );
         }
         currentPts = [];
@@ -283,13 +297,14 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
     }
     if (currentPts.length > 1) {
       segments.push(
-        currentPts.map((p, idx) => `${idx === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
+        currentPts
+          .map((p, idx) => `${idx === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`)
+          .join(' ')
       );
     }
     return segments;
   };
 
-  // Handle clicking anywhere on the SVG map to inspect that exact coordinate
   const handleSvgMapClick = (e: React.MouseEvent<SVGSVGElement>) => {
     const svg = e.currentTarget;
     const rect = svg.getBoundingClientRect();
@@ -304,7 +319,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
     const [lon, lat] = coords;
     if (lat < -75 || lat > 75 || lon < -180 || lon > 180) return;
 
-    // Check if click is very close to a known city first
     let nearestCity: CityLocation | null = null;
     let minDeg = 2.8;
     for (const c of WORLD_CITIES) {
@@ -321,9 +335,11 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
       const approxTz = Math.round((lon / 15) * 2) / 2;
       const pinned: CityLocation = {
         id: `pin-${lat.toFixed(2)}-${lon.toFixed(2)}`,
-        name: `Map Coordinate (${Math.abs(lat).toFixed(1)}°${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lon).toFixed(1)}°${lon >= 0 ? 'E' : 'W'})`,
-        country: 'Custom Map Pin',
-        state: 'Global Observatory Coordinate',
+        name: `Coordinate (${Math.abs(lat).toFixed(1)}°${lat >= 0 ? 'N' : 'S'}, ${Math.abs(
+          lon
+        ).toFixed(1)}°${lon >= 0 ? 'E' : 'W'})`,
+        country: 'Custom Pin',
+        state: 'Map Coordinate',
         latitude: Math.round(lat * 100) / 100,
         longitude: Math.round(lon * 100) / 100,
         timezoneOffsetHours: approxTz,
@@ -338,69 +354,115 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
   const visibleLines: AstrocartographyLine[] = useMemo(
     () =>
       chart.astrocartography.filter(
-        l => selectedPlanet === 'ALL' || l.planet === selectedPlanet
+        (l) => selectedPlanet === 'ALL' || l.planet === selectedPlanet
       ),
     [chart.astrocartography, selectedPlanet]
   );
 
   return (
     <div className="space-y-6">
-      {/* Top Bar: World Map Controls & Region Zoom Lens */}
-      <div className="obs-card p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--brass)]">
-              <Globe className="w-3.5 h-3.5" />
-              <span>Jim Lewis Astro*Carto*Graphy • Astrodienst &amp; Astro-Seek Locational Engine</span>
-            </div>
-            <h2 className="text-2xl font-serif font-bold text-[var(--text)] mt-0.5">
-              Interactive World Map &amp; Relocation Recommendation Atlas
-            </h2>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              Showing real-time planetary meridian (<strong>MC / IC</strong>) and horizon (<strong>ASC / DSC</strong>) lines for{' '}
-              <strong>{profile.firstName} {profile.lastName}</strong>. Click any city or anywhere on the map to evaluate life &amp; career compatibility.
-            </p>
-          </div>
-
-          {/* Region Zoom Lens Selector */}
-          <div className="flex flex-wrap items-center gap-1 obs-panel p-1">
-            {(Object.keys(MAP_REGIONS) as MapRegionId[]).map(rKey => (
-              <button
-                key={rKey}
-                onClick={() => setRegion(rKey)}
-                className={`px-2.5 py-1.5 rounded text-xs font-medium transition ${
-                  region === rKey
-                    ? 'bg-[var(--surface)] text-[var(--brass)] font-semibold shadow-sm border border-[var(--border-strong)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-                }`}
-              >
-                {MAP_REGIONS[rKey].label}
-              </button>
-            ))}
-          </div>
+      {/* ==================== PAGE HEADER & REGION LENS ==================== */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+            World Astrocartography &amp; Relocation Atlas
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Planetary MC/IC/ASC/DSC lines for {profile.firstName} {profile.lastName}. Click any city
+            or map coordinate to evaluate livability.
+          </p>
         </div>
 
-        {/* Planet Line Filter Pills + Legend */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[var(--border)] text-xs">
+        <SegmentedTabs
+          ariaLabel="Map region zoom"
+          value={region}
+          onChange={setRegion}
+          items={(Object.keys(MAP_REGIONS) as MapRegionId[]).map((rKey) => ({
+            id: rKey,
+            label: MAP_REGIONS[rKey].label,
+          }))}
+        />
+      </div>
+
+      {/* ==================== ROW 1: 4 CONTEXTUAL RELOCATION KPIs ==================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <KpiStatCard
+          label="Selected Location Score"
+          value={`${activeEvaluation.overallScore}%`}
+          subvalue={activeCity.name.split(' ')[0]}
+          benchmarkText={activeEvaluation.primaryTag}
+          status={{
+            tone: activeEvaluation.overallScore >= 75 ? 'optimal' : 'favorable',
+            label: activeCity.country,
+          }}
+          icon={<Globe className="w-4 h-4" />}
+        />
+
+        {topCareerCity && (
+          <KpiStatCard
+            label="Top Career Hub (MC)"
+            value={topCareerCity.city.name}
+            subvalue={`${topCareerCity.careerScore}%`}
+            benchmarkText={topCareerCity.city.country}
+            status={{ tone: 'optimal', label: 'Career Peak' }}
+            icon={<Briefcase className="w-4 h-4" />}
+            actionLabel="Inspect on map"
+            onAction={() => setActiveCity(topCareerCity.city)}
+          />
+        )}
+
+        {topSanctuaryCity && (
+          <KpiStatCard
+            label="Top Sanctuary Hub (IC)"
+            value={topSanctuaryCity.city.name}
+            subvalue={`${topSanctuaryCity.sanctuaryScore}%`}
+            benchmarkText={topSanctuaryCity.city.country}
+            status={{ tone: 'favorable', label: 'Home & Peace' }}
+            icon={<Home className="w-4 h-4" />}
+            actionLabel="Inspect on map"
+            onAction={() => setActiveCity(topSanctuaryCity.city)}
+          />
+        )}
+
+        {topLoveCity && (
+          <KpiStatCard
+            label="Top Partnership Hub (DSC)"
+            value={topLoveCity.city.name}
+            subvalue={`${topLoveCity.loveScore}%`}
+            benchmarkText={topLoveCity.city.country}
+            status={{ tone: 'info', label: 'Love & Union' }}
+            icon={<Heart className="w-4 h-4" />}
+            actionLabel="Inspect on map"
+            onAction={() => setActiveCity(topLoveCity.city)}
+          />
+        )}
+      </div>
+
+      {/* ==================== ROW 2: WORLD MAP + LIVE PIN DOSSIER ==================== */}
+      <div className="obs-card p-5 space-y-4">
+        {/* Planet Filter Bar + Line Legend */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--border)] text-xs">
           <div className="flex flex-wrap items-center gap-1.5">
             <button
+              type="button"
               onClick={() => setSelectedPlanet('ALL')}
-              className={`px-2.5 py-1 rounded font-medium transition ${
+              className={`px-2.5 py-1 rounded-md font-medium transition ${
                 selectedPlanet === 'ALL'
-                  ? 'obs-badge-brass font-bold'
-                  : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
+                  ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
+                  : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
               }`}
             >
               All 10 Planets
             </button>
-            {chart.astrocartography.map(line => (
+            {chart.astrocartography.map((line) => (
               <button
                 key={line.planet}
+                type="button"
                 onClick={() => setSelectedPlanet(line.planet)}
-                className={`px-2.5 py-1 rounded font-medium flex items-center gap-1 transition ${
+                className={`px-2.5 py-1 rounded-md font-medium flex items-center gap-1 transition ${
                   selectedPlanet === line.planet
-                    ? 'obs-badge-brass font-bold'
-                    : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
+                    ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
+                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
                 }`}
               >
                 <span style={{ color: line.color }}>{line.symbol}</span>
@@ -410,30 +472,24 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[var(--text-muted)]">
-            <span className="flex items-center gap-1.5">
-              <span className="w-4 h-0.5 bg-[var(--brass)] inline-block" /> MC (Zenith Career)
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-4 h-0.5 border-b border-dashed border-[var(--brass)] inline-block" /> IC (Nadir Home)
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-4 h-0.5 bg-[var(--crimson)] inline-block" /> ASC (Rising Identity)
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-4 h-0.5 border-b border-dotted border-[var(--sage)] inline-block" /> DSC (Setting Love)
-            </span>
+            <span>Solid = MC / ASC</span>
+            <span>•</span>
+            <span>Dashed = IC</span>
+            <span>•</span>
+            <span>Dotted = DSC</span>
           </div>
         </div>
 
-        {/* Interactive World Map + Live Location Inspector Split */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-4 items-start">
-          {/* World Map Canvas (8 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Interactive Map Canvas */}
           <div className="lg:col-span-8">
-            <div className="rounded-lg overflow-hidden border border-[var(--border-strong)] bg-[var(--chart-bg)] relative shadow-inner">
+            <div className="rounded-lg overflow-hidden border border-[var(--border-strong)] bg-[var(--chart-bg)]">
               <svg
                 viewBox="0 0 960 460"
                 className="w-full h-auto cursor-crosshair select-none block"
                 onClick={handleSvgMapClick}
+                role="img"
+                aria-label="Interactive astrocartography world map"
               >
                 <defs>
                   <clipPath id="world-map-clip">
@@ -442,19 +498,16 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                 </defs>
 
                 <g clipPath="url(#world-map-clip)">
-                  {/* Ocean Backdrop */}
                   <rect x="0" y="0" width="960" height="460" fill="var(--chart-bg)" />
 
-                  {/* 10-Degree Graticule Grid */}
                   <path
                     d={pathGenerator(graticuleGeo) || ''}
                     fill="none"
                     stroke="var(--chart-grid)"
                     strokeWidth={0.5}
-                    strokeOpacity={0.55}
+                    strokeOpacity={0.6}
                   />
 
-                  {/* Equator Line */}
                   <path
                     d={
                       pathGenerator({
@@ -472,34 +525,29 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                     strokeDasharray="4 4"
                   />
 
-                  {/* World Continents & Country Polygons */}
                   {countriesGeo.features.map((feat: any, idx: number) => {
-                    // Highlight Nepal (ISO numeric 524) subtly on the map
                     const isNepal = feat.id === '524' || feat.id === 524;
                     return (
                       <path
                         key={feat.id || idx}
                         d={pathGenerator(feat) || ''}
-                        fill={isNepal ? 'var(--brass-bg)' : 'var(--chart-ring)'}
-                        stroke={isNepal ? 'var(--brass)' : 'var(--border-strong)'}
+                        fill={isNepal ? 'var(--accent-bg)' : 'var(--chart-ring)'}
+                        stroke={isNepal ? 'var(--accent)' : 'var(--border-strong)'}
                         strokeWidth={isNepal ? 1.3 : 0.65}
                       />
                     );
                   })}
 
-                  {/* Planetary Astrocartography Lines: MC, IC, ASC, DSC */}
-                  {visibleLines.map(line => {
+                  {visibleLines.map((line) => {
                     const mcTop = projection([line.mcLongitude, 78]);
                     const mcBot = projection([line.mcLongitude, -78]);
                     const icTop = projection([line.icLongitude, 78]);
                     const icBot = projection([line.icLongitude, -78]);
-
                     const ascSegments = buildProjectedCurveSegments(line.ascCurve);
                     const dscSegments = buildProjectedCurveSegments(line.dscCurve);
 
                     return (
                       <g key={line.planet}>
-                        {/* MC Meridian Line (Solid) */}
                         {mcTop && mcBot && (
                           <g>
                             <line
@@ -536,7 +584,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                           </g>
                         )}
 
-                        {/* IC Meridian Line (Dashed) */}
                         {icTop && icBot && (
                           <g>
                             <line
@@ -574,7 +621,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                           </g>
                         )}
 
-                        {/* ASC Horizon Curve (Solid Curved) */}
                         {ascSegments.map((seg, idx) => (
                           <path
                             key={`asc-${idx}`}
@@ -586,7 +632,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                           />
                         ))}
 
-                        {/* DSC Horizon Curve (Dotted Curved) */}
                         {dscSegments.map((seg, idx) => (
                           <path
                             key={`dsc-${idx}`}
@@ -602,8 +647,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                     );
                   })}
 
-                  {/* City Pins from Gazetteer */}
-                  {WORLD_CITIES.map(city => {
+                  {WORLD_CITIES.map((city) => {
                     const pt = projection([city.longitude, city.latitude]);
                     if (!pt) return null;
                     const [cx, cy] = pt;
@@ -613,7 +657,6 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                     const isBirth = profile.location.id === city.id;
                     const isNepal = city.country === 'Nepal';
 
-                    // Avoid label crowding in global view by showing major cities + Nepal hubs
                     const showLabel =
                       region !== 'WORLD' ||
                       isSelected ||
@@ -630,15 +673,13 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                         'au-sydney',
                         'ae-dubai',
                         'sg-singapore',
-                        'br-saopaulo',
-                        'eg-cairo',
                       ].includes(city.id);
 
                     return (
                       <g
                         key={city.id}
                         className="cursor-pointer"
-                        onClick={ev => {
+                        onClick={(ev) => {
                           ev.stopPropagation();
                           setActiveCity(city);
                         }}
@@ -649,7 +690,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                             cy={cy}
                             r={9}
                             fill="none"
-                            stroke="var(--brass)"
+                            stroke="var(--accent)"
                             strokeWidth={1.8}
                           />
                         )}
@@ -659,7 +700,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                           r={isSelected ? 4.8 : isBirth ? 4.2 : isNepal ? 3.4 : 2.8}
                           fill={
                             isSelected
-                              ? 'var(--brass)'
+                              ? 'var(--accent)'
                               : isBirth
                               ? 'var(--crimson)'
                               : isNepal
@@ -673,7 +714,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                           <text
                             x={cx + 6}
                             y={cy + 3}
-                            fill={isSelected ? 'var(--brass)' : 'var(--text)'}
+                            fill={isSelected ? 'var(--accent)' : 'var(--text)'}
                             fontSize={isSelected ? '10.5' : '9'}
                             fontWeight={isSelected || isBirth ? '700' : '500'}
                             style={{
@@ -690,116 +731,84 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                       </g>
                     );
                   })}
-
-                  {/* Active Custom Pin if not in WORLD_CITIES */}
-                  {!WORLD_CITIES.some(c => c.id === activeCity.id) && (() => {
-                    const pt = projection([activeCity.longitude, activeCity.latitude]);
-                    if (!pt) return null;
-                    return (
-                      <g>
-                        <circle cx={pt[0]} cy={pt[1]} r={9} fill="none" stroke="var(--crimson)" strokeWidth={2} />
-                        <circle cx={pt[0]} cy={pt[1]} r={4.5} fill="var(--crimson)" stroke="var(--surface)" strokeWidth={1.2} />
-                        <text
-                          x={pt[0] + 8}
-                          y={pt[1] + 3}
-                          fill="var(--crimson)"
-                          fontSize="10"
-                          fontWeight="700"
-                          style={{ paintOrder: 'stroke', stroke: 'var(--surface)', strokeWidth: '2.5px' }}
-                        >
-                          {activeCity.name.split('(')[0].trim()}
-                        </text>
-                      </g>
-                    );
-                  })()}
                 </g>
               </svg>
 
               <div className="px-3.5 py-2 bg-[var(--surface)] border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-secondary)]">
                 <div className="flex items-center gap-2">
-                  <Info className="w-3.5 h-3.5 text-[var(--brass)]" />
-                  <span>
-                    <strong>Interactive Map Tip:</strong> Click any city pin or click anywhere on the continents/oceans to inspect exact planetary lines at that coordinate.
-                  </span>
+                  <Info className="w-3.5 h-3.5 text-[var(--accent)]" />
+                  <span>Click any city pin or map coordinate to inspect exact line distances.</span>
                 </div>
                 <span className="font-mono text-[var(--text-muted)]">
-                  Active Pin: {activeCity.latitude.toFixed(2)}°N, {activeCity.longitude.toFixed(2)}°E
+                  Pin: {activeCity.latitude.toFixed(2)}°N, {activeCity.longitude.toFixed(2)}°E
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Live Selected Location Relocation Dossier (4 cols) */}
+          {/* Right Pin Inspector */}
           <div className="lg:col-span-4 obs-panel p-4 space-y-4">
             <div className="flex items-start justify-between gap-2 border-b border-[var(--border)] pb-3">
               <div>
-                <span className="text-xs font-mono uppercase font-semibold text-[var(--brass)]">
-                  {activeEvaluation.primaryTag}
-                </span>
-                <h3 className="text-xl font-serif font-bold text-[var(--text)] mt-0.5">
-                  {activeCity.name}
-                </h3>
+                <StatusBadge tone="info" label={activeEvaluation.primaryTag} />
+                <h2 className="text-lg font-bold text-[var(--text)] mt-1.5">{activeCity.name}</h2>
                 <p className="text-xs text-[var(--text-muted)] font-mono">
-                  {activeCity.country} • {activeCity.latitude.toFixed(2)}°N, {activeCity.longitude.toFixed(2)}°E • {activeCity.elevationMeters}m
+                  {activeCity.country} • {activeCity.elevationMeters}m
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-xs text-[var(--text-muted)]">Livability</div>
-                <div className="text-2xl font-serif font-bold text-[var(--brass)]">
+                <div className="text-xs text-[var(--text-muted)]">Overall</div>
+                <div className="text-2xl font-bold text-[var(--accent)] tabular-nums">
                   {activeEvaluation.overallScore}%
                 </div>
               </div>
             </div>
 
-            {/* 3 Domain Sub-Scores */}
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="obs-card p-2">
-                <div className="text-[var(--text-muted)]">Career (MC)</div>
-                <div className="font-mono font-bold text-sm text-[var(--brass)] mt-0.5">
+              <div className="obs-card p-2.5">
+                <div className="text-[var(--text-muted)]">Career</div>
+                <div className="font-mono font-bold text-sm text-[var(--accent)] mt-0.5 tabular-nums">
                   {activeEvaluation.careerScore}%
                 </div>
               </div>
-              <div className="obs-card p-2">
-                <div className="text-[var(--text-muted)]">Home (IC)</div>
-                <div className="font-mono font-bold text-sm text-[var(--sage)] mt-0.5">
+              <div className="obs-card p-2.5">
+                <div className="text-[var(--text-muted)]">Home</div>
+                <div className="font-mono font-bold text-sm text-[var(--sage)] mt-0.5 tabular-nums">
                   {activeEvaluation.sanctuaryScore}%
                 </div>
               </div>
-              <div className="obs-card p-2">
-                <div className="text-[var(--text-muted)]">Love (DSC)</div>
-                <div className="font-mono font-bold text-sm text-[var(--crimson)] mt-0.5">
+              <div className="obs-card p-2.5">
+                <div className="text-[var(--text-muted)]">Love</div>
+                <div className="font-mono font-bold text-sm text-[var(--crimson)] mt-0.5 tabular-nums">
                   {activeEvaluation.loveScore}%
                 </div>
               </div>
             </div>
 
-            {/* Active Planetary Lines Near This Location */}
-            <div className="space-y-2.5">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-                Nearest Planetary Lines (Within ±9.5° Orb)
+            <div className="space-y-2">
+              <div className="text-xs font-bold text-[var(--text)]">
+                Nearest Planetary Lines (±9.5° Orb)
               </div>
 
               {activeEvaluation.influences.length === 0 ? (
-                <div className="obs-card p-3 text-xs text-[var(--text-secondary)]">
-                  No major angular lines cross within 850 km of {activeCity.name}. In Jim Lewis’s Astro*Carto*Graphy tradition, "clear-sky" zones offer peaceful autonomy without intense planetary pressure.
+                <div className="obs-card p-3 text-xs text-[var(--text-secondary)] leading-relaxed">
+                  No major angular lines cross within 850 km of {activeCity.name}. Clear-sky zones
+                  support steady autonomy without acute angular pressure.
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
                   {activeEvaluation.influences.slice(0, 4).map((inf, idx) => (
                     <div key={idx} className="obs-card p-3 text-xs space-y-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="font-bold text-[var(--text)] flex items-center gap-1.5">
                           <span style={{ color: inf.color }} className="text-sm">
                             {inf.symbol}
                           </span>
                           <span>{inf.title}</span>
                         </span>
-                        <span className="font-mono text-[var(--brass)] font-semibold">
-                          {inf.distanceKm} km ({inf.orbDegrees}°)
+                        <span className="font-mono text-[var(--accent)] font-semibold">
+                          {inf.distanceKm} km
                         </span>
-                      </div>
-                      <div className="text-xs text-[var(--text-muted)] font-mono">
-                        Domain: {inf.domain} • Natal Dignity: {inf.planetDignity}
                       </div>
                       <p className="text-[var(--text-secondary)] leading-relaxed">{inf.summary}</p>
                     </div>
@@ -808,12 +817,11 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
               )}
             </div>
 
-            {/* Search Any Custom City Worldwide to Test Relocation */}
             <div className="pt-2 border-t border-[var(--border)]">
               <GlobalLocationPicker
-                label="Test Any City Worldwide or in Nepal for Relocation"
+                label="Search any city worldwide"
                 value={activeCity}
-                onChange={loc => {
+                onChange={(loc) => {
                   setCustomCity(loc);
                   setActiveCity(loc);
                 }}
@@ -823,50 +831,44 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
         </div>
       </div>
 
-      {/* Section 2: "Where Should I Live & Thrive?" — Ranked Recommendations */}
-      <div className="obs-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-5 border-b border-[var(--border)] pb-4">
+      {/* ==================== ROW 3: RANKED RELOCATION RECOMMENDATIONS ==================== */}
+      <div className="obs-card p-5 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--brass)]">
-              Personalized Relocation Recommendation Engine • Jim Lewis &amp; BPHS Digbala Synthesis
-            </span>
-            <h3 className="text-xl font-serif font-bold text-[var(--text)] mt-0.5">
-              Recommended Places to Live, Build Wealth, Find Love &amp; Cultivate Peace
-            </h3>
+            <h2 className="text-lg font-bold text-[var(--text)]">
+              Ranked Relocation Recommendations
+            </h2>
             <p className="text-xs text-[var(--text-secondary)]">
-              Ranked across 42 global &amp; Nepal observatories based on your exact natal planetary lines and dignities.
+              Evaluated across global cities and all 7 provinces of Nepal from your natal angles
             </p>
           </div>
 
-          {/* Category Filter Buttons */}
-          <div className="flex flex-wrap gap-1.5 text-xs">
-            {[
-              { id: 'ALL_BEST' as const, label: 'Top Overall to Live', icon: <Sparkles className="w-3.5 h-3.5" /> },
-              { id: 'CAREER' as const, label: 'Career & Wealth (MC/ASC)', icon: <Briefcase className="w-3.5 h-3.5" /> },
-              { id: 'SANCTUARY' as const, label: 'Home & Peace (IC)', icon: <Home className="w-3.5 h-3.5" /> },
-              { id: 'LOVE' as const, label: 'Love & Marriage (DSC)', icon: <Heart className="w-3.5 h-3.5" /> },
-              { id: 'NEPAL' as const, label: 'Nepal 7-Province Guide', icon: <Mountain className="w-3.5 h-3.5" /> },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setRecFilter(tab.id)}
-                className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-medium transition ${
-                  recFilter === tab.id
-                    ? 'obs-badge-brass font-bold shadow-sm'
-                    : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
-                }`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          <SegmentedTabs
+            ariaLabel="Relocation goal filter"
+            value={recFilter}
+            onChange={setRecFilter}
+            items={[
+              { id: 'ALL_BEST', label: 'Top Overall' },
+              { id: 'CAREER', label: 'Career & Wealth' },
+              { id: 'SANCTUARY', label: 'Home & Peace' },
+              { id: 'LOVE', label: 'Love & Union' },
+              { id: 'NEPAL', label: 'Nepal Cities' },
+            ]}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRecommendations.map((item, rank) => {
             const isSel = activeCity.id === item.city.id;
             const topInf = item.influences[0];
+            const scoreVal =
+              recFilter === 'CAREER'
+                ? item.careerScore
+                : recFilter === 'SANCTUARY'
+                ? item.sanctuaryScore
+                : recFilter === 'LOVE'
+                ? item.loveScore
+                : item.overallScore;
             return (
               <div
                 key={item.city.id}
@@ -874,39 +876,34 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                   setActiveCity(item.city);
                   if (item.city.country === 'Nepal') setRegion('NEPAL_ASIA');
                 }}
-                className={`p-4 rounded-lg border transition cursor-pointer flex flex-col justify-between ${
+                className={`p-4 rounded-lg border transition cursor-pointer flex flex-col justify-between gap-3 ${
                   isSel
-                    ? 'obs-card border-2 border-[var(--brass)] shadow-sm'
-                    : 'obs-panel hover:border-[var(--brass)]'
+                    ? 'border-[var(--accent)] bg-[var(--accent-bg)]/40'
+                    : 'border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--accent)]'
                 }`}
               >
-                <div>
+                <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="text-xs font-mono text-[var(--brass)] font-semibold">
+                      <span className="text-xs font-mono text-[var(--accent)] font-semibold">
                         #{rank + 1} • {item.primaryTag}
                       </span>
-                      <h4 className="text-lg font-serif font-bold text-[var(--text)] mt-0.5 flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-[var(--brass)] shrink-0" />
+                      <h3 className="text-base font-bold text-[var(--text)] mt-0.5 flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-[var(--accent)] shrink-0" />
                         <span>{item.city.name}</span>
-                      </h4>
+                      </h3>
                       <p className="text-xs text-[var(--text-muted)]">
-                        {item.city.state}, {item.city.country} ({item.city.elevationMeters}m)
+                        {item.city.state}, {item.city.country}
                       </p>
                     </div>
-                    <div className="px-2.5 py-1 rounded obs-badge-brass font-mono font-bold text-sm">
-                      {recFilter === 'CAREER'
-                        ? `${item.careerScore}%`
-                        : recFilter === 'SANCTUARY'
-                        ? `${item.sanctuaryScore}%`
-                        : recFilter === 'LOVE'
-                        ? `${item.loveScore}%`
-                        : `${item.overallScore}%`}
-                    </div>
+                    <StatusBadge
+                      tone={scoreVal >= 75 ? 'optimal' : 'favorable'}
+                      label={`${scoreVal}%`}
+                    />
                   </div>
 
                   {topInf && (
-                    <div className="mt-3 px-2.5 py-1.5 rounded bg-[var(--surface)] border border-[var(--border)] flex items-center justify-between text-xs">
+                    <div className="px-2.5 py-1.5 rounded bg-[var(--surface)] border border-[var(--border)] flex items-center justify-between text-xs">
                       <span className="font-semibold text-[var(--text)]">
                         <span style={{ color: topInf.color }} className="mr-1">
                           {topInf.symbol}
@@ -919,17 +916,17 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                     </div>
                   )}
 
-                  <p className="text-xs text-[var(--text-secondary)] mt-2.5 leading-relaxed">
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     {item.headlineVerdict}
                   </p>
                 </div>
 
-                <div className="mt-3 pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs font-mono text-[var(--text-muted)]">
+                <div className="pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs font-mono text-[var(--text-muted)]">
                   <span>
-                    Career {item.careerScore}% • Home {item.sanctuaryScore}% • Love {item.loveScore}%
+                    C {item.careerScore}% • H {item.sanctuaryScore}% • L {item.loveScore}%
                   </span>
-                  <span className="text-[var(--brass)] font-sans font-semibold">
-                    View on Map &rarr;
+                  <span className="font-sans font-semibold text-[var(--accent)]">
+                    Select →
                   </span>
                 </div>
               </div>
