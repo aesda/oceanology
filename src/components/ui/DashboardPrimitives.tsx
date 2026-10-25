@@ -662,14 +662,15 @@ export const WorkspacePageHeader: React.FC<{
   eyebrow?: React.ReactNode;
   actions?: React.ReactNode;
 }> = ({ title, subtitle, eyebrow, actions }) => (
-  <div className="flex flex-wrap items-start justify-between gap-4 pb-1 min-w-0">
+  <div className="flex flex-wrap items-start justify-between gap-4 pb-2 min-w-0">
     <div className="space-y-2 max-w-3xl min-w-0">
       {eyebrow && (
-        <div className="inline-flex items-center gap-2 px-3 py-1 max-w-full rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold border border-[var(--border-strong)]">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 max-w-full rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-medium tracking-wide border border-[var(--border-strong)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0 no-print" />
           {eyebrow}
         </div>
       )}
-      <h1 className="font-scDisplay text-2xl sm:text-[28px] font-bold tracking-[-0.03em] text-[var(--text)] leading-tight">
+      <h1 className="font-scDisplay text-2xl sm:text-[32px] font-semibold tracking-[-0.035em] text-[var(--text)] leading-[1.12]">
         {title}
       </h1>
       {subtitle && (

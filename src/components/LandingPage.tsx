@@ -432,7 +432,7 @@ export const LandingPage: React.FC<Props> = ({
 
   return (
     <div
-      className={`sc-landing min-h-screen flex flex-col relative z-10 ${
+      className={`sc-landing sc-view-enter min-h-screen flex flex-col relative z-10 ${
         floralMotion ? '' : 'sc-motion-off'
       }`}
     >
@@ -770,8 +770,8 @@ export const LandingPage: React.FC<Props> = ({
                   </div>
                   <div className="text-xs sm:text-[13px] text-white/65">
                     {t(
-                      'Plain-English reading + 17-page printable PDF',
-                      'सरल नेपाली व्याख्या + १७-पृष्ठ प्रिन्टयोग्य PDF'
+                      'Plain-English reading + 19-page printable PDF',
+                      'सरल नेपाली व्याख्या + १९-पृष्ठ प्रिन्टयोग्य PDF'
                     )}
                   </div>
                 </div>

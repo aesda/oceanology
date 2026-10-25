@@ -134,10 +134,11 @@ html.dark select option {
   position: relative;
   background-color: var(--bg);
   background-image: radial-gradient(
-    ellipse 72% 40% at 58% 0%,
-    rgba(109, 40, 217, 0.065) 0%,
-    rgba(250, 249, 253, 0) 72%
+    ellipse 76% 420px at 50% -20px,
+    rgba(109, 40, 217, 0.085) 0%,
+    rgba(250, 249, 253, 0) 74%
   );
+  overflow-x: clip;
 }
 
 html.dark .sc-workspace-shell {
@@ -153,15 +154,16 @@ html.dark .sc-workspace-shell::before {
   z-index: 0;
   background:
     radial-gradient(
-      ellipse 72% 46% at 56% -4%,
-      rgba(123, 92, 224, 0.24) 0%,
-      rgba(71, 0, 214, 0.12) 42%,
-      rgba(12, 11, 12, 0) 76%
+      ellipse 70% 52% at 50% 6%,
+      rgba(123, 92, 224, 0.46) 0%,
+      rgba(71, 0, 214, 0.28) 38%,
+      rgba(25, 14, 52, 0.14) 66%,
+      rgba(12, 11, 12, 0) 100%
     ),
     radial-gradient(
-      circle at 86% 18%,
-      rgba(237, 197, 252, 0.08) 0%,
-      rgba(12, 11, 12, 0) 44%
+      circle at 50% 24%,
+      rgba(237, 197, 252, 0.14) 0%,
+      rgba(12, 11, 12, 0) 48%
     );
 }
 
@@ -171,15 +173,118 @@ html.dark .sc-workspace-shell::after {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.38;
+  opacity: 0.62;
   background-image:
-    radial-gradient(1.3px 1.3px at 34px 52px, rgba(255, 255, 255, 0.72), transparent 100%),
-    radial-gradient(1px 1px at 118px 164px, rgba(237, 197, 252, 0.62), transparent 100%),
-    radial-gradient(1.6px 1.6px at 226px 78px, rgba(255, 255, 255, 0.78), transparent 100%),
-    radial-gradient(1.1px 1.1px at 312px 238px, rgba(151, 128, 255, 0.68), transparent 100%),
-    radial-gradient(1.3px 1.3px at 388px 134px, rgba(255, 255, 255, 0.54), transparent 100%),
-    radial-gradient(1px 1px at 84px 318px, rgba(255, 255, 255, 0.46), transparent 100%);
-  background-size: 440px 400px;
+    radial-gradient(1.4px 1.4px at 28px 42px, rgba(255, 255, 255, 0.78), transparent 100%),
+    radial-gradient(1px 1px at 96px 138px, rgba(237, 197, 252, 0.65), transparent 100%),
+    radial-gradient(1.8px 1.8px at 188px 66px, rgba(255, 255, 255, 0.85), transparent 100%),
+    radial-gradient(1.1px 1.1px at 264px 212px, rgba(151, 128, 255, 0.72), transparent 100%),
+    radial-gradient(1.5px 1.5px at 322px 118px, rgba(255, 255, 255, 0.62), transparent 100%),
+    radial-gradient(1px 1px at 62px 278px, rgba(255, 255, 255, 0.52), transparent 100%),
+    radial-gradient(1.6px 1.6px at 218px 310px, rgba(237, 197, 252, 0.74), transparent 100%),
+    radial-gradient(1.1px 1.1px at 348px 294px, rgba(255, 255, 255, 0.48), transparent 100%);
+  background-size: 380px 360px;
+}
+
+/* Unified Floating Center-Pill Navbar & Module Dock (Matches Landing .sc-nav-pill 1:1 in Dark Mode) */
+.sc-workspace-pill {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid #DDD4F6;
+  box-shadow: 0 12px 34px -10px rgba(91, 33, 182, 0.14);
+}
+
+html.dark .sc-workspace-pill {
+  background: rgba(255, 255, 255, 0.075);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.50);
+}
+
+.sc-module-dock {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid #E2DAF6;
+  box-shadow: 0 10px 28px -12px rgba(91, 33, 182, 0.11);
+}
+
+html.dark .sc-module-dock {
+  background: linear-gradient(180deg, rgba(32, 28, 44, 0.82) 0%, rgba(18, 16, 26, 0.88) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(221, 181, 252, 0.22);
+  box-shadow:
+    0 20px 52px -14px rgba(0, 0, 0, 0.68),
+    0 0 32px -12px rgba(123, 92, 224, 0.24);
+}
+
+.sc-module-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sc-module-pill:hover {
+  background-color: var(--bg-elevated);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+html.dark .sc-module-pill {
+  color: rgba(248, 247, 252, 0.78);
+}
+
+html.dark .sc-module-pill:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(221, 181, 252, 0.28);
+  color: #FFFFFF;
+}
+
+.sc-module-pill-active {
+  background-color: var(--accent-bg);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  font-weight: 600;
+}
+
+html.dark .sc-module-pill-active {
+  background: linear-gradient(180deg, rgba(151, 128, 255, 0.30) 0%, rgba(123, 92, 224, 0.18) 100%);
+  border-color: rgba(237, 197, 252, 0.58);
+  color: #FFFFFF;
+  box-shadow:
+    0 0 22px rgba(151, 128, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+@keyframes scViewEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.994);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sc-view-enter {
+  animation: scViewEnter 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sc-motion-off .sc-view-enter {
+  animation: none !important;
 }
 
 .obs-card,
@@ -845,7 +950,8 @@ html.dark .floral-banner-glow {
   .animate-flower-sway,
   .animate-live-halo,
   .sc-animate-float,
-  .sc-animate-orbit {
+  .sc-animate-orbit,
+  .sc-view-enter {
     animation: none !important;
   }
 }
@@ -1138,10 +1244,19 @@ html.dark .floral-banner-glow {
   header,
   aside,
   nav,
+  footer.no-print,
   .no-print,
+  .sc-workspace-pill,
+  .sc-module-dock,
   .sc-workspace-shell::before,
   .sc-workspace-shell::after {
     display: none !important;
+  }
+
+  .sc-view-enter {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
   }
 
   html,

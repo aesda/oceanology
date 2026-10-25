@@ -253,23 +253,35 @@ export const PersonalReportReader: React.FC<Props> = ({
   const isFull = readingMode === 'FULL';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-14 animate-bloom-in">
+    <div className="max-w-[1180px] mx-auto space-y-8 pb-14">
       {/* ==================== TOP PRODUCT DOSSIER HERO & SCORECARD ==================== */}
-      <section className="sc-hero-card p-5 sm:p-8 space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2 min-w-0">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] text-[var(--accent)] text-xs font-semibold">
-              <SeedOfLifeMark size={16} tone="adaptive" />
+      <section className="sc-hero-card relative overflow-hidden p-5 sm:p-8 lg:p-9 space-y-6">
+        <div
+          aria-hidden="true"
+          className="no-print pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[560px] h-[220px] rounded-full bg-[#7B5CE0]/20 blur-3xl"
+        />
+        <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2.5 min-w-0">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] text-[var(--accent)] text-xs font-medium tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse no-print" />
+              <SeedOfLifeMark size={15} tone="adaptive" />
               <span>
                 {t(
-                  'Comprehensive Personal Life Dossier • Classical Jyotish + Numerology',
-                  'बृहत् व्यक्तिगत जीवन फलादेश • शास्त्रीय ज्योतिष र अंक विज्ञान'
+                  'Comprehensive Personal Life Dossier • 14 Classical Canons + Numerology',
+                  'बृहत् व्यक्तिगत जीवन फलादेश • १४ शास्त्रीय ग्रन्थ र अंक विज्ञान'
                 )}
               </span>
             </div>
 
-            <h1 className="font-scDisplay text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-[-0.03em] leading-tight">
-              {profile.firstName} {profile.middleName} {profile.lastName}
+            <h1 className="font-scDisplay text-3xl sm:text-4xl font-semibold text-[var(--text)] tracking-[-0.04em] leading-[1.08]">
+              <span>
+                {profile.firstName} {profile.middleName} {profile.lastName}
+              </span>
+              <span className="block sm:inline sm:ml-3 font-scSerif italic font-normal text-lg sm:text-2xl text-[var(--accent)] tracking-normal">
+                {lang === 'ne'
+                  ? `— ${trSign(natalChart.ascendant.signName, 'ne')} लग्न, ${trNakshatra(moonPlanet.nakshatraName, 'ne')}`
+                  : `— ${natalChart.ascendant.signName} Rising, ${moonPlanet.nakshatraName}`}
+              </span>
             </h1>
 
             <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed tabular-nums">
@@ -312,7 +324,7 @@ export const PersonalReportReader: React.FC<Props> = ({
           <button
             type="button"
             onClick={onEditProfile}
-            className="btn-editorial-secondary inline-flex items-center gap-2 text-sm no-print shrink-0"
+            className="btn-editorial-secondary rounded-full inline-flex items-center gap-2 text-sm no-print shrink-0"
           >
             <Sliders className="w-4 h-4 text-[var(--accent)]" />
             <span>{t('Change Birth Details', 'जन्म विवरण सच्याउनुहोस्')}</span>
@@ -503,7 +515,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               <a
                 key={ch.href}
                 href={ch.href}
-                className="px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--accent-bg)] hover:text-[var(--accent)] text-[var(--text-secondary)] font-medium transition"
+                className="ui-chip text-xs sm:text-[13px]"
               >
                 {ch.label}
               </a>

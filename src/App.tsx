@@ -128,7 +128,8 @@ function AppWorkspace() {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
-        return window.localStorage.getItem('oceanology_dark_mode') !== '0';
+        window.localStorage.removeItem('oceanology_dark_mode');
+        return window.localStorage.getItem('oceanology_cosmic_theme_v2') !== 'daylight';
       } catch {
         return true;
       }
@@ -178,7 +179,8 @@ function AppWorkspace() {
     if (darkMode) root.classList.add('dark');
     else root.classList.remove('dark');
     try {
-      window.localStorage.setItem('oceanology_dark_mode', darkMode ? '1' : '0');
+      window.localStorage.removeItem('oceanology_dark_mode');
+      window.localStorage.setItem('oceanology_cosmic_theme_v2', darkMode ? 'cosmic' : 'daylight');
     } catch {
       // ignore storage errors
     }
@@ -500,13 +502,13 @@ function AppWorkspace() {
     },
   ];
 
+  const allWorkspaceModules = sidebarGroups.flatMap((g) => g.items);
   const currentViewLabel =
-    sidebarGroups.flatMap((g) => g.items).find((it) => it.isActive)?.label ||
-    t('Overview', 'सारांश');
+    allWorkspaceModules.find((it) => it.isActive)?.label || t('Overview', 'सारांश');
 
-  const SidebarNavContent = () => (
+  const MobileDrawerNavContent = () => (
     <div className="flex flex-col h-full justify-between p-4">
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Brand Header — Unified Superconscious Seed-of-Life & Wordmark */}
         <div className="flex items-center justify-between px-2 pt-1">
           <button
@@ -531,14 +533,14 @@ function AppWorkspace() {
             type="button"
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Close navigation menu"
-            className="lg:hidden ui-toolbar-icon-btn"
+            className="ui-toolbar-icon-btn"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Mobile Quick Language & Reading Comfort Controls inside Drawer */}
-        <div className="lg:hidden px-2 space-y-2">
+        <div className="px-2 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-[var(--text-muted)]">
               {t('Language', 'भाषा छनोट')}
@@ -558,7 +560,7 @@ function AppWorkspace() {
                 size={15}
                 animated={floralMotion}
               />
-              <span>{t('Flower Bloom', 'पुष्प गति')}</span>
+              <span>{t('Cosmic Motion', 'कस्मिक गति')}</span>
             </button>
             <button
               type="button"
@@ -572,10 +574,10 @@ function AppWorkspace() {
         </div>
 
         {/* Grouped Navigation Links */}
-        <nav className="space-y-5" aria-label="Workspace modules">
+        <nav data-workspace-nav="drawer" className="space-y-4" aria-label="Mobile workspace modules">
           {sidebarGroups.map((group) => (
             <div key={group.groupLabel} className="space-y-1">
-              <div className="px-2.5 text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              <div className="px-2.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                 {group.groupLabel}
               </div>
               {group.items.map((item) => (
@@ -583,9 +585,9 @@ function AppWorkspace() {
                   key={item.key}
                   type="button"
                   onClick={item.onClick}
-                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-xl text-[13.5px] font-medium border transition ${
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-[13.5px] font-medium border transition ${
                     item.isActive
-                      ? 'bg-[var(--accent-bg)] text-[var(--accent)] border-[var(--border-strong)] font-semibold shadow-[0_0_20px_rgba(123,92,224,0.16)]'
+                      ? 'bg-[var(--accent-bg)] text-[var(--accent)] border-[var(--border-strong)] font-semibold shadow-[0_0_20px_rgba(123,92,224,0.18)]'
                       : 'border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]'
                   }`}
                 >
@@ -605,12 +607,15 @@ function AppWorkspace() {
         </nav>
       </div>
 
-      {/* Sidebar Bottom Natal Card + PDF Quick Download + Back */}
+      {/* Drawer Bottom Natal Card + PDF Quick Download + Back */}
       <div className="space-y-2.5 pt-4 border-t border-[var(--border)]">
         <button
           type="button"
-          onClick={() => setShowProfileModal(true)}
-          className="w-full p-3.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--accent)] text-left transition space-y-1"
+          onClick={() => {
+            setMobileMenuOpen(false);
+            setShowProfileModal(true);
+          }}
+          className="w-full p-3.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--accent)] text-left transition space-y-1"
         >
           <div className="flex items-center justify-between text-sm">
             <span className="font-bold text-[var(--text)] truncate">
@@ -629,9 +634,9 @@ function AppWorkspace() {
           type="button"
           disabled={pdfExporting}
           onClick={handleGlobalDownloadPdf}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg btn-editorial-secondary text-sm disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl btn-editorial-primary text-sm disabled:opacity-60"
         >
-          <Download className="w-4 h-4 text-[var(--accent)]" />
+          <Download className="w-4 h-4" />
           <span>
             {pdfExporting
               ? t('Building PDF…', 'PDF बन्दैछ…')
@@ -642,112 +647,114 @@ function AppWorkspace() {
         <button
           type="button"
           onClick={() => handleNavigate('HOME')}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>{t('Back to Home Page', 'मुख्य पृष्ठमा फर्कनुहोस्')}</span>
+          <span>{t('Back to Cosmic Home', 'मुख्य पृष्ठमा फर्कनुहोस्')}</span>
         </button>
       </div>
     </div>
   );
 
   return (
-    <div className="sc-workspace-shell min-h-screen flex text-[var(--text)] relative">
+    <div
+      className={`sc-workspace-shell min-h-screen flex flex-col text-[var(--text)] relative ${
+        floralMotion ? '' : 'sc-motion-off'
+      }`}
+    >
       <FloatingPetalsBackdrop enabled={floralMotion && !darkMode} />
-      <InteractivePetalBurst enabled={floralMotion && !darkMode} />
+      <InteractivePetalBurst enabled={floralMotion} />
 
-      {/* ==================== DESKTOP LEFT SIDEBAR ==================== */}
-      <aside className="hidden lg:block w-[280px] shrink-0 border-r border-[var(--border)] bg-[var(--bg-elevated)]/88 backdrop-blur-xl sticky top-0 h-screen overflow-y-auto z-20">
-        <SidebarNavContent />
-      </aside>
-
-      {/* ==================== MOBILE SLIDE-OVER SIDEBAR ==================== */}
+      {/* ==================== MOBILE / COMPACT SLIDE-OVER COSMIC DRAWER ==================== */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex">
+        <div className="fixed inset-0 z-50 flex no-print">
           <div
-            className="fixed inset-0 bg-black/65 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className="relative w-[276px] max-w-[85vw] bg-[var(--bg-elevated)] border-r border-[var(--border)] h-full overflow-y-auto z-10">
-            <SidebarNavContent />
+          <aside className="relative w-[290px] max-w-[86vw] bg-[var(--bg-elevated)]/95 backdrop-blur-2xl border-r border-[var(--border-strong)] h-full overflow-y-auto z-10 shadow-[0_24px_64px_rgba(0,0,0,0.75)]">
+            <MobileDrawerNavContent />
           </aside>
         </div>
       )}
 
-      {/* ==================== MAIN CONTENT COLUMN ==================== */}
-      <div className="flex-1 min-w-0 flex flex-col relative z-10">
-        {/* Sticky Global Context Topbar */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--bg)]/82 backdrop-blur-xl border-b border-[var(--border)] px-3.5 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      {/* ==================== FLOATING CENTER-PILL FROSTED GLASS NAVBAR (1:1 WITH LANDING) ==================== */}
+      <header className="sticky top-3 sm:top-5 z-40 px-3 sm:px-6 pointer-events-none no-print">
+        <div className="sc-workspace-pill pointer-events-auto max-w-[96vw] w-fit mx-auto rounded-2xl px-2.5 sm:px-4 py-2 flex items-center gap-2 sm:gap-3.5">
+          {/* Left: Mobile Drawer Button + Seed-of-Life Home Wordmark */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open navigation menu"
-              className="lg:hidden ui-toolbar-icon-btn shrink-0"
+              className="lg:hidden ui-toolbar-icon-btn w-[34px] h-[34px] rounded-xl shrink-0"
             >
               <Menu className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="font-scDisplay text-sm sm:text-base font-semibold tracking-[-0.02em] text-[var(--text)] truncate">
-                {currentViewLabel}
+            <button
+              type="button"
+              onClick={() => handleNavigate('HOME')}
+              className="flex items-center gap-2 text-left shrink-0 group"
+              aria-label="Back to Oceanology Cosmic Home"
+              title={t('Back to Cosmic Landing Page', 'मुख्य पृष्ठमा फर्कनुहोस्')}
+            >
+              <SeedOfLifeMark size={28} animated={floralMotion} tone="adaptive" />
+              <span className="hidden sm:inline font-scDisplay font-semibold text-base tracking-[-0.03em] text-[var(--text)] group-hover:text-[var(--accent)] transition">
+                oceanology
               </span>
-              <button
-                type="button"
-                onClick={() => handleNavigate('HORAI')}
-                title="Open Live 24-Petal Horai Sacred Clock"
-                className="hidden xl:inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] text-xs font-semibold text-[var(--text)] hover:border-[var(--accent)] transition tabular-nums whitespace-nowrap shrink-0"
-              >
-                <SacredFlowerIcon
-                  variety={panchangReport.activeHorai.sacredFlower.variety}
-                  primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
-                  secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
-                  size={15}
-                  animated={floralMotion}
-                />
-                <span>{activeHoraiDisp.horaiName}</span>
-                <span className="text-[var(--accent)] font-bold tabular-nums">
-                  • {panchangReport.activeHorai.minutesRemaining}
-                  {t('m', ' मि.')}
-                </span>
-              </button>
-              {isSampleProfile && (
-                <button
-                  type="button"
-                  onClick={() => setShowProfileModal(true)}
-                  className="hidden 2xl:inline-flex items-center gap-1.5 h-7 px-2.5 obs-badge-brass text-xs font-semibold hover:underline whitespace-nowrap shrink-0"
-                >
-                  <span>{t('Sample profile • Edit', 'नमूना विवरण • सच्याउनुहोस्')}</span>
-                </button>
-              )}
-            </div>
+              <span className="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] text-[11px] font-medium text-[var(--text-secondary)] group-hover:border-[var(--border-strong)] group-hover:text-[var(--text)] transition">
+                <ArrowLeft className="w-3 h-3" />
+                <span>{t('Home', 'गृह')}</span>
+              </span>
+            </button>
           </div>
 
-          {/* Right Global Controls — Identical 36px Toolbar Scale to LandingPage */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <LanguageSwitchButton />
+          {/* Center: Live Horai Pill + Birth Profile & Sydney Observatory Pill */}
+          <div className="hidden lg:flex items-center gap-1.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => handleNavigate('HORAI')}
+              title={t('Open Live 24-Petal Horai Sacred Clock', 'प्रत्यक्ष २४-घण्टा होरा चक्र खोल्नुहोस्')}
+              className="inline-flex items-center gap-1.5 h-[34px] px-3 rounded-xl bg-[var(--accent-bg)] border border-[var(--border-strong)] text-xs font-semibold text-[var(--text)] hover:border-[var(--accent)] transition tabular-nums whitespace-nowrap shrink-0"
+            >
+              <SacredFlowerIcon
+                variety={panchangReport.activeHorai.sacredFlower.variety}
+                primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
+                secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
+                size={15}
+                animated={floralMotion}
+              />
+              <span>{activeHoraiDisp.horaiName}</span>
+              <span className="text-[var(--accent)] font-bold tabular-nums">
+                • {panchangReport.activeHorai.minutesRemaining}
+                {t('m', ' मि.')}
+              </span>
+            </button>
 
             <button
               type="button"
               onClick={() => setShowProfileModal(true)}
               aria-label="Edit birth profile and location"
-              title="Edit birth profile and location"
-              className="ui-toolbar-btn px-2.5 sm:px-3"
+              title={t('Edit birth profile and location', 'जन्म विवरण र स्थान सच्याउनुहोस्')}
+              className="ui-toolbar-btn h-[34px] rounded-xl px-2.5 sm:px-3"
             >
               <MapPin className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
-              <span className="hidden xl:inline text-[var(--text)]">
+              <span className="text-[var(--text)]">
                 {profile.firstName} • {cityDisplay}
               </span>
-              <span className="hidden sm:inline xl:hidden text-[var(--text)]">
-                {profile.firstName}
-              </span>
+              {isSampleProfile && (
+                <span className="hidden 2xl:inline text-[11px] text-[var(--accent)] font-semibold">
+                  • {t('Edit', 'सच्याउनुहोस्')}
+                </span>
+              )}
             </button>
 
             <select
               aria-label="Zodiac Ayanamsha mode"
               value={ayanamsha}
               onChange={(e) => setAyanamsha(e.target.value as AyanamshaMode)}
-              className="hidden 2xl:block h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-xs font-semibold text-[var(--text-secondary)] hover:border-[var(--border-strong)] transition cursor-pointer"
+              className="hidden 2xl:block h-[34px] rounded-xl border border-[var(--border)] bg-[var(--surface)] px-2.5 text-xs font-semibold text-[var(--text-secondary)] hover:border-[var(--border-strong)] transition cursor-pointer"
             >
               <option value="LAHIRI">Lahiri Sidereal</option>
               <option value="TROPICAL">Tropical (0°)</option>
@@ -756,17 +763,22 @@ function AppWorkspace() {
               <option value="RAMAN">B.V. Raman</option>
               <option value="KHULLAR">KP Khullar</option>
             </select>
+          </div>
+
+          {/* Right: Bilingual Switch, Motion, Aa, Theme & White Pill PDF CTA */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <LanguageSwitchButton />
 
             <button
               type="button"
               onClick={() => setFloralMotion(!floralMotion)}
-              aria-label="Toggle sacred flower animations"
-              title={t('Toggle flower animations', 'पुष्प एनिमेसन अन/अफ')}
-              className={`hidden md:inline-flex ui-toolbar-icon-btn ${
+              aria-label="Toggle cosmic orbital motion"
+              title={t('Toggle cosmic animations', 'कस्मिक एनिमेसन अन/अफ')}
+              className={`hidden xl:inline-flex ui-toolbar-icon-btn w-[34px] h-[34px] rounded-xl ${
                 floralMotion ? 'ui-toolbar-btn-active' : ''
               }`}
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -774,7 +786,7 @@ function AppWorkspace() {
               onClick={() => setLargeText(!largeText)}
               aria-label="Toggle larger text size"
               title={t('Toggle larger reading text', 'ठूलो अक्षर आकार')}
-              className={`hidden md:inline-flex ui-toolbar-btn px-2.5 ${
+              className={`hidden md:inline-flex ui-toolbar-btn h-[34px] rounded-xl px-2.5 ${
                 largeText ? 'ui-toolbar-btn-active' : ''
               }`}
             >
@@ -785,10 +797,10 @@ function AppWorkspace() {
               type="button"
               onClick={() => setDarkMode(!darkMode)}
               aria-label="Toggle color theme"
-              title="Switch light and dark theme"
-              className="ui-toolbar-icon-btn"
+              title={t('Switch Cosmic Dark and Daylight reading theme', 'डार्क र लाइट मोड बदल्नुहोस्')}
+              className="ui-toolbar-icon-btn w-[34px] h-[34px] rounded-xl"
             >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             </button>
 
             <button
@@ -796,7 +808,7 @@ function AppWorkspace() {
               disabled={pdfExporting}
               onClick={handleGlobalDownloadPdf}
               aria-label="Download PDF Report"
-              className="ui-toolbar-cta px-2.5 sm:px-3.5 disabled:opacity-60"
+              className="ui-toolbar-cta h-[34px] rounded-xl px-2.5 sm:px-3.5 disabled:opacity-60"
             >
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">
@@ -804,10 +816,74 @@ function AppWorkspace() {
               </span>
             </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Workspace Page Body */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1360px] w-full mx-auto">
+      {/* ==================== CENTERED FLOATING COSMIC MODULE DOCK ==================== */}
+      <div className="hidden lg:block px-4 sm:px-6 pt-3.5 relative z-20 no-print">
+        <nav
+          data-workspace-nav="desktop"
+          aria-label="Workspace modules"
+          className="sc-module-dock max-w-[1180px] mx-auto rounded-2xl p-2 flex flex-wrap items-center justify-center gap-1.5"
+        >
+          {allWorkspaceModules.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={item.onClick}
+              aria-current={item.isActive ? 'page' : undefined}
+              className={`sc-module-pill ${item.isActive ? 'sc-module-pill-active' : ''}`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+              {item.badgeText && (
+                <span className="px-1.5 py-0.5 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] text-[10px] font-semibold text-[var(--accent)] leading-none">
+                  {item.badgeText}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Compact Mobile / Tablet Active Module Switcher Pill */}
+      <div className="lg:hidden px-3 sm:px-6 pt-2.5 relative z-20 no-print">
+        <div className="sc-module-dock max-w-[96vw] mx-auto rounded-2xl px-3 py-2 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => handleNavigate('HOME')}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text)] shrink-0"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>{t('Home', 'गृह')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowProfileModal(true)}
+            className="inline-flex items-center gap-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)] truncate"
+          >
+            <MapPin className="w-3 h-3 text-[var(--accent)] shrink-0" />
+            <span className="truncate">{cityDisplay}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-bg)] border border-[var(--border-strong)] text-xs font-semibold text-[var(--accent)] min-w-0 max-w-[56%]"
+          >
+            <span className="truncate">{currentViewLabel}</span>
+            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+          </button>
+        </div>
+      </div>
+
+      {/* ==================== CHOREOGRAPHED CENTERED COSMIC STAGE ==================== */}
+      <div className="flex-1 min-w-0 flex flex-col relative z-10">
+        <main
+          key={`${activeDest}-${studioTab}`}
+          className="sc-view-enter flex-1 px-4 sm:px-6 lg:px-8 pt-5 sm:pt-7 pb-10 max-w-[1240px] w-full mx-auto"
+        >
           {/* ==================== ROUTE: EASY PERSONAL REPORT & PDF ==================== */}
           {activeDest === 'FULL_REPORT' && (
             <PersonalReportReader
@@ -2070,6 +2146,39 @@ function AppWorkspace() {
             </>
           )}
         </main>
+
+        <footer className="no-print px-4 sm:px-6 pb-8 pt-2 max-w-[1240px] w-full mx-auto">
+          <div className="sc-module-dock rounded-2xl px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
+            <button
+              type="button"
+              onClick={() => handleNavigate('HOME')}
+              className="inline-flex items-center gap-2 font-medium text-[var(--text-secondary)] hover:text-[var(--text)] transition"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <SeedOfLifeMark size={18} animated={floralMotion} tone="adaptive" />
+              <span className="font-scDisplay font-semibold tracking-[-0.02em] text-[var(--text)]">
+                oceanology
+              </span>
+              <span>• {t('Return to Cosmic Landing', 'मुख्य कस्मिक पृष्ठमा फर्कनुहोस्')}</span>
+            </button>
+            <div className="flex flex-wrap items-center gap-3 tabular-nums">
+              <span>
+                {t(
+                  `14 Classical Canons • ${cityDisplay} Observatory`,
+                  `१४ शास्त्रीय ग्रन्थ • ${cityDisplay} वेधशाला`
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={handleGlobalDownloadPdf}
+                disabled={pdfExporting}
+                className="font-semibold text-[var(--accent)] hover:underline disabled:opacity-60"
+              >
+                {t('19-Page PDF Dossier ↗', '१९-पृष्ठ PDF रिपोर्ट ↗')}
+              </button>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* ==================== ACCESSIBLE BIRTH PROFILE MODAL ==================== */}
