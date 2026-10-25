@@ -44,6 +44,7 @@ export interface DivisionalChartEntry {
   d9Sign: number;  // Navamsha (Marriage, Dharma & Soul Fruit)
   d10Sign: number; // Dashamsha (Career & Karma)
   d12Sign: number; // Dwadashamsha (Parents & Lineage)
+  d24Sign: number; // Chaturvimshamsha / Siddhamsha (Higher Learning & Mastery)
   d30Sign: number; // Trimshamsha (Challenges)
   d60Sign: number; // Shashtiamsha (Past Life Karma)
   isVargottama: boolean;
@@ -89,6 +90,24 @@ export interface MatchmakingReport {
   manglikPersonA: boolean;
   manglikPersonB: boolean;
   manglikStatus: string;
+  dashakootaPoruthams: {
+    mahendra: { passed: boolean; starCount: number; summaryEn: string; summaryNe: string };
+    streeDeergha: { passed: boolean; starCount: number; summaryEn: string; summaryNe: string };
+    rajju: {
+      zoneA: string;
+      zoneB: string;
+      hasConflict: boolean;
+      summaryEn: string;
+      summaryNe: string;
+    };
+    vedha: { hasVedha: boolean; summaryEn: string; summaryNe: string };
+    coupleChemistry: {
+      venusMarsHarmonyEn: string;
+      venusMarsHarmonyNe: string;
+      conflictRepairRuleEn: string;
+      conflictRepairRuleNe: string;
+    };
+  };
 }
 
 export interface VedicYoga {
@@ -237,6 +256,10 @@ function computeDivisionalSign(siderealLon: number, division: number): number {
   if (division === 12) {
     const part = Math.floor(degInSign / 2.5);
     return (signIdx + part) % 12;
+  }
+  if (division === 24) {
+    const part = Math.floor(degInSign / 1.25);
+    return (isOddSign ? 4 + part : 3 + part) % 12;
   }
   const part = Math.floor(degInSign / (30 / division));
   return (signIdx * division + part) % 12;
@@ -388,6 +411,7 @@ export function calculateVedicReport(profile: BirthProfile, chart: NatalChartRes
       d9Sign: computeDivisionalSign(ascSid, 9),
       d10Sign: computeDivisionalSign(ascSid, 10),
       d12Sign: computeDivisionalSign(ascSid, 12),
+      d24Sign: computeDivisionalSign(ascSid, 24),
       d30Sign: computeDivisionalSign(ascSid, 30),
       d60Sign: computeDivisionalSign(ascSid, 60),
       isVargottama: computeDivisionalSign(ascSid, 1) === computeDivisionalSign(ascSid, 9),
@@ -410,6 +434,7 @@ export function calculateVedicReport(profile: BirthProfile, chart: NatalChartRes
           d9Sign: d9,
           d10Sign: computeDivisionalSign(p.siderealLongitude, 10),
           d12Sign: computeDivisionalSign(p.siderealLongitude, 12),
+          d24Sign: computeDivisionalSign(p.siderealLongitude, 24),
           d30Sign: computeDivisionalSign(p.siderealLongitude, 30),
           d60Sign: computeDivisionalSign(p.siderealLongitude, 60),
           isVargottama: d1 === d9,
@@ -1014,6 +1039,59 @@ export function calculateAshtakootaMatch(chartA: NatalChartResult, chartB: Natal
   if (manglikA && manglikB) manglikStatus = 'Mutual Kuja Cancellation (Sama-Manglik Parihara — Balanced Drive)';
   else if (manglikA || manglikB) manglikStatus = 'Single-Chart Kuja Presence (Check Jupiter/Venus Aspect & Age-28 Maturity)';
 
+  // Authentic South-Indian & Muhurta Chintamani Dashakoota (10-Porutham) Checks
+  const starCountAB = ((moonB.nakshatraIndex - moonA.nakshatraIndex + 27) % 27) + 1;
+  const mahendraPassed = [4, 7, 10, 13, 16, 19, 22, 25].includes(starCountAB);
+  const streeDeerghaPassed = starCountAB > 13;
+
+  // Exact 5-Zone Aroha/Avaroha Rajju Koota Mapping (0..26)
+  const getRajjuZone = (idx: number): 'Pada (Foot)' | 'Kati (Waist)' | 'Nabhi (Navel)' | 'Kantha (Neck)' | 'Siro (Crown)' => {
+    const posInTriad = idx % 9; // 0..8
+    if (posInTriad === 0 || posInTriad === 8) return 'Pada (Foot)';
+    if (posInTriad === 1 || posInTriad === 7) return 'Kati (Waist)';
+    if (posInTriad === 2 || posInTriad === 6) return 'Nabhi (Navel)';
+    if (posInTriad === 3 || posInTriad === 5) return 'Kantha (Neck)';
+    return 'Siro (Crown)';
+  };
+  const rajjuZoneA = getRajjuZone(moonA.nakshatraIndex);
+  const rajjuZoneB = getRajjuZone(moonB.nakshatraIndex);
+  const rajjuConflict = rajjuZoneA === rajjuZoneB && moonA.nakshatraIndex !== moonB.nakshatraIndex;
+
+  // Exact 13 Classical Nakshatra Vedha (Mutual Obstruction) Pairs + Kuja Triad (4, 13, 22)
+  const vedhaPairs: [number, number][] = [
+    [0, 17],  // Ashwini - Jyeshtha
+    [1, 16],  // Bharani - Anuradha
+    [2, 15],  // Krittika - Vishakha
+    [3, 14],  // Rohini - Swati
+    [5, 21],  // Ardra - Shravana
+    [6, 20],  // Punarvasu - Uttara Ashadha
+    [7, 19],  // Pushya - Purva Ashadha
+    [8, 18],  // Ashlesha - Mula
+    [9, 26],  // Magha - Revati
+    [10, 25], // Purva Phalguni - Uttara Bhadrapada
+    [11, 24], // Uttara Phalguni - Purva Bhadrapada
+    [12, 23], // Hasta - Shatabhisha
+    [4, 13],  // Mrigashira - Chitra
+    [13, 22], // Chitra - Dhanishtha
+    [4, 22],  // Mrigashira - Dhanishtha
+  ];
+  const hasVedha = vedhaPairs.some(
+    ([x, y]) =>
+      (moonA.nakshatraIndex === x && moonB.nakshatraIndex === y) ||
+      (moonA.nakshatraIndex === y && moonB.nakshatraIndex === x)
+  );
+
+  // Venus–Mars & Lunar Element Relational Chemistry
+  const venusA = chartA.planets.find((p) => p.id === 'Venus') || moonA;
+  const venusB = chartB.planets.find((p) => p.id === 'Venus') || moonB;
+  const vSignA = ZODIAC_SIGNS[Math.floor(venusA.siderealLongitude / 30)];
+  const vSignB = ZODIAC_SIGNS[Math.floor(venusB.siderealLongitude / 30)];
+  const marsSignB = ZODIAC_SIGNS[Math.floor(marsB.siderealLongitude / 30)];
+  const friendlyElem =
+    (vSignA.element === marsSignB.element) ||
+    (['Fire', 'Air'].includes(vSignA.element) && ['Fire', 'Air'].includes(marsSignB.element)) ||
+    (['Earth', 'Water'].includes(vSignA.element) && ['Earth', 'Water'].includes(marsSignB.element));
+
   return {
     totalPoints,
     percentage,
@@ -1027,5 +1105,63 @@ export function calculateAshtakootaMatch(chartA: NatalChartResult, chartB: Natal
     manglikPersonA: manglikA,
     manglikPersonB: manglikB,
     manglikStatus,
+    dashakootaPoruthams: {
+      mahendra: {
+        passed: mahendraPassed,
+        starCount: starCountAB,
+        summaryEn: mahendraPassed
+          ? `Star count #${starCountAB} passes Mahendra Porutham—supporting long-term resilience, family continuity, and mutual protection.`
+          : `Star count #${starCountAB} is neutral for Mahendra—rely on Graha Maitri (${maitriScore}/5) and shared life goals.`,
+        summaryNe: mahendraPassed
+          ? `नक्षत्र गणना #${starCountAB} मा महेन्द्र पोरुथम शुभ छ—दीर्घकालीन सुरक्षा, पारिवारिक उन्नति र आपसी बल प्रदान गर्छ।`
+          : `नक्षत्र गणना #${starCountAB} मा महेन्द्र सामान्य छ—ग्रह मैत्री (${maitriScore}/5) र आपसी समझदारीले सन्तुलन दिन्छ।`,
+      },
+      streeDeergha: {
+        passed: streeDeerghaPassed,
+        starCount: starCountAB,
+        summaryEn: streeDeerghaPassed
+          ? `Distance of ${starCountAB} stars (>13) fulfills Stree Deergha—amplifying domestic comfort and compounding household prosperity.`
+          : `Distance of ${starCountAB} stars (<14)—consciously prioritize transparent budgeting and emotional appreciation.`,
+        summaryNe: streeDeerghaPassed
+          ? `${starCountAB} नक्षत्र दूरी (>१३) ले स्त्री-दीर्घ शुभ योग बनाउँछ—घरेलु सुख र दिगो समृद्धिमा सहयोग पुर्याउँछ।`
+          : `${starCountAB} नक्षत्र दूरी—स्पष्ट आर्थिक योजना र भावनात्मक सम्मानलाई प्राथमिकता दिनु शुभ हुन्छ।`,
+      },
+      rajju: {
+        zoneA: rajjuZoneA,
+        zoneB: rajjuZoneB,
+        hasConflict: rajjuConflict,
+        summaryEn: !rajjuConflict
+          ? `Clear Rajju Match (${rajjuZoneA} ↔ ${rajjuZoneB}): distinct cosmic rope zones protect lifelong partnership stability.`
+          : `Shared ${rajjuZoneA} Rajju—mitigated when Rashi lords (${rA} & ${rB}) or Navamsha Lagnas are harmonious.`,
+        summaryNe: !rajjuConflict
+          ? `शुभ रज्जु मिलान (${rajjuZoneA} ↔ ${rajjuZoneB}): भिन्न रज्जु क्षेत्रले दाम्पत्य स्थायित्व र दीर्घायुको रक्षा गर्छ।`
+          : `समान ${rajjuZoneA} रज्जु—राशि स्वामी (${rA} र ${rB}) मैत्री वा नवांश बलले परिहार गर्छ।`,
+      },
+      vedha: {
+        hasVedha,
+        summaryEn: !hasVedha
+          ? `Zero Nakshatra Vedha: ${nakA.name} and ${nakB.name} flow without classical mutual star obstruction.`
+          : `Nakshatra Vedha noted between ${nakA.name} & ${nakB.name}—pace major joint decisions during auspicious Guru/Sukra Horai.`,
+        summaryNe: !hasVedha
+          ? `नक्षत्र वेध दोष मुक्त: ${nakA.name} र ${nakB.name} बीच कुनै शास्त्रीय नक्षत्र अवरोध छैन।`
+          : `${nakA.name} र ${nakB.name} बीच वेध देखिएकोले महत्त्वपूर्ण साझा निर्णय शुभ गुरु/शुक्र होरामा लिनु उत्तम।`,
+      },
+      coupleChemistry: {
+        venusMarsHarmonyEn: friendlyElem
+          ? `Natural Spark: Venus in ${vSignA.name} (${vSignA.element}) harmonizes effortlessly with Partner’s Mars in ${marsSignB.name} & Venus in ${vSignB.name}.`
+          : `Complementary Contrast: Venus in ${vSignA.name} (${vSignA.element}) and Partner’s Venus in ${vSignB.name} (${vSignB.element}) bring different love languages that enrich each other when named openly.`,
+        venusMarsHarmonyNe: friendlyElem
+          ? `सहज आकर्षण: ${vSignA.name} शुक्र र जोडीको ${marsSignB.name} मङ्गल / ${vSignB.name} शुक्रबीच स्वाभाविक स्नेह र उत्साहको तालमेल छ।`
+          : `पूरक स्वभाव: ${vSignA.name} शुक्र र जोडीको ${vSignB.name} शुक्रको भिन्न प्रेम-शैलीलाई खुला संवादले अझ समृद्ध बनाउँछ।`,
+        conflictRepairRuleEn:
+          signA.element === signB.element
+            ? `Shared ${signA.element} Moon Rhythm: you process emotions at the same speed—take a 20-minute walk before debating practical logistics.`
+            : `${signA.element} Moon ↔ ${signB.element} Moon Repair Rule: one partner seeks emotional reassurance while the other seeks solutions—validate feelings for 2 minutes first before problem-solving.`,
+        conflictRepairRuleNe:
+          signA.element === signB.element
+            ? `समान ${signA.element} चन्द्र लय: दुवैको भावनात्मक गति मिल्दोजुल्दो छ—तनावमा २० मिनेट शान्त विश्राम लिएर संवाद गर्नुहोस्।`
+            : `${signA.element} चन्द्र ↔ ${signB.element} चन्द्र नियम: समस्याको प्राविधिक समाधान खोज्नुअघि २ मिनेट एक-अर्काको भावनालाई ध्यानपूर्वक सुन्नुहोस्।`,
+      },
+    },
   };
 }

@@ -747,6 +747,18 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     );
   }
 
+  // 7-Chart Shodashvarga Harmonic Life Synthesis (D3, D4, D7, D9, D10, D12, D24)
+  const vargaOverviewBody = deepReport.vargaHarmonics
+    .map(
+      (vh) =>
+        `${vh.vargaCode} ${vh.domainTitle} (${vh.sanskritTitle} - Rising ${vh.vargaLagnaSign}, Lord ${vh.vargaLagnaLord} [${vh.strengthBadge}]): ${vh.laymanSynthesis}`
+    )
+    .join('   |   ');
+  drawParagraphBlock(
+    'Seven-Chart Shodashvarga Harmonic Life Synthesis (D3, D4, D7, D9, D10, D12 & D24)',
+    vargaOverviewBody
+  );
+
   // ==================== SECTION 6 OF 10: EPHEMERIS & DEEP 9-PLANET BPHS READINGS ====================
   drawSectionHeader(
     'Section 6 of 10',
@@ -833,10 +845,12 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   y += 5;
 
   for (const pc of deepReport.deepPlanetCards) {
-    const vargaBadges = `D9 Navamsha: ${pc.d9SignLabel} | D10 Career: ${pc.d10SignLabel}${
+    const shadbalaMeta = `Shadbala: ${pc.shadbalaRupas} Rupas (${pc.shadbalaRatioPercent}% of ${pc.minRequiredRupas} min - ${pc.shadbalaTierLabel}) | State: ${pc.avasthaLabel} (${pc.avasthaDeliveryNote})`;
+    const vargaBadges = `D9 Navamsha: ${pc.d9SignLabel} | D10 Career: ${pc.d10SignLabel} | D24 Learning: ${pc.d24SignLabel}${
       pc.isVargottama ? ' | VARGOTTAMA (Double-Reinforced)' : ''
-    }${pc.isRetrograde ? ' | Retrograde' : ''}`;
-    const bodyText = `${pc.laymanSynthesis}  [${vargaBadges}]  Classical BPHS House Ruling: ${pc.classicalBphsRuling}  Growth Lesson: ${pc.growthLesson}`;
+    }${pc.isRetrograde ? ' | Retrograde' : ''}${pc.isCombust ? ' | Solar Proximity (Astangata)' : ''}`;
+    const combustExtra = pc.combustNote ? `  ${pc.combustNote}` : '';
+    const bodyText = `[${shadbalaMeta}]  ${pc.laymanSynthesis}${combustExtra}  [${vargaBadges}]  Classical BPHS House Ruling: ${pc.classicalBphsRuling}  Growth Lesson: ${pc.growthLesson}`;
     drawParagraphBlock(
       `${pc.planetLabel} in ${pc.signLabel} (${pc.degreeDMS}) - House ${pc.house} (${pc.houseTitle}) | ${pc.dignity}`,
       bodyText
@@ -924,6 +938,15 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
       drawParagraphBlock(
         `Classical Yoga: ${yg.name} (${yg.category} - ${yg.strength} Strength)`,
         `${yg.description}${yg.sourceText ? ` [Source: ${yg.sourceText}]` : ''}`
+      );
+    }
+  }
+
+  if (deepReport.saravaliConjunctions.length > 0) {
+    for (const conj of deepReport.saravaliConjunctions) {
+      drawParagraphBlock(
+        `Planetary Conjunction (Yuti): ${conj.headline} [${conj.planetsJoined.join(' + ')}]`,
+        `${conj.laymanTakeaway}  Saravali Portrait: ${conj.classicalPortrait} [${conj.sourceRef}]`
       );
     }
   }
@@ -1415,6 +1438,29 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     .join('   ');
 
   drawParagraphBlock('Personalized Remedies & Daily Alignment Habits (Parihara)', remedyBody);
+
+  // Personalized Trikona-Safe Gemstones, Sattvic Dana & Brihat Samhita Vastu Compass
+  const safeGemSummary = deepReport.upayaArchitecture.trikonaSafeGems
+    .map(
+      (g) =>
+        `${g.houseRoleLabel} (${g.planetLabel}): Primary ${g.primaryGem} | Gentle Upa-Ratna: ${g.affordableUpaRatna} (${g.metalAndFinger}, ${g.wearingWindow}) - ${g.whySafeExplanation}`
+    )
+    .join('   ||   ');
+  drawParagraphBlock(
+    'Lagna-Safe Trikona Gemstone & Upa-Ratna Guide (1st, 5th & 9th Functional Benefics)',
+    `${safeGemSummary}   [${deepReport.upayaArchitecture.avoidGemPlanetsWarning}]`
+  );
+
+  drawParagraphBlock(
+    'Zero-Cost Sattvic Charity (Dana) & Lowest-SAV House Habit Reinforcement',
+    `${deepReport.upayaArchitecture.activeDashaCharityTitle}: ${deepReport.upayaArchitecture.activeDashaCharityAction}   ||   ${deepReport.upayaArchitecture.weakestHouseHabitTitle}: ${deepReport.upayaArchitecture.weakestHouseHabitAction}`
+  );
+
+  drawParagraphBlock(
+    'Personalized Vastu Workspace & Sleep Compass (Brihat Samhita Ch. 53)',
+    `Desk & Study Facing (${deepReport.upayaArchitecture.vastuDeskDirection}): ${deepReport.upayaArchitecture.vastuDeskWhy}   ||   Sleep Head Direction (${deepReport.upayaArchitecture.vastuSleepHeadDirection}): ${deepReport.upayaArchitecture.vastuSleepWhy}`
+  );
+  drawCitationNote(deepReport.upayaArchitecture.sourceCitation);
 
   // Synthesis Q&A + Authoritative Bibliography Appendix
   if (synthesisReport.aiCopilotPrompts.length > 0) {

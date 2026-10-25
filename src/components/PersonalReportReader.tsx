@@ -1019,8 +1019,8 @@ export const PersonalReportReader: React.FC<Props> = ({
             </h2>
             <p className="text-base text-[var(--text-secondary)]">
               {t(
-                'Left: Switch between your D1 Rashi Root Chart, D9 Navamsha Marriage Chart, and D10 Career Chart. Right: Your exact 360° ecliptic wheel.',
-                'बायाँ: जन्म लग्न (D1), नवांश (D9) र दशमांश (D10) वर्ग कुण्डली। दायाँ: ३६०° क्रान्तिवृत्त राशि चक्र।'
+                'Left: Switch across your D1 Rashi, D9 Marriage, D10 Career, D24 Higher Learning, and Shodashvarga charts. Right: Your exact 360° ecliptic wheel.',
+                'बायाँ: जन्म लग्न (D1), नवांश (D9), दशमांश (D10), चतुर्विंशांश विद्या (D24) र षोडशवर्ग कुण्डली। दायाँ: ३६०° क्रान्तिवृत्त राशि चक्र।'
               )}
             </p>
           </div>
@@ -1028,7 +1028,7 @@ export const PersonalReportReader: React.FC<Props> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <div className="obs-panel p-4 space-y-3">
               <h3 className="text-base font-bold text-[var(--text)]">
-                {t('Vedic Divisional Kundali (D1 / D9 / D10)', 'वैदिक वर्ग कुण्डली (D1 / D9 / D10)')}
+                {t('Vedic Divisional Kundali (D1–D60 + D24 Vidya)', 'वैदिक षोडशवर्ग कुण्डली (D1–D60 + D24 विद्या)')}
               </h3>
               <VedicKundliSvg divisionalTable={vedicReport.divisionalTable} />
             </div>
@@ -1038,6 +1038,47 @@ export const PersonalReportReader: React.FC<Props> = ({
                 {t(`360° Ecliptic Sky Wheel (${ayanamsha})`, `३६०° क्रान्तिवृत्त ग्रह चक्र (${ayanamsha})`)}
               </h3>
               <NatalWheelSvg chart={natalChart} />
+            </div>
+          </div>
+
+          {/* 7-Chart Shodashvarga Harmonic Life Mirrors (BPHS Ch. 6-7) */}
+          <div className="pt-4 border-t border-[var(--border)] space-y-3">
+            <div className="space-y-0.5">
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {t(
+                  '7-Chart Harmonic Life Mirrors (Shodashvarga Synthesis — BPHS Ch. 6–7)',
+                  'सप्त-वर्ग जीवन दर्पण (षोडशवर्ग सूक्ष्म संश्लेषण — बृहत् पाराशर अ. ६–७)'
+                )}
+              </h3>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {t(
+                  'While your D1 Birth Chart shows physical circumstances, these 7 divisional harmonics zoom into courage, property, legacy, marriage, career, lineage, and higher education.',
+                  'जन्म कुण्डली (D1) ले बाह्य परिस्थिति देखाउँछ भने यी ७ सूक्ष्म वर्ग चार्टले साहस, भूमि, सन्तान, विवाह, करियर, कुल-वंश र उच्च शिक्षाको भित्री बल देखाउँछन्।'
+                )}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {deepReport.vargaHarmonics.map((vh) => (
+                <div key={vh.vargaCode} className="obs-panel p-4 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-[var(--accent-bg)] text-[var(--accent)] font-mono text-xs font-bold">
+                        {vh.vargaCode}
+                      </span>
+                      <span className="text-sm font-bold text-[var(--text)]">{vh.domainTitle}</span>
+                    </div>
+                    <StatusBadge tone={vh.strengthTone} label={vh.strengthBadge} />
+                  </div>
+                  <div className="text-xs font-medium text-[var(--accent)]">
+                    {vh.sanskritTitle} • {t('Rising:', 'लग्न:')} <strong>{vh.vargaLagnaSign}</strong> (
+                    {t('Lord:', 'स्वामी:')} {vh.vargaLagnaLord})
+                  </div>
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                    {vh.laymanSynthesis}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -1055,14 +1096,14 @@ export const PersonalReportReader: React.FC<Props> = ({
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
               {t(
-                'All 9 Vedic Planets: Plain Meaning, BPHS Sutra & Divisional Strength',
-                'नवग्रह स्थिति: सरल अर्थ, बृहत् पाराशर सूत्र र नवांश/दशमांश बल'
+                'All 9 Vedic Planets: Shadbala Strength, Avastha, BPHS Sutra & Harmonics',
+                'नवग्रह स्थिति: षड्बल शक्ति, बाल्यादि अवस्था, पाराशर सूत्र र सूक्ष्म वर्ग बल'
               )}
             </h2>
             <p className="text-base text-[var(--text-secondary)]">
               {t(
-                'Every card below blends how the planet works in your daily life with its authentic Brihat Parashara Hora Shastra house ruling and D9/D10 divisional confirmation.',
-                'प्रत्येक ग्रहले तपाईंको दैनिक जीवनमा पार्ने प्रभाव, पाराशर होरा शास्त्रको भाव फल र नवांश/दशमांश स्थितिको पूर्ण विवरण।'
+                'Every card pairs everyday meaning with BPHS Ch. 27 Six-Fold Strength (Shadbala in Rupas), Baladi Avastha delivery capacity, Surya Siddhanta combustion checks, and D9/D10/D24 confirmation.',
+                'प्रत्येक ग्रहको दैनिक प्रभावसँगै बृहत् पाराशर होरा शास्त्र अ. २७ को षड्बल (रूपा बल), बाल्यादि अवस्था, अस्त परीक्षण र D9/D10/D24 स्थितिको पूर्ण विवरण।'
               )}
             </p>
           </div>
@@ -1115,12 +1156,56 @@ export const PersonalReportReader: React.FC<Props> = ({
                         label={t('Retrograde', 'वक्री')}
                       />
                     )}
+                    {card.isCombust && (
+                      <StatusBadge
+                        size="md"
+                        tone="mixed"
+                        label={t('Solar Proximity (Astangata)', 'अस्त (सूर्य समीप)')}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* BPHS Ch. 27 Shadbala & Ch. 45 Baladi Avastha Strip */}
+                <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-[var(--text)]">
+                      {t('Six-Fold Strength (Shadbala):', 'षड्बल शक्ति:')}
+                    </span>
+                    <span className="font-mono font-bold text-[var(--accent)]">
+                      {card.shadbalaRupas} {t('Rupas', 'रूपा')}
+                    </span>
+                    <span className="text-[var(--text-muted)]">
+                      ({card.shadbalaRatioPercent}% {t(`of ${card.minRequiredRupas} min`, `/ न्यूनतम ${card.minRequiredRupas}`)})
+                    </span>
+                    <StatusBadge tone={card.shadbalaTierTone} label={card.shadbalaTierLabel} />
+                  </div>
+                  <div className="text-[var(--text-secondary)]">
+                    <strong className="text-[var(--text)]">{t('Avastha:', 'अवस्था:')}</strong>{' '}
+                    {card.avasthaLabel} — <span className="text-[var(--text-muted)]">{card.avasthaDeliveryNote}</span>
                   </div>
                 </div>
 
                 <p className="text-base text-[var(--text-secondary)] leading-relaxed">
                   {card.laymanSynthesis}
                 </p>
+
+                {(card.combustNote || card.inPlanetaryWar) && (
+                  <div className="rounded-lg bg-[var(--amber-bg)] border border-[var(--amber)]/30 p-3 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                    {card.combustNote && <p>{card.combustNote}</p>}
+                    {card.inPlanetaryWar && card.warPartner && (
+                      <p className="mt-1">
+                        <strong className="text-[var(--text)]">
+                          {t('Planetary War (Graha Yuddha < 1°):', 'ग्रह युद्ध (< १°):')}
+                        </strong>{' '}
+                        {t(
+                          `Closely aligned within 1° of ${card.warPartner} — merging both planetary drives into intense, single-pointed focus.`,
+                          `${card.warPartner} सँग १° भित्र अत्यन्त नजिक — दुवै ग्रहको ऊर्जा एकै लक्ष्यमा तीव्र रूपले केन्द्रित हुन्छ।`
+                        )}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {lang === 'en' && (
                   <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 text-sm text-[var(--text-secondary)] leading-relaxed">
@@ -1143,7 +1228,8 @@ export const PersonalReportReader: React.FC<Props> = ({
                     </button>
                     <span>
                       D9: <strong>{card.d9SignLabel}</strong> • D10:{' '}
-                      <strong>{card.d10SignLabel}</strong>
+                      <strong>{card.d10SignLabel}</strong> • D24 ({t('Vidya', 'विद्या')}):{' '}
+                      <strong>{card.d24SignLabel}</strong>
                     </span>
                   </div>
                   {lang === 'en' && (
@@ -1340,6 +1426,58 @@ export const PersonalReportReader: React.FC<Props> = ({
                         {t('Source:', 'स्रोत:')} {yg.sourceText}
                       </div>
                     )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Saravali Ch. 15-19 Planetary Conjunction Portraits (Yuti Chemistry) */}
+          {deepReport.saravaliConjunctions.length > 0 && (
+            <div className="pt-4 border-t border-[var(--border)] space-y-3">
+              <div className="space-y-0.5">
+                <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[var(--accent)]" />
+                  <span>
+                    {t(
+                      `Planetary Conjunction Chemistry (Saravali Yuti — ${deepReport.saravaliConjunctions.length})`,
+                      `एउटै भावमा बसेका ग्रहहरूको युति प्रभाव (सारावली — ${deepReport.saravaliConjunctions.length})`
+                    )}
+                  </span>
+                </h3>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  {t(
+                    'When two or more planets share the same house, their energies blend into a single psychological and vocational signature (Kalyanavarma’s Saravali, Ch. 15–19).',
+                    'दुई वा बढी ग्रह एउटै भावमा बस्दा तिनको ऊर्जा मिलेर विशेष व्यक्तित्व र कर्म शैली निर्माण हुन्छ (कल्याणवर्माकृत सारावली अ. १५–१९)।'
+                  )}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {deepReport.saravaliConjunctions.map((conj) => (
+                  <div
+                    key={`${conj.house}-${conj.planetsJoined.join('-')}`}
+                    className="obs-panel p-4 space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-sm font-bold text-[var(--text)]">{conj.headline}</span>
+                      <StatusBadge
+                        tone="favorable"
+                        label={conj.planetsJoined.join(' + ')}
+                      />
+                    </div>
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                      {conj.laymanTakeaway}
+                    </p>
+                    {lang === 'en' && (
+                      <p className="text-xs text-[var(--text-muted)] leading-relaxed border-t border-[var(--border)] pt-2">
+                        <strong className="text-[var(--text-secondary)]">Saravali Portrait:</strong>{' '}
+                        {conj.classicalPortrait}
+                      </p>
+                    )}
+                    <div className="text-[11px] font-mono text-[var(--accent)]">
+                      {conj.sourceRef}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1805,6 +1943,105 @@ export const PersonalReportReader: React.FC<Props> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Personalized Parashari Upaya, Safe Gemstones & Vastu Architecture */}
+        {isFull && (
+          <div className="pt-4 border-t border-[var(--border)] space-y-5">
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-[var(--accent)]">
+                {t(
+                  'Personalized Upaya Architecture • Safe Trikona Gems, Sattvic Dana & Vastu',
+                  'व्यक्तिगत शास्त्रीय उपाय • सुरक्षित त्रिकोण रत्न, सात्त्विक दान र वास्तु दिशा'
+                )}
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-[var(--text)]">
+                {t(
+                  'Lagna-Safe Gemstones (1st/5th/9th Lords), Zero-Cost Charity & Vastu Compass',
+                  'लग्न-अनुकूल सुरक्षित रत्न (१/५/९ स्वामी), नि:शुल्क सात्त्विक दान र वास्तु कम्पास'
+                )}
+              </h3>
+            </div>
+
+            {/* 3 Trikona-Safe Gemstone & Upa-Ratna Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              {deepReport.upayaArchitecture.trikonaSafeGems.map((gem) => (
+                <div key={gem.houseRoleLabel} className="obs-panel p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-xs font-mono font-bold text-[var(--accent)]">
+                      {gem.houseRoleLabel}
+                    </span>
+                    <StatusBadge tone="optimal" label={gem.planetLabel} />
+                  </div>
+                  <div className="text-sm font-bold text-[var(--text)]">{gem.primaryGem}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">
+                    <strong>{t('Budget / Gentle Alternative:', 'सरल उप-रत्न:')}</strong>{' '}
+                    {gem.affordableUpaRatna}
+                  </div>
+                  <div className="text-xs text-[var(--text-muted)]">
+                    {gem.metalAndFinger} • {gem.wearingWindow}
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed border-t border-[var(--border)] pt-2">
+                    {gem.whySafeExplanation}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Explicit Dusthana Gemstone Safeguard */}
+            <div className="rounded-xl bg-[var(--amber-bg)] border border-[var(--amber)]/35 p-4 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              {deepReport.upayaArchitecture.avoidGemPlanetsWarning}
+            </div>
+
+            {/* Zero-Cost Sattvic Dana + Weakest SAV Habit + Brihat Samhita Vastu Compass */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="text-sm font-bold text-[var(--text)]">
+                  {deepReport.upayaArchitecture.activeDashaCharityTitle}
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {deepReport.upayaArchitecture.activeDashaCharityAction}
+                </p>
+              </div>
+
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="text-sm font-bold text-[var(--text)]">
+                  {deepReport.upayaArchitecture.weakestHouseHabitTitle}
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {deepReport.upayaArchitecture.weakestHouseHabitAction}
+                </p>
+              </div>
+
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="text-xs font-mono text-[var(--accent)] font-semibold">
+                  {t('Brihat Samhita Ch. 53 • Desk & Deep-Work Facing', 'बृहत् संहिता अ. ५३ • कार्य र अध्ययन दिशा')}
+                </div>
+                <div className="text-sm font-bold text-[var(--text)]">
+                  {deepReport.upayaArchitecture.vastuDeskDirection}
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {deepReport.upayaArchitecture.vastuDeskWhy}
+                </p>
+              </div>
+
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="text-xs font-mono text-[var(--accent)] font-semibold">
+                  {t('Vastu & Biomagnetic Rest • Sleep Head Direction', 'वास्तु निद्रा नियम • सुत्दा शिर राख्ने दिशा')}
+                </div>
+                <div className="text-sm font-bold text-[var(--text)]">
+                  {deepReport.upayaArchitecture.vastuSleepHeadDirection}
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {deepReport.upayaArchitecture.vastuSleepWhy}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-xs text-[var(--text-muted)] italic">
+              {deepReport.upayaArchitecture.sourceCitation}
+            </div>
+          </div>
+        )}
 
         {/* Grounded Remedies Box */}
         <div className="p-5 rounded-xl bg-[var(--sage-bg)] border border-[var(--sage)]/30 space-y-3">

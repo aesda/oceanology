@@ -29,6 +29,7 @@ type VargaKey =
   | 'd4Sign'
   | 'd7Sign'
   | 'd12Sign'
+  | 'd24Sign'
   | 'd30Sign'
   | 'd60Sign';
 
@@ -103,6 +104,14 @@ const VARGA_TABS: {
     titleNe: 'द्वादशांश',
     subtitle: 'Ancestral Lineage',
     subtitleNe: 'माता-पिता र कुल वंश',
+  },
+  {
+    key: 'd24Sign',
+    code: 'D24',
+    title: 'Siddhamsha',
+    titleNe: 'चतुर्विंशांश',
+    subtitle: 'Vidya & Mastery',
+    subtitleNe: 'उच्च शिक्षा र ज्ञान',
   },
   {
     key: 'd30Sign',

@@ -9,11 +9,16 @@ import {
   ArrowUpRight,
   Trees,
 } from 'lucide-react';
-import { NatalChartResult } from '../engines/astronomyEngine';
+import { NatalChartResult, ZODIAC_SIGNS } from '../engines/astronomyEngine';
 import { VedicReport } from '../engines/vedicEngine';
 import { HOUSE_TREATISES, PLANET_TREATISES } from '../data/classicalCompendium';
 import { CLASSICAL_CANON_BOOKS, PLANET_IN_BHAVA_RULINGS } from '../data/canonAnthology';
 import { STANDARD_27_NAKSHATRAS } from '../data/nakshatraCodex';
+import {
+  buildPersonalizedUpayaArchitecture,
+  computePlanetVitalityMap,
+  detectSaravaliConjunctions,
+} from '../data/shadbalaVargaAndUpayaCodex';
 import { SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
 import {
   trDignity,
@@ -74,14 +79,136 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
   const janmaNakTreatise =
     STANDARD_27_NAKSHATRAS[moonPlanet.nakshatraIndex] || STANDARD_27_NAKSHATRAS[0];
 
+  const sunPlanet = chart.planets.find((p) => p.id === 'Sun') || chart.planets[0];
+  const approxBirthHour = [7, 8, 9, 10, 11, 12].includes(sunPlanet.house) ? 12 : 22;
+  const lowestSav = React.useMemo(
+    () =>
+      [...vedic.sarvashtakavarga].sort((a, b) => a.bindus - b.bindus)[0] || {
+        house: 6,
+        signName: 'Virgo',
+        bindus: 24,
+      },
+    [vedic.sarvashtakavarga]
+  );
+
+  const planetVitalityMap = React.useMemo(
+    () => computePlanetVitalityMap(chart, vedic.divisionalTable, approxBirthHour, lang),
+    [chart, vedic.divisionalTable, approxBirthHour, lang]
+  );
+  const saravaliList = React.useMemo(
+    () => detectSaravaliConjunctions(chart, lang),
+    [chart, lang]
+  );
+  const upayaArch = React.useMemo(
+    () =>
+      buildPersonalizedUpayaArchitecture(
+        chart,
+        vedic.activeMahadasha.lord,
+        lowestSav,
+        lang
+      ),
+    [chart, vedic.activeMahadasha.lord, lowestSav, lang]
+  );
+  const activePlanetVit = planetVitalityMap[activePlanet.id];
+
+  const getBookLiveConcordance = (bookId: string): string => {
+    const ak = vedic.charaKarakas.find((c) => c.karakaCode === 'AK');
+    const dk = vedic.charaKarakas.find((c) => c.karakaCode === 'DK');
+    const ascDiv = vedic.divisionalTable.find((d) => d.planetId === 'Asc');
+    const topSav = [...vedic.sarvashtakavarga].sort((a, b) => b.bindus - a.bindus)[0];
+    const ascElement = ZODIAC_SIGNS[chart.ascendant.signIndex]?.element || 'Fire';
+    const moonElement = ZODIAC_SIGNS[moonPlanet.signIndex]?.element || 'Water';
+    switch (bookId) {
+      case 'taittiriya-brahmana':
+        return t(
+          `Your Janma Nakshatra is ${janmaNakTreatise.name} (Pada ${moonPlanet.nakshatraPada}), ruled by Vedic Deity ${janmaNakTreatise.deity} and infused with "${janmaNakTreatise.shaktiName}" (${janmaNakTreatise.shaktiTranslation}).`,
+          `तपाईंको जन्म नक्षत्र ${trNakshatra(janmaNakTreatise.name, 'ne')} (चरण ${moonPlanet.nakshatraPada}) हो, जसका वैदिक देवता ${janmaNakTreatise.deity} र शक्ति "${janmaNakTreatise.shaktiName}" हुन्।`
+        );
+      case 'bphs':
+        return t(
+          `Your Ascendant is ${chart.ascendant.signName} and your active Vimshottari chapter is ${vedic.activeMahadasha.lord}–${vedic.activeAntardasha.lord} (${vedic.activeMahadasha.progressPercent}% complete). Safe Trikona gemstones for your Lagna belong to ${upayaArch.trikonaSafeGems.map((g) => g.planetLabel).join(', ')}.`,
+          `तपाईंको जन्म लग्न ${trSign(chart.ascendant.signName, 'ne')} हो र हाल ${trPlanet(vedic.activeMahadasha.lord, 'ne')}–${trPlanet(vedic.activeAntardasha.lord, 'ne')} दशा (${vedic.activeMahadasha.progressPercent}% पूरा) चलिरहेको छ।`
+        );
+      case 'muhurta-chintamani':
+        return t(
+          `Anchored to your natal ${moonPlanet.signName} Moon (${janmaNakTreatise.name}), auspicious Muhurta & Dashakoota matchmaking evaluate Tarabala, Chandrabala, Rajju, and Nakshatra Vedha directly from Star #${moonPlanet.nakshatraIndex + 1}.`,
+          `तपाईंको ${trSign(moonPlanet.signName, 'ne')} चन्द्र राशि र ${trNakshatra(janmaNakTreatise.name, 'ne')} नक्षत्रका आधारमा ताराबल, चन्द्रबल, रज्जु र वेध शुभ मुहूर्त गणना गरिन्छ।`
+        );
+      case 'brihat-jataka-samhita':
+        return t(
+          `Varahamihira’s Vastu & Hora synthesis recommends facing ${upayaArch.vastuDeskDirection} for deep work and placing your head ${upayaArch.vastuSleepHeadDirection} during sleep.`,
+          `वराहमिहिरको सिद्धान्त अनुसार अध्ययन/कार्यका लागि ${upayaArch.vastuDeskDirection} र निद्राका लागि ${upayaArch.vastuSleepHeadDirection} उत्तम मानिन्छ।`
+        );
+      case 'phaladeepika':
+      case 'raman-300':
+        return t(
+          `Classical Yoga scanner detected ${vedic.yogas.length} notable combinations in your chart${vedic.yogas[0] ? ` (led by ${vedic.yogas[0].name})` : ''}, supported by House ${topSav?.house ?? 1} (${topSav?.bindus ?? 28} SAV Bindus).`,
+          `शास्त्रीय योग इन्जिनले तपाईंको कुण्डलीमा ${vedic.yogas.length} प्रमुख योग र सर्वोच्च बली भाव ${topSav?.house ?? 1} (${topSav?.bindus ?? 28} बिन्दु) पहिचान गरेको छ।`
+        );
+      case 'kp-readers': {
+        const kpAsc = vedic.kpPlanets.find((k) => k.label === 'Ascendant') || vedic.kpPlanets[0];
+        const kp10 = vedic.kpPlanets.find((k) => k.label === 'MC (10th)') || vedic.kpPlanets[0];
+        return t(
+          `In Krishnamurti Paddhati, your Ascendant Sub-Lord is ${kpAsc?.subLord ?? 'Mercury'} (Star: ${kpAsc?.starLord ?? 'Moon'}) and your 10th Cusp Career Sub-Lord is ${kp10?.subLord ?? 'Jupiter'}.`,
+          `कृष्णमूर्ति पद्धति अनुसार तपाईंको लग्न उप-स्वामी ${trPlanet(kpAsc?.subLord ?? 'Mercury', 'ne')} र दशम कर्म उप-स्वामी ${trPlanet(kp10?.subLord ?? 'Jupiter', 'ne')} हो।`
+        );
+      }
+      case 'western-mandala':
+        return t(
+          `Your Sun degree (${sunPlanet.signName} ${sunPlanet.formattedDMS}) carries the Sabian symbol: "${sunPlanet.sabianSymbol}" across ${chart.aspects.length} active planetary aspects.`,
+          `तपाईंको सूर्य (${trSign(sunPlanet.signName, 'ne')} ${sunPlanet.formattedDMS}) र ${chart.aspects.length} कोणीय दृष्टिहरू मनोवैज्ञानिक मण्डलमा सक्रिय छन्।`
+        );
+      case 'cheiro-decoz':
+        return t(
+          `Computed from UTC birth moment ${chart.utcDate.toISOString().slice(0, 10)}, Cheiro’s Chaldean vibration & Decoz’s 4 Life Pinnacles synchronize with your ${vedic.activeMahadasha.lord} planetary chapter.`,
+          `जन्म मिति ${chart.utcDate.toISOString().slice(0, 10)} बाट गणना गरिएका कल्डियन अंक र ४ जीवन शिखरहरू हालको ${trPlanet(vedic.activeMahadasha.lord, 'ne')} दशासँग समन्वित छन्।`
+        );
+      case 'jaimini-upadesha-sutras':
+        return t(
+          `Your Jaimini Atmakaraka (Soul King) is ${ak?.planetName ?? 'Sun'} (${ak?.degreeInSign ?? ''}, Karakamsa D9 in ${ak?.navamshaSignName ?? ''}) and your Darakaraka (Spouse Significator) is ${dk?.planetName ?? 'Venus'} in ${dk?.signName ?? ''}.`,
+          `तपाईंको जैमिनी आत्मकारक ${trPlanet(ak?.planetName ?? 'Sun', 'ne')} र दाराकारक (जीवनसाथी कारक) ${trPlanet(dk?.planetName ?? 'Venus', 'ne')} हो।`
+        );
+      case 'uttara-kalamrita':
+        return t(
+          `Kalidasa’s Sub-Period & Yoga-Karaka lens highlights your current ${vedic.activeAntardasha.lord} Antardasha inside ${vedic.activeMahadasha.lord} Mahadasha (${vedic.activeAntardasha.startDate} → ${vedic.activeAntardasha.endDate}).`,
+          `कालिदासको उत्तर कालामृत अनुसार हाल ${trPlanet(vedic.activeMahadasha.lord, 'ne')} महादशाभित्र ${trPlanet(vedic.activeAntardasha.lord, 'ne')} अन्तर्दशा (${vedic.activeAntardasha.startDate} → ${vedic.activeAntardasha.endDate}) सक्रिय छ।`
+        );
+      case 'jataka-parijata':
+        return t(
+          `Vaidyanatha Dikshita’s Shodashvarga synthesis maps your D1 Lagna (${chart.ascendant.signName}), D9 Navamsha, D10 Career, and D24 Siddhamsha (Higher Learning sign: ${ZODIAC_SIGNS[ascDiv?.d24Sign ?? 0]?.name ?? 'Aries'}) into a unified life architecture.`,
+          `वैद्यनाथ दीक्षितको षोडशवर्ग सूत्र अनुसार तपाईंको D1, D9, D10 र D24 (${trSign(ZODIAC_SIGNS[ascDiv?.d24Sign ?? 0]?.name ?? 'Aries', 'ne')}) वर्ग चार्ट एकीकृत गरिएको छ।`
+        );
+      case 'saravali':
+        return saravaliList.length > 0
+          ? t(
+              `Kalyanavarma’s conjunction engine detected ${saravaliList.length} Yuti combination(s) in your chart — led by "${saravaliList[0].headline}" (${saravaliList[0].planetsJoined.join(' + ')}).`,
+              `कल्याणवर्माको सारावली युति सूत्रले तपाईंको कुण्डलीमा ${saravaliList.length} ग्रह-युति पहिचान गरेको छ (${saravaliList[0].headline})।`
+            )
+          : t(
+              `Every natal planet in your chart occupies its own distinct sign without multi-planet crowding, giving clean, unmixed house expression.`,
+              `तपाईंको कुण्डलीमा ग्रहहरू छुट्टाछुट्टै भावमा स्पष्ट र स्वतन्त्र रूपमा स्थित छन्।`
+            );
+      case 'prashna-marga-ayurveda':
+        return t(
+          `Prashna Marga & Ashtanga Hridaya link your ${chart.ascendant.signName} Ascendant (${ascElement} element) and ${moonPlanet.signName} Moon (${moonElement} element) directly to daily constitutional balance and zero-cost Sattvic Upaya.`,
+          `प्रश्नमार्ग र अष्टाङ्ग हृदयले तपाईंको ${trSign(chart.ascendant.signName, 'ne')} लग्न र ${trSign(moonPlanet.signName, 'ne')} चन्द्र राशिलाई दैनिक आयुर्वेदिक सन्तुलनसँग जोड्छ।`
+        );
+      default:
+        return t(
+          `Live chart concordance active for ${chart.ascendant.signName} Ascendant, ${chart.planets[0]?.signName} Sun, and ${moonPlanet.signName} Moon (${janmaNakTreatise.name} Pada ${moonPlanet.nakshatraPada}).`,
+          `${trSign(chart.ascendant.signName, 'ne')} लग्न र ${trSign(moonPlanet.signName, 'ne')} राशिका लागि प्रत्यक्ष गणना सक्रिय छ।`
+        );
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER & SEGMENTED SWITCHER ==================== */}
       <WorkspacePageHeader
         title={t('Classical Source Library & Natal Readings', 'शास्त्रीय ग्रन्थ र जन्म फलित पुस्तकालय')}
         subtitle={t(
-          '108 Planet-in-House rulings, detected Parashari Yogas, 12 Bhava domains, and 9 primary source texts.',
-          '१०८ ग्रह-भाव फल, पाराशरी योग, १२ भाव विश्लेषण र ९ मूल ज्योतिष ग्रन्थ।'
+          `108 Planet-in-House rulings, Shadbala vitality, detected Parashari Yogas, 12 Bhava domains, and ${CLASSICAL_CANON_BOOKS.length} primary source texts.`,
+          `१०८ ग्रह-भाव फल, षड्बल शक्ति, पाराशरी योग, १२ भाव विश्लेषण र ${CLASSICAL_CANON_BOOKS.length} मूल ज्योतिष ग्रन्थ।`
         )}
         actions={
           <SegmentedTabs
@@ -184,6 +311,31 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                 <StatusBadge tone="mixed" label={t('Retrograde (Vakri)', 'वक्री')} />
               )}
             </div>
+
+            {/* Live BPHS Shadbala & Baladi Avastha Strip */}
+            {activePlanetVit && (
+              <div className="obs-panel px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-[var(--text)]">
+                    {t('BPHS Six-Fold Strength (Shadbala):', 'षड्बल शक्ति:')}
+                  </span>
+                  <span className="font-mono font-bold text-[var(--accent)]">
+                    {activePlanetVit.shadbalaRupas} {t('Rupas', 'रूपा')}
+                  </span>
+                  <span className="text-[var(--text-muted)]">
+                    ({activePlanetVit.ratioPercent}% / min {activePlanetVit.minRequiredRupas})
+                  </span>
+                  <StatusBadge
+                    tone={activePlanetVit.tierTone}
+                    label={activePlanetVit.tierLabel}
+                  />
+                </div>
+                <div className="text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text)]">{t('Avastha:', 'अवस्था:')}</strong>{' '}
+                  {activePlanetVit.avasthaLabel}
+                </div>
+              </div>
+            )}
 
             {/* Specific 1-of-108 Planet-in-House Ruling */}
             <div className="obs-panel p-5 space-y-2.5">
@@ -549,6 +701,21 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {activeBook.engineIntegration}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-[var(--sage-bg)] border border-[var(--sage)]/30 p-4 space-y-1.5">
+              <div className="text-xs font-bold text-[var(--sage)] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>
+                  {t(
+                    'How This Canon Evaluates Your Active Birth Chart Right Now',
+                    'यस ग्रन्थको सूत्र अनुसार तपाईंको सक्रिय जन्म कुण्डलीको निष्कर्ष'
+                  )}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                {getBookLiveConcordance(activeBook.id)}
               </p>
             </div>
 

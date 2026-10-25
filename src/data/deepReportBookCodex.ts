@@ -1151,6 +1151,20 @@ export const REPORT_BOOK_BIBLIOGRAPHY: ReportBibliographyEntry[] = [
     usedForNe: 'ग्रह परिपक्वता उमेर (१६ देखि ४८ वर्षसम्मका जीवन मोडहरू) र युति प्रभाव।',
   },
   {
+    id: 'saravali-surya-siddhanta',
+    title: 'Saravali & Surya Siddhanta',
+    authorAndEra: 'Raja Kalyanavarma (c. 9th Century CE) & Classical Siddhantic Astronomy',
+    usedForEn: 'Two/multi-planet Conjunction (Yuti) portraits, Astangata solar combustion orbs, and Graha Yuddha checks.',
+    usedForNe: 'द्वि-ग्रह तथा बहु-ग्रह युति फल, सूर्य-अस्त परिधि र ग्रह-युद्ध परीक्षण।',
+  },
+  {
+    id: 'brihat-samhita-prashna-marga',
+    title: 'Brihat Samhita (Vastu Ch. 53) & Prashna Marga',
+    authorAndEra: 'Varahamihira (6th Century CE) & Panakkattu Namboothiri (1649 CE, Kerala)',
+    usedForEn: 'Trikona-safe Ratna/Upa-Ratna rules, zero-cost Sattvic Dana charity, and personalized Vastu desk/sleep directions.',
+    usedForNe: 'त्रिकोण-सुरक्षित रत्न/उपरत्न नियम, सात्त्विक दान सेवा र व्यक्तिगत वास्तु कार्य/शयन दिशा।',
+  },
+  {
     id: 'muhurta-chintamani',
     title: 'Muhurta Chintamani & Taittiriya Brahmana',
     authorAndEra: 'Acharya Ramadaivajna (1600 CE) & Krishna Yajurveda Nakshatra Sukta',

@@ -272,6 +272,129 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
               </div>
             </div>
           </div>
+
+          {/* Extended Dashakoota 10-Porutham Safeguards & Venus-Mars Couple Chemistry */}
+          <div className="obs-card p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
+              <div>
+                <h2 className="text-base font-bold text-[var(--text)]">
+                  {t(
+                    'Extended Dashakoota 10-Porutham Safeguards & Couple Communication Blueprint',
+                    'दशकूट १०-पोरुथम परीक्षण र शुक्र–मङ्गल दाम्पत्य संवाद सूत्र'
+                  )}
+                </h2>
+                <p className="text-xs text-[var(--text-muted)]">
+                  {t(
+                    'Classical South & North Indian longevity, Rajju, and Vedha checks paired with practical Venus–Mars relationship psychology (Muhurta Chintamani & Prasna Marga).',
+                    'मुहूर्त चिन्तामणि र प्रश्नमार्गका महेन्द्र, स्त्री-दीर्घ, रज्जु र वेध परीक्षण तथा व्यावहारिक दाम्पत्य संवाद मार्गदर्शन।'
+                  )}
+                </p>
+              </div>
+              <StatusBadge
+                tone="optimal"
+                label={t('Dashakoota + Synastry', 'दशकूट + ग्रह सामञ्जस्य')}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {[
+                {
+                  key: 'mahendra',
+                  title: t('Mahendra Porutham', 'महेन्द्र पोरुथम'),
+                  tone: (matchReport.dashakootaPoruthams.mahendra.passed
+                    ? 'optimal'
+                    : 'mixed') as 'optimal' | 'mixed',
+                  badge: matchReport.dashakootaPoruthams.mahendra.passed
+                    ? t('Auspicious', 'शुभ')
+                    : t('Neutral', 'मध्यम'),
+                  summary:
+                    lang === 'ne'
+                      ? matchReport.dashakootaPoruthams.mahendra.summaryNe
+                      : matchReport.dashakootaPoruthams.mahendra.summaryEn,
+                },
+                {
+                  key: 'streeDeergha',
+                  title: t('Stree Deergha', 'स्त्री-दीर्घ समृद्धि'),
+                  tone: (matchReport.dashakootaPoruthams.streeDeergha.passed
+                    ? 'optimal'
+                    : 'mixed') as 'optimal' | 'mixed',
+                  badge: matchReport.dashakootaPoruthams.streeDeergha.passed
+                    ? t('Strong Span', 'प्रबल')
+                    : t('Moderate', 'सन्तुलित'),
+                  summary:
+                    lang === 'ne'
+                      ? matchReport.dashakootaPoruthams.streeDeergha.summaryNe
+                      : matchReport.dashakootaPoruthams.streeDeergha.summaryEn,
+                },
+                {
+                  key: 'rajju',
+                  title: t('Rajju 5-Zone Check', 'रज्जु ५-क्षेत्र परीक्षण'),
+                  tone: (!matchReport.dashakootaPoruthams.rajju.hasConflict
+                    ? 'optimal'
+                    : 'mixed') as 'optimal' | 'mixed',
+                  badge: !matchReport.dashakootaPoruthams.rajju.hasConflict
+                    ? t('Clear Zones', 'दोषमुक्त')
+                    : t('Same Zone', 'ध्यान दिनुपर्ने'),
+                  summary:
+                    lang === 'ne'
+                      ? matchReport.dashakootaPoruthams.rajju.summaryNe
+                      : matchReport.dashakootaPoruthams.rajju.summaryEn,
+                },
+                {
+                  key: 'vedha',
+                  title: t('Nakshatra Vedha', 'नक्षत्र वेध परीक्षण'),
+                  tone: (!matchReport.dashakootaPoruthams.vedha.hasVedha
+                    ? 'optimal'
+                    : 'mixed') as 'optimal' | 'mixed',
+                  badge: !matchReport.dashakootaPoruthams.vedha.hasVedha
+                    ? t('Unobstructed', 'वेधमुक्त')
+                    : t('Active Friction', 'वेध सचेतता'),
+                  summary:
+                    lang === 'ne'
+                      ? matchReport.dashakootaPoruthams.vedha.summaryNe
+                      : matchReport.dashakootaPoruthams.vedha.summaryEn,
+                },
+              ].map((por) => (
+                <div key={por.key} className="obs-panel p-3.5 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-[var(--text)]">{por.title}</span>
+                    <StatusBadge tone={por.tone} label={por.badge} />
+                  </div>
+                  <p className="text-[var(--text-secondary)] leading-relaxed">{por.summary}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs sm:text-sm">
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="font-bold text-[var(--text)]">
+                  {t(
+                    'Venus & Mars Affection Chemistry',
+                    'शुक्र र मङ्गल प्रेम तथा आकर्षण सामञ्जस्य'
+                  )}
+                </div>
+                <p className="text-[var(--text-secondary)] leading-relaxed">
+                  {lang === 'ne'
+                    ? matchReport.dashakootaPoruthams.coupleChemistry.venusMarsHarmonyNe
+                    : matchReport.dashakootaPoruthams.coupleChemistry.venusMarsHarmonyEn}
+                </p>
+              </div>
+
+              <div className="obs-panel p-4 space-y-1.5">
+                <div className="font-bold text-[var(--text)]">
+                  {t(
+                    'Conflict-Repair & Shared Communication Rule',
+                    'मतभेद समाधान र स्वस्थ संवाद नियम'
+                  )}
+                </div>
+                <p className="text-[var(--text-secondary)] leading-relaxed">
+                  {lang === 'ne'
+                    ? matchReport.dashakootaPoruthams.coupleChemistry.conflictRepairRuleNe
+                    : matchReport.dashakootaPoruthams.coupleChemistry.conflictRepairRuleEn}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -36,6 +36,15 @@ import {
   trPlanetRole,
   trSign,
 } from '../i18n/i18n';
+import {
+  buildPersonalizedUpayaArchitecture,
+  buildShodashvargaHarmonicSynthesis,
+  computePlanetVitalityMap,
+  detectSaravaliConjunctions,
+  PersonalizedUpayaArchitecture,
+  SaravaliConjunctionPortrait,
+  VargaHarmonicLifeMirror,
+} from '../data/shadbalaVargaAndUpayaCodex';
 
 export interface LifeDomainScorecardItem {
   id: 'CAREER' | 'WEALTH' | 'RELATIONSHIPS' | 'VITALITY' | 'WISDOM';
@@ -89,6 +98,18 @@ export interface DeepPlanetReadingCard {
   isVargottama: boolean;
   d9SignLabel: string;
   d10SignLabel: string;
+  d24SignLabel: string;
+  shadbalaRupas: number;
+  minRequiredRupas: number;
+  shadbalaRatioPercent: number;
+  shadbalaTierTone: 'optimal' | 'favorable' | 'mixed';
+  shadbalaTierLabel: string;
+  avasthaLabel: string;
+  avasthaDeliveryNote: string;
+  isCombust: boolean;
+  combustNote: string | null;
+  inPlanetaryWar: boolean;
+  warPartner: string | null;
   roleSubtitle: string;
   laymanSynthesis: string;
   classicalBphsRuling: string;
@@ -218,8 +239,15 @@ export interface DeepLifeReport {
     sourceCitation: string;
   };
 
-  // 8. Deep 9-Planet Synthesis Cards
+  // 8. Deep 9-Planet Synthesis Cards (with BPHS Shadbala, Baladi Avasthas & Combustion)
   deepPlanetCards: DeepPlanetReadingCard[];
+
+  // 8B. 7-Chart Shodashvarga Harmonic Mirrors (D3, D4, D7, D9, D10, D12, D24) & Saravali Conjunctions
+  vargaHarmonics: VargaHarmonicLifeMirror[];
+  saravaliConjunctions: SaravaliConjunctionPortrait[];
+
+  // 8C. Trikona-Safe Gemstone, Sattvic Dana & Brihat Samhita Vastu Compass
+  upayaArchitecture: PersonalizedUpayaArchitecture;
 
   // 9. Deep Numerology (Cheiro Compound + Decoz Pinnacles & Karmic Lessons)
   deepNumerology: {
@@ -802,7 +830,29 @@ export function generateDeepLifeReport(
     };
   });
 
-  // ==================== 8. DEEP 9-PLANET READING CARDS ====================
+  // ==================== 8. DEEP 9-PLANET READING CARDS + SHADBALA, VARGA & UPAYA ====================
+  const vitalityMap = computePlanetVitalityMap(
+    natalChart,
+    vedicReport.divisionalTable,
+    profile.unknownTime ? 12 : profile.hour,
+    lang
+  );
+  const vargaHarmonics = buildShodashvargaHarmonicSynthesis(
+    natalChart,
+    vedicReport.divisionalTable,
+    lang
+  );
+  const saravaliConjunctions = detectSaravaliConjunctions(natalChart, lang);
+  const lowestSavHouse =
+    [...vedicReport.sarvashtakavarga].sort((a, b) => a.bindus - b.bindus)[0] ||
+    vedicReport.sarvashtakavarga[0];
+  const upayaArchitecture = buildPersonalizedUpayaArchitecture(
+    natalChart,
+    vedicReport.activeMahadasha.lord,
+    lowestSavHouse,
+    lang
+  );
+
   const deepPlanetCards: DeepPlanetReadingCard[] = coreNinePlanets.map((p) => {
     const baseId = p.name.includes('Rahu')
       ? 'Rahu'
@@ -813,7 +863,9 @@ export function generateDeepLifeReport(
     const d1SignIdx = div ? div.d1Sign : Math.floor(norm360(p.siderealLongitude) / 30);
     const d9Idx = div ? div.d9Sign : d1SignIdx;
     const d10Idx = div ? div.d10Sign : d1SignIdx;
+    const d24Idx = div ? div.d24Sign : d1SignIdx;
     const isVargottama = Boolean(div?.isVargottama);
+    const vit = vitalityMap[baseId];
     const houseNum = p.house;
     const hGuide = trHouseGuide(houseNum, lang);
     const ruled = housesRuledByPlanet[baseId] || [];
@@ -860,6 +912,18 @@ export function generateDeepLifeReport(
       isVargottama,
       d9SignLabel: trSign(ZODIAC_SIGNS[d9Idx].name, lang),
       d10SignLabel: trSign(ZODIAC_SIGNS[d10Idx].name, lang),
+      d24SignLabel: trSign(ZODIAC_SIGNS[d24Idx].name, lang),
+      shadbalaRupas: vit?.shadbalaRupas ?? 6.0,
+      minRequiredRupas: vit?.minRequiredRupas ?? 5.5,
+      shadbalaRatioPercent: vit?.ratioPercent ?? 109,
+      shadbalaTierTone: vit?.tierTone ?? 'favorable',
+      shadbalaTierLabel: vit?.tierLabel ?? (isNe ? 'सन्तुलित षड्बल' : 'Balanced Shadbala'),
+      avasthaLabel: vit?.avasthaLabel ?? (isNe ? 'युवा अवस्था' : 'Yuva (Prime)'),
+      avasthaDeliveryNote: vit?.avasthaDeliveryNote ?? '',
+      isCombust: Boolean(vit?.isCombust),
+      combustNote: vit?.combustNote ?? null,
+      inPlanetaryWar: Boolean(vit?.inPlanetaryWar),
+      warPartner: vit?.warPartner ?? null,
       roleSubtitle: trPlanetRole(baseId, lang),
       laymanSynthesis,
       classicalBphsRuling: bphsRuling,
@@ -1131,6 +1195,9 @@ export function generateDeepLifeReport(
       sourceCitation: 'Mantreshwara’s Phaladeepika (Ch. 26 Gochara) • Traditional Moorthi Nirnaya • BPHS Vimshottari',
     },
     deepPlanetCards,
+    vargaHarmonics,
+    saravaliConjunctions,
+    upayaArchitecture,
     deepNumerology: {
       lifePathHeadline: `Life Path #${lpFinal} (${numerologyReport.lifePath.trail}) — ${
         isNe ? lpGuide.titleNe : lpGuide.titleEn
