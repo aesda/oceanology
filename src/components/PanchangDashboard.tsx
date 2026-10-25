@@ -9,7 +9,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { PanchangReport } from '../engines/panchangEngine';
-import { gregorianToBikramSambat } from '../engines/locationAtlas';
+import { formatCoordPair, gregorianToBikramSambat } from '../engines/locationAtlas';
 import {
   DayTimelineBar,
   KpiStatCard,
@@ -281,8 +281,8 @@ export const PanchangDashboard: React.FC<Props> = ({
             </h2>
             <p className="text-xs text-[var(--text-muted)] tabular-nums">
               {t(
-                `Proportional solar octants computed for ${cityLabel} (${panchang.location.latitude.toFixed(2)}°N, ${panchang.location.longitude.toFixed(2)}°E)`,
-                `${cityLabel} (${panchang.location.latitude.toFixed(2)}°N, ${panchang.location.longitude.toFixed(2)}°E) को सूर्योदय–सूर्यास्त अनुपात अनुसार गणना`
+                `Proportional solar octants computed for ${cityLabel} (${formatCoordPair(panchang.location.latitude, panchang.location.longitude)})`,
+                `${cityLabel} (${formatCoordPair(panchang.location.latitude, panchang.location.longitude)}) को सूर्योदय–सूर्यास्त अनुपात अनुसार गणना`
               )}
             </p>
           </div>

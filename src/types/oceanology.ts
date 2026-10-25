@@ -1,4 +1,4 @@
-import { NEPAL_AND_GLOBAL_CITIES } from '../engines/locationAtlas';
+import { NEPAL_AND_GLOBAL_CITIES, SYDNEY_DEFAULT_CITY } from '../engines/locationAtlas';
 
 export type AyanamshaMode =
   | 'LAHIRI'
@@ -83,7 +83,7 @@ export const DEFAULT_PROFILE: BirthProfile = {
   minute: 30,
   second: 0,
   unknownTime: false,
-  location: NEPAL_AND_GLOBAL_CITIES[0], // Kathmandu, Nepal (UTC+5:45, 1400m)
+  location: SYDNEY_DEFAULT_CITY, // Sydney, Australia (Australia/Sydney, 33.87°S, 151.21°E)
   kpHoraryNumber: 108,
 };
 

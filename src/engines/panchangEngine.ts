@@ -1,6 +1,7 @@
 import * as Astronomy from 'astronomy-engine';
 import { CityLocation } from '../types/oceanology';
 import { NAKSHATRAS, ZODIAC_SIGNS, getAyanamshaDegrees, norm360 } from './astronomyEngine';
+import { resolveTimezoneOffsetAtDate } from './locationAtlas';
 import { STANDARD_27_NAKSHATRAS } from '../data/nakshatraCodex';
 
 export const TITHI_NAMES = [
@@ -562,7 +563,8 @@ export function calculatePanchang(
   const clampedCosH = Math.max(-0.95, Math.min(0.95, cosH));
   const halfDayHours = (Math.acos(clampedCosH) * 180) / (Math.PI * 15);
 
-  const solarNoonLocal = 12 + location.timezoneOffsetHours - location.longitude / 15;
+  const effectiveTzHours = resolveTimezoneOffsetAtDate(location, date);
+  const solarNoonLocal = 12 + effectiveTzHours - location.longitude / 15;
   const sunriseHour = solarNoonLocal - halfDayHours;
   const sunsetHour = solarNoonLocal + halfDayHours;
   const dayLenHours = sunsetHour - sunriseHour;
@@ -571,8 +573,8 @@ export function calculatePanchang(
 
   // Local time float & Weekday
   const utcHours = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
-  const localHourFloat = ((utcHours + location.timezoneOffsetHours) % 24 + 24) % 24;
-  const weekdayIdx = new Date(date.getTime() + location.timezoneOffsetHours * 3600000).getUTCDay();
+  const localHourFloat = ((utcHours + effectiveTzHours) % 24 + 24) % 24;
+  const weekdayIdx = new Date(date.getTime() + effectiveTzHours * 3600000).getUTCDay();
   const vara = VARA_DAYS[weekdayIdx];
 
   // 6. Dhanishtha Panchaka Check (Moon in Kumbha or Meena: 300° <= moonSid < 360°)

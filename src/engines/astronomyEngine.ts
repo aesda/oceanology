@@ -1,5 +1,6 @@
 import * as Astronomy from 'astronomy-engine';
 import { AyanamshaMode, BirthProfile, HouseSystem } from '../types/oceanology';
+import { resolveTimezoneOffsetAtDate } from './locationAtlas';
 import { getAuthenticSabianSymbol } from '../data/sabianMandala';
 
 export const ZODIAC_SIGNS = [
@@ -166,7 +167,9 @@ export function profileToUtcDate(profile: BirthProfile, minuteOffset = 0): Date 
   const m = profile.unknownTime ? 0 : profile.minute;
   const s = profile.unknownTime ? 0 : profile.second;
   const localMs = Date.UTC(profile.year, profile.month - 1, profile.day, h, m, s);
-  const tzMs = profile.location.timezoneOffsetHours * 3600 * 1000;
+  const approxRefUtc = new Date(Date.UTC(profile.year, profile.month - 1, profile.day, 12, 0, 0));
+  const effTzHours = resolveTimezoneOffsetAtDate(profile.location, approxRefUtc);
+  const tzMs = effTzHours * 3600 * 1000;
   return new Date(localMs - tzMs + minuteOffset * 60000);
 }
 

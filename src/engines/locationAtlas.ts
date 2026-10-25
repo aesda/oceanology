@@ -646,3 +646,41 @@ export function gregorianToBikramSambat(year: number, month: number, day: number
 export function cleanCityName(rawName: string): string {
   return rawName.replace(/\s*\([^)]*\)\s*/g, '').trim();
 }
+
+export function resolveTimezoneOffsetAtDate(
+  location: CityLocation,
+  atDate: Date = new Date()
+): number {
+  if (
+    location.id !== 'custom-loc' &&
+    location.ianaTimezone &&
+    location.ianaTimezone !== 'UTC'
+  ) {
+    try {
+      const tzString = atDate.toLocaleString('en-US', {
+        timeZone: location.ianaTimezone,
+        timeZoneName: 'shortOffset',
+      });
+      const match = tzString.match(/GMT([+-]\d+)(?::(\d+))?/);
+      if (match) {
+        const sign = match[1].startsWith('-') ? -1 : 1;
+        const hrs = Math.abs(parseInt(match[1], 10));
+        const mins = match[2] ? parseInt(match[2], 10) / 60 : 0;
+        return sign * (hrs + mins);
+      }
+    } catch {
+      // Fallback to stored static offset
+    }
+  }
+  return location.timezoneOffsetHours;
+}
+
+export function formatCoordPair(lat: number, lon: number, asciiOnly = false): string {
+  const ns = lat >= 0 ? 'N' : 'S';
+  const ew = lon >= 0 ? 'E' : 'W';
+  const deg = asciiOnly ? '' : '°';
+  return `${Math.abs(lat).toFixed(2)}${deg}${ns}, ${Math.abs(lon).toFixed(2)}${deg}${ew}`;
+}
+
+export const SYDNEY_DEFAULT_CITY: CityLocation =
+  NEPAL_AND_GLOBAL_CITIES.find((c) => c.id === 'sydney-au') || NEPAL_AND_GLOBAL_CITIES[0];

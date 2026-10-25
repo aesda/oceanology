@@ -4,7 +4,7 @@ import { DivisionalChartEntry, VedicReport } from './vedicEngine';
 import { PanchangReport } from './panchangEngine';
 import { NumerologyReport } from './numerologyEngine';
 import { CosmicSynthesisReport } from './synthesisEngine';
-import { cleanCityName, gregorianToBikramSambat } from './locationAtlas';
+import { cleanCityName, formatCoordPair, gregorianToBikramSambat } from './locationAtlas';
 import { getNakshatraTreatiseByIndex } from '../data/nakshatraCodex';
 import { PLANET_TREATISES } from '../data/classicalCompendium';
 import {
@@ -334,9 +334,11 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     } (${tzStr})  |  Nepali Date: ${bsBirth.formattedEn}  |  Age: ${deepReport.currentAge}`
   );
   const birthLine2 = cleanPdfText(
-    `Birthplace: ${cleanCityName(profile.location.name)}, ${profile.location.country} (${profile.location.latitude.toFixed(
-      2
-    )}N, ${profile.location.longitude.toFixed(2)}E)  |  Zodiac: ${ayanamsha}  |  Houses: ${houseSystem}`
+    `Birthplace: ${cleanCityName(profile.location.name)}, ${profile.location.country} (${formatCoordPair(
+      profile.location.latitude,
+      profile.location.longitude,
+      true
+    )})  |  Zodiac: ${ayanamsha}  |  Houses: ${houseSystem}`
   );
 
   doc.setFont('helvetica', 'normal');

@@ -16,7 +16,7 @@ import {
   Hash,
   Layers,
 } from 'lucide-react';
-import { BirthProfile } from '../types/oceanology';
+import { BirthProfile, CityLocation } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
 import { VedicReport } from '../engines/vedicEngine';
 import { PanchangReport } from '../engines/panchangEngine';
@@ -348,10 +348,11 @@ export const LandingPage: React.FC<Props> = ({
   );
 
   const quickCities = useMemo(() => {
-    const wanted = ['Kathmandu', 'Pokhara', 'Varanasi', 'New York'];
-    return NEPAL_AND_GLOBAL_CITIES.filter((c) =>
-      wanted.some((w) => c.name.toLowerCase().includes(w.toLowerCase()))
-    ).slice(0, 4);
+    const wantedIds = ['sydney-au', 'melbourne-au', 'kathmandu-np', 'new-york-us'];
+    const ordered = wantedIds
+      .map((id) => NEPAL_AND_GLOBAL_CITIES.find((c) => c.id === id))
+      .filter((c): c is CityLocation => Boolean(c));
+    return ordered.length > 0 ? ordered : NEPAL_AND_GLOBAL_CITIES.slice(0, 4);
   }, []);
 
   const topSavHouse = useMemo(() => {
@@ -543,8 +544,8 @@ export const LandingPage: React.FC<Props> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-[#EDC5FC] animate-pulse" />
                 <span>
                   {t(
-                    '8 Classical Canons • 24h Graha Horai • 17-Page Printable Dossier',
-                    '८ शास्त्रीय ग्रन्थ • प्रत्यक्ष २४-घण्टा होरा • १७-पृष्ठ PDF जीवन दर्पण'
+                    '14 Classical Canons • 24h Graha Horai • 19-Page Printable Dossier',
+                    '१४ शास्त्रीय ग्रन्थ • प्रत्यक्ष २४-घण्टा होरा • १९-पृष्ठ PDF जीवन दर्पण'
                   )}
                 </span>
               </div>

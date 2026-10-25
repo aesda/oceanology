@@ -21,7 +21,10 @@ import {
   HoraiLordId,
   HoraiSlot,
 } from '../engines/panchangEngine';
-import { gregorianToBikramSambat } from '../engines/locationAtlas';
+import {
+  gregorianToBikramSambat,
+  resolveTimezoneOffsetAtDate,
+} from '../engines/locationAtlas';
 import {
   formatCityForLang,
   HORAI_NE_META,
@@ -97,15 +100,16 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [minuteBucket, location, natalMoonNakshatraIdx, natalMoonSignIdx]);
 
-  // Exact local city clock HH:MM:SS
+  // Exact local city clock HH:MM:SS (DST-aware for Sydney/Melbourne/London/NYC)
   const cityClockFormatted = useMemo(() => {
-    const cityMs = nowTick.getTime() + location.timezoneOffsetHours * 3600000;
+    const effTzHours = resolveTimezoneOffsetAtDate(location, nowTick);
+    const cityMs = nowTick.getTime() + effTzHours * 3600000;
     const d = new Date(cityMs);
     const hh = d.getUTCHours().toString().padStart(2, '0');
     const mm = d.getUTCMinutes().toString().padStart(2, '0');
     const ss = d.getUTCSeconds().toString().padStart(2, '0');
     return `${hh}:${mm}:${ss}`;
-  }, [nowTick, location.timezoneOffsetHours]);
+  }, [nowTick, location]);
 
   const activeHorai = livePanchang.activeHorai;
   const activeHoraiDisp = trHoraiDisplay(activeHorai, lang);

@@ -3,7 +3,9 @@ import { MapPin, Search, Navigation, Sliders } from 'lucide-react';
 import { CityLocation } from '../types/oceanology';
 import {
   NEPAL_AND_GLOBAL_CITIES,
+  formatCoordPair,
   getOffsetFromIanaOrLon,
+  resolveTimezoneOffsetAtDate,
   searchGlobalLocations,
 } from '../engines/locationAtlas';
 import { formatCityForLang, formatCountryForLang, useLanguage } from '../i18n/i18n';
@@ -25,8 +27,21 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label }
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCustomCoords, setShowCustomCoords] = useState(false);
 
-  const nepalQuickCities = NEPAL_AND_GLOBAL_CITIES.filter((c) => c.country === 'Nepal').slice(0, 7);
-  const globalQuickCities = NEPAL_AND_GLOBAL_CITIES.filter((c) => c.country !== 'Nepal').slice(0, 8);
+  const nepalQuickCities = NEPAL_AND_GLOBAL_CITIES.filter((c) => c.country === 'Nepal').slice(0, 6);
+  const featuredGlobalIds = [
+    'sydney-au',
+    'melbourne-au',
+    'london-uk',
+    'new-york-us',
+    'new-delhi-in',
+    'varanasi-in',
+    'tokyo-jp',
+    'singapore-sg',
+  ];
+  const globalQuickCities = featuredGlobalIds
+    .map((id) => NEPAL_AND_GLOBAL_CITIES.find((c) => c.id === id))
+    .filter((c): c is CityLocation => Boolean(c));
+  const activeUtcOffset = resolveTimezoneOffsetAtDate(value, new Date());
 
   useEffect(() => {
     let active = true;
@@ -122,12 +137,12 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label }
               </span>
             </div>
             <div className="font-mono text-xs text-[var(--text-muted)]">
-              {value.latitude.toFixed(2)}°N, {value.longitude.toFixed(2)}°E • {value.elevationMeters}m •{' '}
-              {formatUtcOffset(value.timezoneOffsetHours)}
+              {formatCoordPair(value.latitude, value.longitude)} • {value.elevationMeters}m •{' '}
+              {formatUtcOffset(activeUtcOffset)}
             </div>
           </div>
           <span className="px-2 py-0.5 rounded text-xs font-mono obs-badge-brass">
-            {value.country === 'Nepal' ? 'NPT' : formatUtcOffset(value.timezoneOffsetHours)}
+            {value.country === 'Nepal' ? 'NPT' : formatUtcOffset(activeUtcOffset)}
           </span>
         </div>
 
@@ -144,8 +159,8 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label }
                 setShowDropdown(true);
               }}
               placeholder={t(
-                'Search any city, town, or village worldwide (e.g. Kathmandu, Pokhara, London, Tokyo)...',
-                'विश्वको कुनै पनि सहर वा गाउँ खोज्नुहोस् (जस्तै: Kathmandu, Pokhara, London, Tokyo)...'
+                'Search any city, town, or village worldwide (e.g. Sydney, Melbourne, Kathmandu, London)...',
+                'विश्वको कुनै पनि सहर वा गाउँ खोज्नुहोस् (जस्तै: Sydney, Melbourne, Kathmandu, London)...'
               )}
               className="w-full obs-input pl-9 pr-3 py-2.5 text-sm"
             />

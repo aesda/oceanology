@@ -5,6 +5,7 @@ import countriesAtlas from 'world-atlas/countries-110m.json';
 import { Globe, Heart, Home, Sparkles, Briefcase, MapPin, Info } from 'lucide-react';
 import { AstrocartographyLine, NatalChartResult } from '../engines/astronomyEngine';
 import { BirthProfile, CityLocation, WORLD_CITIES } from '../types/oceanology';
+import { formatCoordPair } from '../engines/locationAtlas';
 import { ACG_LINE_INTERPRETATIONS } from '../data/classicalCompendium';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
 import { KpiStatCard, SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
@@ -764,7 +765,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                   </span>
                 </div>
                 <span className="font-mono text-[var(--text-muted)]">
-                  Pin: {activeCity.latitude.toFixed(2)}°N, {activeCity.longitude.toFixed(2)}°E
+                  Pin: {formatCoordPair(activeCity.latitude, activeCity.longitude)}
                 </span>
               </div>
             </div>
