@@ -37,12 +37,16 @@ import {
   trActionTitle,
   trDignity,
   trHoraiDisplay,
+  trHoursRemaining,
+  trNakNature,
   trNakshatra,
   trPlanet,
   trSign,
+  trTaraName,
   trVara,
   useLanguage,
 } from '../i18n/i18n';
+import { gregorianToBikramSambat } from '../engines/locationAtlas';
 
 interface Props {
   chart: NatalChartResult;
@@ -375,13 +379,10 @@ export const ActionConsequenceLab: React.FC<Props> = ({
               label={t('Transit Nakshatra', 'गोचर नक्षत्र')}
               value={trNakshatra(report.panchang.nakshatra.name, lang)}
               subvalue={`${t('Pada', 'चरण')} ${report.panchang.nakshatra.pada}`}
-              benchmarkText={t(
-                `${report.panchang.nakshatra.hoursRemaining} remaining`,
-                `${report.panchang.nakshatra.hoursRemaining} बाँकी`
-              )}
+              benchmarkText={trHoursRemaining(report.panchang.nakshatra.hoursRemaining, lang)}
               status={{
                 tone: 'info',
-                label: report.panchang.nakshatra.natureGroup.split(' ')[0],
+                label: trNakNature(report.panchang.nakshatra.natureGroup, lang, true),
               }}
               icon={<Sparkles className="w-4 h-4" />}
               actionLabel={
@@ -399,7 +400,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
             <KpiStatCard
               label={t('Personal Tarabala', 'व्यक्तिगत ताराबल')}
               value={`${t('Tara', 'तारा')} #${report.panchang.personalTarabala.taraNumber}`}
-              subvalue={report.panchang.personalTarabala.taraName.split(' ')[0]}
+              subvalue={trTaraName(report.panchang.personalTarabala.taraName.split(' ')[0], lang)}
               benchmarkText={t(
                 `Moon in House ${report.panchang.personalTarabala.chandrabalaHouse}`,
                 `चन्द्रबल भाव ${report.panchang.personalTarabala.chandrabalaHouse}`
@@ -433,8 +434,12 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                     )}
                   </p>
                 </div>
-                <span className="text-xs font-mono text-[var(--text-secondary)]">
-                  {report.panchang.bikramSambat.formatted}
+                <span className="text-xs tabular-nums font-medium text-[var(--text-secondary)]">
+                  {(() => {
+                    const [y, m, d] = selectedDateStr.split('-').map((n) => parseInt(n, 10));
+                    const bs = gregorianToBikramSambat(y || 2026, m || 10, d || 25);
+                    return lang === 'ne' ? `वि.सं. ${bs.formattedNp}` : `B.S. ${bs.formattedEn}`;
+                  })()}
                 </span>
               </div>
 

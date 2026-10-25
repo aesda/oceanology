@@ -223,23 +223,23 @@ export const LandingPage: React.FC<Props> = ({
     <div className="min-h-screen flex flex-col bg-transparent text-[var(--text)] relative z-10">
       {/* ==================== UNIFIED PRODUCT NAVBAR ==================== */}
       <header className="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)]">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6 min-w-0">
+        <div className="max-w-[1280px] mx-auto px-3.5 sm:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-5 min-w-0">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2.5 text-left shrink-0"
+              className="flex items-center gap-2 sm:gap-2.5 text-left shrink-0"
             >
-              <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shadow-sm shrink-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shadow-sm shrink-0">
                 <SacredFlowerIcon
                   variety="lotus"
                   primaryHex="#FDE68A"
                   secondaryHex="#FFFFFF"
-                  size={21}
+                  size={20}
                   animated={floralMotion}
                 />
               </div>
-              <span className="font-display font-bold text-lg tracking-tight text-[var(--text)] whitespace-nowrap">
+              <span className="font-display font-bold text-sm sm:text-lg tracking-tight text-[var(--text)] whitespace-nowrap">
                 Oceanology
               </span>
             </button>
@@ -286,7 +286,7 @@ export const LandingPage: React.FC<Props> = ({
             </nav>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <LanguageSwitchButton />
 
             {onToggleFloralMotion && (
@@ -295,7 +295,7 @@ export const LandingPage: React.FC<Props> = ({
                 onClick={onToggleFloralMotion}
                 aria-label="Toggle sacred flower animations"
                 title="Toggle ambient sacred flower animations"
-                className={`ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
+                className={`hidden md:inline-flex ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
               >
                 <SacredFlowerIcon
                   variety="lotus"
@@ -304,7 +304,7 @@ export const LandingPage: React.FC<Props> = ({
                   size={16}
                   animated={floralMotion}
                 />
-                <span className="hidden md:inline">{t('Bloom', 'पुष्प')}</span>
+                <span className="hidden lg:inline">{t('Bloom', 'पुष्प')}</span>
               </button>
             )}
 
@@ -314,10 +314,10 @@ export const LandingPage: React.FC<Props> = ({
                 onClick={onToggleLargeText}
                 aria-label="Toggle larger reading text"
                 title="Switch between Standard and Large comfortable reading text"
-                className={`ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
+                className={`hidden sm:inline-flex ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
               >
                 <Type className="w-4 h-4" />
-                <span className="hidden sm:inline">
+                <span className="hidden lg:inline">
                   {largeText ? t('Large', 'ठूलो अक्षर') : 'Aa'}
                 </span>
               </button>
@@ -336,9 +336,10 @@ export const LandingPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => onNavigate('FULL_REPORT')}
-              className="ui-toolbar-cta"
+              className="ui-toolbar-cta px-2.5 sm:px-3.5"
             >
-              <span>{t('Read Report', 'रिपोर्ट पढ्नुहोस्')}</span>
+              <span className="hidden sm:inline">{t('Read Report', 'रिपोर्ट पढ्नुहोस्')}</span>
+              <span className="sm:hidden">{t('Report', 'रिपोर्ट')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -502,7 +503,7 @@ export const LandingPage: React.FC<Props> = ({
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       {t('Birth date (YYYY / MM / DD)', 'जन्म मिति (ई.सं. वर्ष / महिना / गते)')}
                     </label>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-4 gap-1.5">
                       <input
                         type="number"
                         aria-label="Birth year"
@@ -513,7 +514,7 @@ export const LandingPage: React.FC<Props> = ({
                             year: parseInt(e.target.value, 10) || 1996,
                           })
                         }
-                        className="obs-input tabular-nums font-medium px-2.5"
+                        className="col-span-2 obs-input tabular-nums font-medium px-2.5 text-center"
                       />
                       <input
                         type="number"
@@ -527,7 +528,7 @@ export const LandingPage: React.FC<Props> = ({
                             month: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)),
                           })
                         }
-                        className="obs-input tabular-nums font-medium px-2.5"
+                        className="obs-input tabular-nums font-medium px-2 text-center"
                       />
                       <input
                         type="number"
@@ -541,7 +542,7 @@ export const LandingPage: React.FC<Props> = ({
                             day: Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1)),
                           })
                         }
-                        className="obs-input tabular-nums font-medium px-2.5"
+                        className="obs-input tabular-nums font-medium px-2 text-center"
                       />
                     </div>
                   </div>

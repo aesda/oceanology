@@ -292,7 +292,7 @@ export const PersonalReportReader: React.FC<Props> = ({
           <button
             type="button"
             onClick={onEditProfile}
-            className="btn-editorial-secondary inline-flex items-center gap-2 text-sm"
+            className="btn-editorial-secondary inline-flex items-center gap-2 text-sm no-print"
           >
             <Sliders className="w-4 h-4 text-[var(--accent)]" />
             <span>{t('Change Birth Details', 'जन्म विवरण सच्याउनुहोस्')}</span>
@@ -300,7 +300,7 @@ export const PersonalReportReader: React.FC<Props> = ({
         </div>
 
         {/* Prominent PDF Export Action Box */}
-        <div className="obs-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="obs-panel p-5 space-y-4 no-print">
           <div className="space-y-1">
             <div className="text-base font-bold text-[var(--text)]">
               {t(
@@ -316,7 +316,7 @@ export const PersonalReportReader: React.FC<Props> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               disabled={pdfBusy !== 'NONE'}
@@ -357,7 +357,7 @@ export const PersonalReportReader: React.FC<Props> = ({
         </div>
 
         {pdfStatusMsg && (
-          <div className="px-4 py-3 rounded-lg bg-[var(--sage-bg)] border border-[var(--sage)]/30 text-[var(--sage)] text-sm font-medium flex items-center gap-2">
+          <div className="px-4 py-3 rounded-lg bg-[var(--sage-bg)] border border-[var(--sage)]/30 text-[var(--sage)] text-sm font-medium flex items-center gap-2 no-print">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{pdfStatusMsg}</span>
           </div>
@@ -366,7 +366,7 @@ export const PersonalReportReader: React.FC<Props> = ({
         {/* Quick Chapter Jump Links */}
         <nav
           aria-label="Report chapters"
-          className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)] text-sm"
+          className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)] text-sm no-print"
         >
           {[
             { href: '#rep-takeaways', label: t('1. Key Takeaways', '१. मुख्य सारांश') },

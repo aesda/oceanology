@@ -26,7 +26,7 @@ import {
   SemanticTone,
   WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
-import { trNakshatra, trPlanet, trSign, useLanguage } from '../i18n/i18n';
+import { trNakNature, trNakshatra, trPlanet, trSign, useLanguage } from '../i18n/i18n';
 
 interface Props {
   chart: NatalChartResult;
@@ -422,8 +422,8 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] font-mono text-[var(--text-muted)] truncate">
-                        {trPlanet(nak.ruler, lang)} • {nak.natureGroup.split(' ')[0]} •{' '}
+                      <div className="text-[11px] tabular-nums text-[var(--text-muted)] truncate">
+                        {trPlanet(nak.ruler, lang)} • {trNakNature(nak.natureGroup, lang, true)} •{' '}
                         {trSign(nak.spanSign, lang)}
                       </div>
                     </div>
@@ -521,26 +521,96 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
             <KpiStatCard
               label={t('Vimshottari Lord', 'विंशोत्तरी स्वामी')}
               value={trPlanet(activeTreatise.ruler, lang)}
-              benchmarkText={activeTreatise.purushartha}
-              status={{ tone: 'info', label: activeTreatise.tattva }}
+              benchmarkText={
+                lang === 'ne'
+                  ? activeTreatise.purushartha.includes('Dharma')
+                    ? 'पुरुषार्थ: धर्म'
+                    : activeTreatise.purushartha.includes('Artha')
+                    ? 'पुरुषार्थ: अर्थ'
+                    : activeTreatise.purushartha.includes('Kama')
+                    ? 'पुरुषार्थ: काम'
+                    : 'पुरुषार्थ: मोक्ष'
+                  : activeTreatise.purushartha
+              }
+              status={{
+                tone: 'info',
+                label:
+                  lang === 'ne'
+                    ? activeTreatise.tattva.includes('Earth')
+                      ? 'पृथ्वी तत्त्व'
+                      : activeTreatise.tattva.includes('Water')
+                      ? 'जल तत्त्व'
+                      : activeTreatise.tattva.includes('Fire')
+                      ? 'अग्नि तत्त्व'
+                      : activeTreatise.tattva.includes('Air')
+                      ? 'वायु तत्त्व'
+                      : 'आकाश तत्त्व'
+                    : activeTreatise.tattva,
+              }}
             />
             <KpiStatCard
               label={t('Presiding Deity', 'अधिष्ठाता देवता')}
-              value={activeTreatise.deity.split('(')[0].trim()}
-              benchmarkText={activeTreatise.deitySanskrit}
-              status={{ tone: 'neutral', label: activeTreatise.gana }}
+              value={
+                lang === 'ne'
+                  ? activeTreatise.deitySanskrit
+                  : activeTreatise.deity.split('(')[0].trim()
+              }
+              benchmarkText={
+                lang === 'ne'
+                  ? activeTreatise.deity.split('(')[0].trim()
+                  : activeTreatise.deitySanskrit
+              }
+              status={{
+                tone: 'neutral',
+                label:
+                  lang === 'ne'
+                    ? activeTreatise.gana.includes('Deva')
+                      ? 'देव गण'
+                      : activeTreatise.gana.includes('Manushya')
+                      ? 'मनुष्य गण'
+                      : 'राक्षस गण'
+                    : activeTreatise.gana,
+              }}
             />
             <KpiStatCard
               label={t('Nature & Gaze', 'स्वभाव र दृष्टि')}
-              value={activeTreatise.natureGroup.split(' ')[0]}
-              benchmarkText={activeTreatise.mukhaGaze}
+              value={trNakNature(activeTreatise.natureGroup, lang, true)}
+              benchmarkText={
+                lang === 'ne'
+                  ? activeTreatise.mukhaGaze.includes('Urdhva')
+                    ? 'ऊर्ध्वमुख (माथि हेर्ने)'
+                    : activeTreatise.mukhaGaze.includes('Adho')
+                    ? 'अधोमुख (तल हेर्ने)'
+                    : 'तिर्यङ्मुख (तेर्सो दृष्टि)'
+                  : activeTreatise.mukhaGaze
+              }
               status={{ tone: 'favorable', label: t('Muhurta Class', 'मुहूर्त वर्ग') }}
             />
             <KpiStatCard
               label={t('Lost-Object Oracle', 'हराएको वस्तु प्रश्न')}
-              value={activeTreatise.lochanaEye.split('(')[0].trim()}
-              benchmarkText={`Nadi: ${activeTreatise.nadi}`}
-              status={{ tone: 'neutral', label: 'Lochana' }}
+              value={
+                lang === 'ne'
+                  ? activeTreatise.lochanaEye.includes('Andha')
+                    ? 'अन्ध लोचन'
+                    : activeTreatise.lochanaEye.includes('Manda')
+                    ? 'मन्द लोचन'
+                    : activeTreatise.lochanaEye.includes('Madhya')
+                    ? 'मध्य लोचन'
+                    : 'सुलोचन'
+                  : activeTreatise.lochanaEye.split('(')[0].trim()
+              }
+              benchmarkText={
+                lang === 'ne'
+                  ? `नाडी: ${
+                      activeTreatise.nadi.includes('Adi')
+                        ? 'आदि (वात)'
+                        : activeTreatise.nadi.includes('Madhya')
+                        ? 'मध्य (पित्त)'
+                        : 'अन्त्य (कफ)'
+                    }`
+                  : `Nadi: ${activeTreatise.nadi}`
+              }
+              status={{ tone: 'neutral', label: t('Lochana', 'लोचन') }}
             />
           </div>
 

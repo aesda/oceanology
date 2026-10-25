@@ -21,11 +21,16 @@ import {
 import { SacredFlowerIcon } from './ui/FloralAnimations';
 import {
   formatCityForLang,
+  trDirection,
   trGowriName,
   trHoraiDisplay,
+  trHoursRemaining,
+  trNakNature,
   trNakshatra,
+  trPaksha,
   trPlanet,
   trSign,
+  trTithi,
   trVara,
   useLanguage,
 } from '../i18n/i18n';
@@ -79,7 +84,7 @@ export const PanchangDashboard: React.FC<Props> = ({
         }
         subtitle={
           lang === 'ne'
-            ? `${trVara(panchang.vara.name, 'ne')} • इ.सं. ${panchang.dateStr} • सौर महिना: ${panchang.bikramSambat.monthName} • उचाइ ${panchang.location.elevationMeters}m`
+            ? `${trVara(panchang.vara.name, 'ne')} • इ.सं. ${panchang.dateStr} • सौर महिना: ${bsDate.bsMonthNp} • उचाइ ${panchang.location.elevationMeters}m`
             : `${panchang.vara.name} • Gregorian ${panchang.dateStr} • Solar Month: ${panchang.bikramSambat.monthName} • Elevation ${panchang.location.elevationMeters}m`
         }
         actions={
@@ -111,8 +116,8 @@ export const PanchangDashboard: React.FC<Props> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiStatCard
           label={t('Lunar Day (Tithi)', 'तिथि (चन्द्र दिन)')}
-          value={panchang.tithi.name}
-          subvalue={panchang.tithi.paksha.split(' ')[0]}
+          value={trTithi(panchang.tithi.name, lang)}
+          subvalue={trPaksha(panchang.tithi.paksha, lang)}
           plainHint={
             panchang.tithi.isRikta
               ? t(
@@ -124,14 +129,13 @@ export const PanchangDashboard: React.FC<Props> = ({
                   'नियमित र रचनात्मक कामका लागि सहयोगी तिथि'
                 )
           }
-          benchmarkText={t(
-            `${panchang.tithi.hoursRemaining} remaining (${panchang.tithi.progressPercent}%)`,
-            `${panchang.tithi.hoursRemaining} बाँकी (${panchang.tithi.progressPercent}%)`
-          )}
+          benchmarkText={`${trHoursRemaining(panchang.tithi.hoursRemaining, lang)} (${panchang.tithi.progressPercent}%)`}
           status={{
             tone: panchang.tithi.isRikta ? 'mixed' : 'favorable',
             label: panchang.tithi.isRikta
               ? t('Rikta (Caution)', 'रिक्ता (सावधानी)')
+              : lang === 'ne'
+              ? 'शुभ तिथि'
               : panchang.tithi.group.split(' ')[0],
           }}
           icon={<Calendar className="w-4 h-4" />}
@@ -143,15 +147,12 @@ export const PanchangDashboard: React.FC<Props> = ({
           subvalue={`${t('Pada', 'चरण')} ${panchang.nakshatra.pada}`}
           plainHint={t(
             `Overall day temperament: ${panchang.nakshatra.natureGroup}`,
-            `नक्षत्र स्वभाव: ${panchang.nakshatra.natureGroup}`
+            `नक्षत्र स्वभाव: ${trNakNature(panchang.nakshatra.natureGroup, 'ne')}`
           )}
-          benchmarkText={t(
-            `${panchang.nakshatra.hoursRemaining} remaining`,
-            `${panchang.nakshatra.hoursRemaining} बाँकी`
-          )}
+          benchmarkText={trHoursRemaining(panchang.nakshatra.hoursRemaining, lang)}
           status={{
             tone: 'info',
-            label: panchang.nakshatra.natureGroup.split(' ')[0],
+            label: trNakNature(panchang.nakshatra.natureGroup, lang, true),
           }}
           icon={<Sparkles className="w-4 h-4" />}
           actionLabel={
@@ -199,7 +200,7 @@ export const PanchangDashboard: React.FC<Props> = ({
           label={t('Travel & Sky Caution', 'यात्रा र दिशाशूल')}
           value={t(
             `Avoid ${panchang.dishashoola.forbiddenDirection}`,
-            `${panchang.dishashoola.forbiddenDirection} दिशा परहेज`
+            `${trDirection(panchang.dishashoola.forbiddenDirection, 'ne')} दिशा परहेज`
           )}
           plainHint={t(
             'Direction with extra travel friction today',

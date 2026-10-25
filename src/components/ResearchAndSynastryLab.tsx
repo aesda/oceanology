@@ -100,7 +100,15 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
 
             <KpiStatCard
               label={t('Match Verdict', 'मिलान निष्कर्ष')}
-              value={matchReport.verdict.split('(')[0].trim()}
+              value={
+                lang === 'ne'
+                  ? matchReport.totalPoints >= 25
+                    ? 'उत्तम मिलान'
+                    : matchReport.totalPoints >= 18
+                    ? 'मध्यम / शुभ'
+                    : 'विचारणीय'
+                  : matchReport.verdict.split('(')[0].trim()
+              }
               benchmarkText={`${primaryProfile.firstName} & ${partnerProfile.firstName}`}
               status={{ tone: 'info', label: t('8 Kootas', '८ कूट') }}
               icon={<Sparkles className="w-4 h-4" />}
@@ -108,7 +116,13 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
 
             <KpiStatCard
               label={t('Kuja / Manglik Balance', 'माङ्गलिक / कुज सन्तुलन')}
-              value={matchReport.manglikStatus.split('(')[0].trim()}
+              value={
+                lang === 'ne'
+                  ? matchReport.manglikStatus.toLowerCase().includes('balanced')
+                    ? 'कुज सन्तुलित'
+                    : 'माङ्गलिक परिहार जाँच'
+                  : matchReport.manglikStatus.split('(')[0].trim()
+              }
               benchmarkText={t('Mars 1/2/4/7/8/12 check', 'मङ्गल १/२/४/७/८/१२ जाँच')}
               status={{
                 tone: matchReport.manglikStatus.toLowerCase().includes('balanced')

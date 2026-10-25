@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   RotateCcw,
 } from 'lucide-react';
+import { useLanguage } from '../../i18n/i18n';
 
 export type SemanticTone = 'optimal' | 'favorable' | 'mixed' | 'avoid' | 'info' | 'neutral';
 
@@ -37,12 +38,14 @@ export const StatusBadge: React.FC<{
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-semibold whitespace-nowrap ${
-        size === 'md' ? 'px-3 py-1 text-sm' : 'px-2.5 py-0.5 text-xs sm:text-[13px]'
+      className={`inline-flex items-center gap-1.5 font-semibold max-w-full ${
+        size === 'md'
+          ? 'px-3 py-1 text-sm whitespace-normal sm:whitespace-nowrap text-left'
+          : 'px-2.5 py-0.5 text-xs sm:text-[13px] whitespace-nowrap'
       } ${styles[tone]}`}
     >
       {icons[tone]}
-      <span>{label}</span>
+      <span className="min-w-0 break-words">{label}</span>
     </span>
   );
 };
@@ -171,7 +174,13 @@ export const ScoreTrendChart: React.FC<{
   const maxVal = Math.max(...points.map((p) => p.value));
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto space-y-1.5">
+      <div className="flex items-center justify-end">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[var(--sage-bg)] text-[var(--sage)] text-[11px] font-bold border border-[var(--sage)]/25">
+          <span className="w-3.5 border-t-2 border-dashed border-[var(--sage)] inline-block" />
+          <span>{benchmarkLabel}</span>
+        </span>
+      </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="w-full min-w-[480px] h-auto select-none"
@@ -223,16 +232,6 @@ export const ScoreTrendChart: React.FC<{
           strokeWidth="1.5"
           strokeDasharray="4 4"
         />
-        <text
-          x={width - padRight}
-          y={benchY - 6}
-          textAnchor="end"
-          fontSize="11.5"
-          fontWeight="700"
-          fill="var(--sage)"
-        >
-          {benchmarkLabel}
-        </text>
 
         {/* Area + Trend Line */}
         <path d={areaPath} fill="url(#oceanTrendFill)" />
@@ -362,7 +361,13 @@ export const BenchmarkBarChart: React.FC<{
   const benchY = padTop + innerH - (benchmarkValue / maxVal) * innerH;
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto space-y-1.5">
+      <div className="flex items-center justify-end">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border)]">
+          <span className="w-3.5 border-t-2 border-dashed border-[var(--text-secondary)] inline-block" />
+          <span>{benchmarkLabel}</span>
+        </span>
+      </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="w-full min-w-[480px] h-auto select-none"
@@ -446,31 +451,25 @@ export const BenchmarkBarChart: React.FC<{
           x2={width - padRight}
           y2={benchY}
           stroke="var(--text)"
-          strokeOpacity="0.7"
+          strokeOpacity="0.65"
           strokeWidth="1.4"
           strokeDasharray="4 3"
         />
-        <rect
-          x={width - padRight - 134}
-          y={benchY - 18}
-          width={134}
-          height={16}
-          rx={3}
-          fill="var(--surface)"
-        />
-        <text
-          x={width - padRight - 4}
-          y={benchY - 6}
-          textAnchor="end"
-          fontSize="11"
-          fontWeight="700"
-          fill="var(--text-secondary)"
-        >
-          {benchmarkLabel}
-        </text>
       </svg>
     </div>
   );
+};
+
+const MUHURAT_SHORT_NE: Record<string, string> = {
+  Abhijit: 'अभिजित्',
+  Brahma: 'ब्रह्म',
+  Godhuli: 'गोधूलि',
+  Amrit: 'अमृत',
+  Vijaya: 'विजय',
+  Rahu: 'राहुकाल',
+  Yamaganda: 'यमगण्ड',
+  Gulika: 'गुलिक',
+  Durmuhurtham: 'दुर्मुहूर्त',
 };
 
 export interface DayWindowSegment {
@@ -487,6 +486,7 @@ export const DayTimelineBar: React.FC<{
   sunsetTime: string;
   windows: DayWindowSegment[];
 }> = ({ sunriseTime, sunsetTime, windows }) => {
+  const { lang, t } = useLanguage();
   const parseTime = (str: string) => {
     const [h, m] = str.split(':').map((n) => parseInt(n, 10) || 0);
     return h + m / 60;
@@ -502,10 +502,16 @@ export const DayTimelineBar: React.FC<{
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between text-sm font-medium text-[var(--text-secondary)] tabular-nums">
-        <span>☀ Sunrise {sunriseTime}</span>
-        <span>Daylight Window Timeline</span>
-        <span>🌇 Sunset {sunsetTime}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-medium text-[var(--text-secondary)] tabular-nums">
+        <span>
+          ☀ {t('Sunrise', 'सूर्योदय')} {sunriseTime}
+        </span>
+        <span className="hidden sm:inline">
+          {t('Daylight Window Timeline', 'दिवाकालीन समयरेखा')}
+        </span>
+        <span>
+          🌇 {t('Sunset', 'सूर्यास्त')} {sunsetTime}
+        </span>
       </div>
 
       <div className="relative h-11 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] overflow-hidden">
@@ -514,6 +520,10 @@ export const DayTimelineBar: React.FC<{
           const right = Math.max(0, Math.min(100, ((w.endHourFloat - riseH) / span) * 100));
           const widthPct = Math.max(2, right - left);
           if (right <= 0 || left >= 100) return null;
+
+          const firstWord = w.name.split(' ')[0];
+          const shortLbl =
+            lang === 'ne' ? MUHURAT_SHORT_NE[firstWord] || firstWord : firstWord;
 
           const bg =
             w.category === 'Auspicious'
@@ -529,7 +539,7 @@ export const DayTimelineBar: React.FC<{
               style={{ left: `${left}%`, width: `${widthPct}%` }}
               className={`absolute inset-y-0 flex items-center justify-center px-1.5 text-xs font-semibold truncate ${bg}`}
             >
-              {widthPct >= 8 ? w.name.split(' ')[0] : ''}
+              {widthPct >= 8 ? shortLbl : ''}
             </div>
           );
         })}
@@ -538,24 +548,36 @@ export const DayTimelineBar: React.FC<{
           <div
             style={{ left: `${nowPct}%` }}
             className="absolute inset-y-0 w-0.5 bg-[var(--text)] z-10"
-            title="Current Local Time"
+            title={t('Current Local Time', 'हालको स्थानीय समय')}
           />
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--text-secondary)]">
+      <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-[var(--text-secondary)]">
         <span className="inline-flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-emerald-500/55 inline-block" />
-          Best Hours (Abhijit / Brahma)
+          <span className="w-3 h-3 rounded-sm bg-emerald-500/55 inline-block shrink-0" />
+          <span>
+            {t(
+              'Best Hours (Abhijit / Brahma)',
+              'शुभ मुहूर्त (अभिजित् / ब्रह्म)'
+            )}
+          </span>
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-rose-500/55 inline-block" />
-          Avoid Starting New Work (Rahu Kaal / Yamaganda)
+          <span className="w-3 h-3 rounded-sm bg-rose-500/55 inline-block shrink-0" />
+          <span>
+            {t(
+              'Avoid Starting New Work (Rahu Kaal / Yamaganda)',
+              'नयाँ शुभ काम नगर्ने समय (राहुकाल / यमगण्ड)'
+            )}
+          </span>
         </span>
         {nowPct >= 0 && nowPct <= 100 && (
           <span className="inline-flex items-center gap-1.5 text-[var(--text-muted)]">
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--text)] inline-block" />
-            Vertical line = Current local time
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--text)] inline-block shrink-0" />
+            <span>
+              {t('Vertical line = Current local time', 'ठाडो रेखा = हालको स्थानीय समय')}
+            </span>
           </span>
         )}
       </div>
@@ -584,7 +606,7 @@ export function SegmentedTabs<T extends string>({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="inline-flex flex-wrap gap-1 p-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)]"
+      className="inline-flex flex-wrap gap-1 p-1 max-w-full rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)]"
     >
       {items.map((item) => {
         const active = item.id === value;
@@ -595,7 +617,7 @@ export function SegmentedTabs<T extends string>({
             type="button"
             aria-selected={active}
             onClick={() => onChange(item.id)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition inline-flex items-center gap-1.5 min-h-[38px] ${
+            className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition inline-flex items-center gap-1.5 min-h-[38px] max-w-full ${
               active
                 ? 'bg-[var(--surface)] text-[var(--text)] font-semibold shadow-sm border border-[var(--border)]'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
@@ -626,10 +648,10 @@ export const WorkspacePageHeader: React.FC<{
   eyebrow?: React.ReactNode;
   actions?: React.ReactNode;
 }> = ({ title, subtitle, eyebrow, actions }) => (
-  <div className="flex flex-wrap items-start justify-between gap-4 pb-1">
-    <div className="space-y-1.5 max-w-3xl">
+  <div className="flex flex-wrap items-start justify-between gap-4 pb-1 min-w-0">
+    <div className="space-y-1.5 max-w-3xl min-w-0">
       {eyebrow && (
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold border border-[var(--accent)]/20">
+        <div className="inline-flex items-center gap-2 px-3 py-1 max-w-full rounded-md bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold border border-[var(--accent)]/20">
           {eyebrow}
         </div>
       )}
@@ -642,7 +664,7 @@ export const WorkspacePageHeader: React.FC<{
         </p>
       )}
     </div>
-    {actions && <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div>}
+    {actions && <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">{actions}</div>}
   </div>
 );
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NatalChartResult, PlanetPosition, ZODIAC_SIGNS } from '../engines/astronomyEngine';
+import { trNakshatra, trPlanet, trSign, useLanguage } from '../i18n/i18n';
 
 interface Props {
   chart: NatalChartResult;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWheel = false }) => {
+  const { lang, t } = useLanguage();
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetPosition | null>(null);
   const size = 560;
   const cx = size / 2;
@@ -58,7 +60,7 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
         <circle cx={cx} cy={cy} r={rOuter} fill="var(--chart-bg)" stroke="var(--border-strong)" strokeWidth={1.5} />
 
         {/* 12 Zodiac Sign Sectors */}
-        {ZODIAC_SIGNS.map(sign => {
+        {ZODIAC_SIGNS.map((sign) => {
           const startLon = sign.index * 30;
           const endLon = startLon + 30;
           const midLon = startLon + 15;
@@ -73,7 +75,7 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
                 strokeWidth={1}
               />
               {/* 5-degree engraved ticks */}
-              {[5, 10, 15, 20, 25].map(deg => {
+              {[5, 10, 15, 20, 25].map((deg) => {
                 const tickAngle = lonToSvgAngleDeg(startLon + deg);
                 const t1 = polarToXY(tickAngle, rZodiacInner);
                 const t2 = polarToXY(tickAngle, rZodiacInner + (deg === 15 ? 7 : 4));
@@ -97,7 +99,7 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
                 dominantBaseline="central"
                 fill="var(--text)"
                 fontSize="16"
-                fontFamily="Cormorant Garamond, Georgia, serif"
+                fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
                 fontWeight="700"
               >
                 {sign.symbol}
@@ -143,7 +145,8 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
                 dominantBaseline="central"
                 fill="var(--text-muted)"
                 fontSize="10"
-                fontFamily="JetBrains Mono, monospace"
+                fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
+                fontWeight="600"
               >
                 {h.house}
               </text>
@@ -153,11 +156,11 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
 
         {/* ASC / DSC / MC / IC Cardinal Labels */}
         {[
-          { label: 'ASC', lon: chart.ascendant.longitude, color: 'var(--crimson)' },
+          { label: t('ASC', 'लग्न'), lon: chart.ascendant.longitude, color: 'var(--crimson)' },
           { label: 'DSC', lon: (chart.ascendant.longitude + 180) % 360, color: 'var(--text-secondary)' },
           { label: 'MC', lon: chart.midheaven.longitude, color: 'var(--brass)' },
           { label: 'IC', lon: (chart.midheaven.longitude + 180) % 360, color: 'var(--text-secondary)' },
-        ].map(axis => {
+        ].map((axis) => {
           const pos = polarToXY(lonToSvgAngleDeg(axis.lon), rZodiacInner - 12);
           return (
             <text
@@ -169,7 +172,7 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
               fill={axis.color}
               fontSize="10"
               fontWeight="700"
-              fontFamily="JetBrains Mono, monospace"
+              fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
             >
               {axis.label}
             </text>
@@ -178,8 +181,8 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
 
         {/* Aspect Chords Inside Core Circle */}
         {chart.aspects.map((asp, idx) => {
-          const pA = chart.planets.find(p => p.name === asp.planetA);
-          const pB = chart.planets.find(p => p.name === asp.planetB);
+          const pA = chart.planets.find((p) => p.name === asp.planetA);
+          const pB = chart.planets.find((p) => p.name === asp.planetB);
           if (!pA || !pB) return null;
           const posA = polarToXY(lonToSvgAngleDeg(pA.activeLongitude), rCore - 4);
           const posB = polarToXY(lonToSvgAngleDeg(pB.activeLongitude), rCore - 4);
@@ -211,7 +214,7 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
         {chart.planets.map((p, idx) => {
           const nearbyBefore = chart.planets
             .slice(0, idx)
-            .filter(other => Math.abs(other.activeLongitude - p.activeLongitude) < 5).length;
+            .filter((other) => Math.abs(other.activeLongitude - p.activeLongitude) < 5).length;
           const radius = rPlanetTrack - nearbyBefore * 17;
           const angle = lonToSvgAngleDeg(p.activeLongitude);
           const pos = polarToXY(angle, radius);
@@ -258,7 +261,7 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
                   fill="var(--crimson)"
                   fontSize="9"
                   fontWeight="700"
-                  fontFamily="JetBrains Mono, monospace"
+                  fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
                 >
                   R
                 </text>
@@ -299,13 +302,15 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
             <div className="flex flex-wrap items-center gap-2 font-semibold text-[var(--text)]">
               <span className="text-base text-[var(--brass)]">{hoveredPlanet.symbol}</span>
               <span>
-                {hoveredPlanet.name} ({hoveredPlanet.sanskritName}) — {hoveredPlanet.signName} {hoveredPlanet.formattedDMS}
+                {trPlanet(hoveredPlanet.name, lang)} — {trSign(hoveredPlanet.signName, lang)}{' '}
+                {hoveredPlanet.formattedDMS}
               </span>
-              <span className="px-2 py-0.5 rounded obs-badge-brass font-mono">
-                House {hoveredPlanet.house}
+              <span className="px-2 py-0.5 rounded obs-badge-brass tabular-nums">
+                {t(`House ${hoveredPlanet.house}`, `भाव ${hoveredPlanet.house}`)}
               </span>
               <span className="px-2 py-0.5 rounded obs-badge-sage">
-                {hoveredPlanet.nakshatraName} (Pada {hoveredPlanet.nakshatraPada})
+                {trNakshatra(hoveredPlanet.nakshatraName, lang)} ({t('Pada', 'चरण')}{' '}
+                {hoveredPlanet.nakshatraPada})
               </span>
             </div>
             <p className="text-[var(--text-secondary)] mt-1 italic">{hoveredPlanet.sabianSymbol}</p>
@@ -313,10 +318,13 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
         ) : (
           <div className="text-[var(--text-secondary)] flex flex-wrap items-center justify-between w-full gap-2">
             <span>
-              Hover any celestial body on the astrolabe to inspect exact degree-minute-second, Nakshatra Pada, and Sabian degree.
+              {t(
+                'Hover any celestial body on the wheel to inspect exact degree-minute-second, Nakshatra Pada, and Sabian degree.',
+                'कुनै पनि ग्रहमा माउस राख्नुहोस् र सटीक अंश-कला, नक्षत्र चरण तथा डिग्री विवरण हेर्नुहोस्।'
+              )}
             </span>
-            <span className="font-mono text-[var(--brass)] font-medium">
-              Ayanamsha: {chart.ayanamshaMode} ({chart.ayanamshaDegrees.toFixed(4)}°)
+            <span className="tabular-nums text-[var(--brass)] font-medium">
+              {t('Ayanamsha:', 'अयनांश:')} {chart.ayanamshaMode} ({chart.ayanamshaDegrees.toFixed(4)}°)
             </span>
           </div>
         )}

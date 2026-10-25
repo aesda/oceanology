@@ -25,10 +25,13 @@ import { gregorianToBikramSambat } from '../engines/locationAtlas';
 import {
   formatCityForLang,
   HORAI_NE_META,
+  trChoghadiya,
   trGowriName,
   trHoraiDisplay,
   trNakshatra,
+  trPaksha,
   trPlanet,
+  trTithi,
   trVara,
   useLanguage,
 } from '../i18n/i18n';
@@ -381,10 +384,15 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                   {t('Active Gowri & Choghadiya', 'सक्रिय गौरी र चौघडिया')}
                 </div>
                 <div className="font-bold text-[var(--text)] text-sm mt-0.5">
-                  {trGowriName(livePanchang.activeGowri.name, lang)} • {activeChoghadiya.name}
+                  {trGowriName(livePanchang.activeGowri.name, lang)} •{' '}
+                  {trChoghadiya(activeChoghadiya.name, lang)}
                 </div>
                 <div className="text-[var(--text-secondary)]">
-                  {livePanchang.activeGowri.nature}
+                  {lang === 'ne'
+                    ? livePanchang.activeGowri.nature.includes('Avoid')
+                      ? 'सावधानी / त्याज्य वेला'
+                      : 'शुभ गौरी वेला'
+                    : livePanchang.activeGowri.nature}
                 </div>
               </div>
             </div>
@@ -454,7 +462,11 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               livePanchang.personalTarabala.isAuspicious ? 'सकारात्मक र शुभ' : 'सोचविचार गरी चल्ने'
             }`
           )}
-          benchmarkText={`${livePanchang.tithi.name} (${livePanchang.tithi.paksha.split(' ')[0]})`}
+          benchmarkText={
+            lang === 'ne'
+              ? `${trPaksha(livePanchang.tithi.paksha, 'ne')} • ${trTithi(livePanchang.tithi.name, 'ne')}`
+              : `${livePanchang.tithi.name} (${livePanchang.tithi.paksha.split(' ')[0]})`
+          }
           status={{
             tone: livePanchang.personalTarabala.isAuspicious ? 'optimal' : 'mixed',
             label: t(

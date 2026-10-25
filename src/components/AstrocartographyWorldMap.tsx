@@ -405,7 +405,19 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
           label={t('Selected Location Score', 'छानिएको स्थान अनुकूलता')}
           value={`${activeEvaluation.overallScore}%`}
           subvalue={formatCityForLang(activeCity.name, lang)}
-          benchmarkText={activeEvaluation.primaryTag}
+          benchmarkText={
+            lang === 'ne'
+              ? activeEvaluation.primaryTag.includes('Career')
+                ? 'करियर र प्रतिष्ठा रेखा'
+                : activeEvaluation.primaryTag.includes('Sanctuary')
+                ? 'शान्ति र आवास रेखा'
+                : activeEvaluation.primaryTag.includes('Partnership')
+                ? 'प्रेम र सहकार्य रेखा'
+                : activeEvaluation.primaryTag.includes('Vitality')
+                ? 'व्यक्तिगत आत्मबल रेखा'
+                : 'सन्तुलित आकाश क्षेत्र'
+              : activeEvaluation.primaryTag
+          }
           status={{
             tone: activeEvaluation.overallScore >= 75 ? 'optimal' : 'favorable',
             label: formatCountryForLang(activeCity.country, lang),
@@ -478,12 +490,12 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[var(--text-muted)]">
-            <span>Solid = MC / ASC</span>
+          <div className="flex flex-wrap items-center gap-3 text-xs tabular-nums text-[var(--text-muted)]">
+            <span>{t('Solid = MC / ASC', 'सीधा रेखा = MC / लग्न')}</span>
             <span>•</span>
-            <span>Dashed = IC</span>
+            <span>{t('Dashed = IC', 'तुर्के रेखा = IC (आवास)')}</span>
             <span>•</span>
-            <span>Dotted = DSC</span>
+            <span>{t('Dotted = DSC', 'थोप्ले रेखा = DSC (सम्बन्ध)')}</span>
           </div>
         </div>
 

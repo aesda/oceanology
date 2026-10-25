@@ -32,17 +32,94 @@ type VargaKey =
   | 'd30Sign'
   | 'd60Sign';
 
-const VARGA_TABS: { key: VargaKey; code: string; title: string; subtitle: string }[] = [
-  { key: 'd1Sign', code: 'D1', title: 'Rashi / Cheena', subtitle: 'Root Janma Kundali' },
-  { key: 'd9Sign', code: 'D9', title: 'Navamsha', subtitle: 'Dharma, Marriage & Fruit' },
-  { key: 'd10Sign', code: 'D10', title: 'Dashamsha', subtitle: 'Karma & Vocation' },
-  { key: 'd2Sign', code: 'D2', title: 'Hora', subtitle: 'Sampatti (Wealth)' },
-  { key: 'd3Sign', code: 'D3', title: 'Drekkana', subtitle: 'Parakrama (Courage)' },
-  { key: 'd4Sign', code: 'D4', title: 'Chaturthamsha', subtitle: 'Bhagya & Land' },
-  { key: 'd7Sign', code: 'D7', title: 'Saptamsha', subtitle: 'Santana (Progeny)' },
-  { key: 'd12Sign', code: 'D12', title: 'Dwadashamsha', subtitle: 'Ancestral Lineage' },
-  { key: 'd30Sign', code: 'D30', title: 'Trimshamsha', subtitle: 'Arishta & Resilience' },
-  { key: 'd60Sign', code: 'D60', title: 'Shashtiamsha', subtitle: 'Sanchita Past Karma' },
+const VARGA_TABS: {
+  key: VargaKey;
+  code: string;
+  title: string;
+  titleNe: string;
+  subtitle: string;
+  subtitleNe: string;
+}[] = [
+  {
+    key: 'd1Sign',
+    code: 'D1',
+    title: 'Rashi / Cheena',
+    titleNe: 'जन्म राशि / चिना',
+    subtitle: 'Root Janma Kundali',
+    subtitleNe: 'मूल लग्न कुण्डली',
+  },
+  {
+    key: 'd9Sign',
+    code: 'D9',
+    title: 'Navamsha',
+    titleNe: 'नवांश',
+    subtitle: 'Dharma, Marriage & Fruit',
+    subtitleNe: 'धर्म, विवाह र आन्तरिक फल',
+  },
+  {
+    key: 'd10Sign',
+    code: 'D10',
+    title: 'Dashamsha',
+    titleNe: 'दशमांश',
+    subtitle: 'Karma & Vocation',
+    subtitleNe: 'कर्म, करियर र प्रतिष्ठा',
+  },
+  {
+    key: 'd2Sign',
+    code: 'D2',
+    title: 'Hora',
+    titleNe: 'होरा',
+    subtitle: 'Sampatti (Wealth)',
+    subtitleNe: 'धन र सम्पत्ति',
+  },
+  {
+    key: 'd3Sign',
+    code: 'D3',
+    title: 'Drekkana',
+    titleNe: 'द्रेष्काण',
+    subtitle: 'Parakrama (Courage)',
+    subtitleNe: 'साहस र पराक्रम',
+  },
+  {
+    key: 'd4Sign',
+    code: 'D4',
+    title: 'Chaturthamsha',
+    titleNe: 'चतुर्थांश',
+    subtitle: 'Bhagya & Land',
+    subtitleNe: 'भाग्य, घर र भूमि',
+  },
+  {
+    key: 'd7Sign',
+    code: 'D7',
+    title: 'Saptamsha',
+    titleNe: 'सप्तमांश',
+    subtitle: 'Santana (Progeny)',
+    subtitleNe: 'सन्तान र सृजना',
+  },
+  {
+    key: 'd12Sign',
+    code: 'D12',
+    title: 'Dwadashamsha',
+    titleNe: 'द्वादशांश',
+    subtitle: 'Ancestral Lineage',
+    subtitleNe: 'माता-पिता र कुल वंश',
+  },
+  {
+    key: 'd30Sign',
+    code: 'D30',
+    title: 'Trimshamsha',
+    titleNe: 'त्रिंशांश',
+    subtitle: 'Arishta & Resilience',
+    subtitleNe: 'अरिष्ट र सहनशक्ति',
+  },
+  {
+    key: 'd60Sign',
+    code: 'D60',
+    title: 'Shashtiamsha',
+    titleNe: 'षष्ट्यंश',
+    subtitle: 'Sanchita Past Karma',
+    subtitleNe: 'सूक्ष्म सञ्चित कर्म',
+  },
 ];
 
 const NORTH_HOUSE_POS: {
@@ -148,9 +225,12 @@ export const VedicKundliSvg: React.FC<Props> = ({
       <div className="flex flex-col items-center obs-panel p-4">
         <div className="text-xs text-[var(--text-secondary)] mb-2.5 flex flex-wrap items-center justify-between w-full px-1 gap-1">
           <span className="font-semibold text-[var(--text)]">
-            {activeVargaMeta.code}: {activeVargaMeta.title} ({activeVargaMeta.subtitle})
+            {activeVargaMeta.code}:{' '}
+            {lang === 'ne'
+              ? `${activeVargaMeta.titleNe} (${activeVargaMeta.subtitleNe})`
+              : `${activeVargaMeta.title} (${activeVargaMeta.subtitle})`}
           </span>
-          <span className="font-mono text-[var(--accent)] font-semibold">
+          <span className="tabular-nums text-[var(--accent)] font-semibold">
             {t('Lagna:', 'लग्न:')}{' '}
             {lang === 'ne'
               ? trSign(ZODIAC_SIGNS[ascSignIdx].name, 'ne')
@@ -213,8 +293,8 @@ export const VedicKundliSvg: React.FC<Props> = ({
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill="var(--accent)"
-                    fontSize="11"
-                    fontFamily="JetBrains Mono, monospace"
+                    fontSize="11.5"
+                    fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
                     fontWeight="700"
                   >
                     {lang === 'ne' ? toNepaliDigits(signIdx + 1) : signIdx + 1}
@@ -223,8 +303,8 @@ export const VedicKundliSvg: React.FC<Props> = ({
                   {occupants.map((p, idx) => {
                     const row = Math.floor(idx / 2);
                     const col = idx % 2;
-                    const offsetX = occupants.length === 1 ? 0 : col === 0 ? -17 : 17;
-                    const offsetY = (row - (Math.ceil(occupants.length / 2) - 1) / 2) * 16;
+                    const offsetX = occupants.length === 1 ? 0 : col === 0 ? -18 : 18;
+                    const offsetY = (row - (Math.ceil(occupants.length / 2) - 1) / 2) * 18;
                     return (
                       <text
                         key={p.planetId}
@@ -233,13 +313,13 @@ export const VedicKundliSvg: React.FC<Props> = ({
                         textAnchor="middle"
                         dominantBaseline="central"
                         fill="var(--text)"
-                        fontSize="11"
+                        fontSize={lang === 'ne' ? '12.5' : '11'}
+                        fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
                         fontWeight="700"
                       >
-                        {p.symbol}
                         {lang === 'ne'
                           ? GRAHA_SHORT_NE[p.planetId] || p.planetId.slice(0, 2)
-                          : p.planetId.slice(0, 2)}
+                          : `${p.symbol}${p.planetId.slice(0, 2)}`}
                       </text>
                     );
                   })}
@@ -279,9 +359,11 @@ export const VedicKundliSvg: React.FC<Props> = ({
               textAnchor="middle"
               fill="var(--text)"
               fontSize="15"
+              fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
               fontWeight="700"
             >
-              {activeVargaMeta.code} • {activeVargaMeta.title}
+              {activeVargaMeta.code} •{' '}
+              {lang === 'ne' ? activeVargaMeta.titleNe : activeVargaMeta.title}
             </text>
             <text x="200" y="205" textAnchor="middle" fill="var(--accent)" fontSize="11.5">
               {t('South Indian Rashi Chakra', 'दक्षिण भारतीय राशि चक्र')}
@@ -316,7 +398,7 @@ export const VedicKundliSvg: React.FC<Props> = ({
                     y={box.y + 16}
                     fill="var(--text-muted)"
                     fontSize="10"
-                    fontFamily="JetBrains Mono, monospace"
+                    fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
                   >
                     {sign.symbol}{' '}
                     {lang === 'ne' ? trSign(sign.name, 'ne') : sign.sanskrit}
@@ -328,6 +410,7 @@ export const VedicKundliSvg: React.FC<Props> = ({
                       textAnchor="middle"
                       fill="var(--accent)"
                       fontSize="10"
+                      fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
                       fontWeight="700"
                     >
                       {t('ASC', 'लग्न')}
@@ -340,16 +423,16 @@ export const VedicKundliSvg: React.FC<Props> = ({
                       <text
                         key={p.planetId}
                         x={box.x + 28 + c * 42}
-                        y={box.y + 44 + r * 18}
+                        y={box.y + 44 + r * 19}
                         textAnchor="middle"
                         fill="var(--text)"
-                        fontSize="11"
+                        fontSize={lang === 'ne' ? '12.5' : '11'}
+                        fontFamily="'Inter', 'Noto Sans Devanagari', sans-serif"
                         fontWeight="700"
                       >
-                        {p.symbol}
                         {lang === 'ne'
                           ? GRAHA_SHORT_NE[p.planetId] || p.planetId.slice(0, 2)
-                          : p.planetId.slice(0, 2)}
+                          : `${p.symbol}${p.planetId.slice(0, 2)}`}
                       </text>
                     );
                   })}

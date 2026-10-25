@@ -133,17 +133,29 @@ export function toNepaliDigits(val: string | number): string {
 /* ==================== 2. CORE JYOTISH ENTITIES IN NEPALI ==================== */
 const SIGN_NE: Record<string, string> = {
   Aries: 'मेष',
+  Mesha: 'मेष',
   Taurus: 'वृष',
+  Vrishabha: 'वृष',
   Gemini: 'मिथुन',
+  Mithuna: 'मिथुन',
   Cancer: 'कर्कट',
+  Karka: 'कर्कट',
   Leo: 'सिंह',
+  Simha: 'सिंह',
   Virgo: 'कन्या',
+  Kanya: 'कन्या',
   Libra: 'तुला',
+  Tula: 'तुला',
   Scorpio: 'वृश्चिक',
+  Vrishchika: 'वृश्चिक',
   Sagittarius: 'धनु',
+  Dhanu: 'धनु',
   Capricorn: 'मकर',
+  Makara: 'मकर',
   Aquarius: 'कुम्भ',
+  Kumbha: 'कुम्भ',
   Pisces: 'मीन',
+  Meena: 'मीन',
 };
 
 const PLANET_NE: Record<string, string> = {
@@ -208,17 +220,94 @@ const NAKSHATRA_NE: Record<string, string> = {
 
 const VARA_NE: Record<string, string> = {
   Sunday: 'आइतबार',
+  Ravivara: 'आइतबार (रविवार)',
   Monday: 'सोमबार',
+  Somavara: 'सोमबार (सोमवार)',
   Tuesday: 'मङ्गलबार',
+  Mangalavara: 'मङ्गलबार (मङ्गलवार)',
   Wednesday: 'बुधबार',
+  Budhavara: 'बुधबार (बुधवार)',
   Thursday: 'बिहीबार',
+  Guruvara: 'बिहीबार (गुरुवार)',
   Friday: 'शुक्रबार',
+  Shukravara: 'शुक्रबार (शुक्रवार)',
   Saturday: 'शनिबार',
+  Shanivara: 'शनिबार (शनिवार)',
+};
+
+const TITHI_NE: Record<string, string> = {
+  Pratipada: 'प्रतिपदा',
+  Dwitiya: 'द्वितीया',
+  Tritiya: 'तृतीया',
+  Chaturthi: 'चतुर्थी',
+  Panchami: 'पञ्चमी',
+  Shashthi: 'षष्ठी',
+  Saptami: 'सप्तमी',
+  Ashtami: 'अष्टमी',
+  Navami: 'नवमी',
+  Dashami: 'दशमी',
+  Ekadashi: 'एकादशी',
+  Dwadashi: 'द्वादशी',
+  Trayodashi: 'त्रयोदशी',
+  Chaturdashi: 'चतुर्दशी',
+  Purnima: 'पूर्णिमा',
+  Amavasya: 'औँसी (अमावस्या)',
+};
+
+const DIRECTION_NE: Record<string, string> = {
+  East: 'पूर्व',
+  West: 'पश्चिम',
+  North: 'उत्तर',
+  South: 'दक्षिण',
+  Northeast: 'ईशान (पूर्वोत्तर)',
+  Southeast: 'आग्नेय (दक्षिण-पूर्व)',
+  Southwest: 'नैऋत्य (दक्षिण-पश्चिम)',
+  Northwest: 'वायव्य (उत्तर-पश्चिम)',
+};
+
+const CHOGHADIYA_NE: Record<string, string> = {
+  Amrit: 'अमृत',
+  Shubh: 'शुभ',
+  Labh: 'लाभ',
+  Char: 'चल',
+  Udveg: 'उद्वेग',
+  Kaal: 'काल',
+  Rog: 'रोग',
+};
+
+const TARA_NAME_NE: Record<string, string> = {
+  Janma: 'जन्म',
+  Sampat: 'सम्पत्',
+  Vipat: 'विपत्',
+  Kshema: 'क्षेम',
+  Pratyak: 'प्रत्यरि',
+  Pratyari: 'प्रत्यरि',
+  Sadhana: 'साधक',
+  Sadhaka: 'साधक',
+  Naidhana: 'वध',
+  Vadha: 'वध',
+  Mitra: 'मित्र',
+  'Param Mitra': 'अतिमित्र',
+  Atimitra: 'अतिमित्र',
+};
+
+const NAK_NATURE_NE: Record<string, { short: string; full: string }> = {
+  Dhruva: { short: 'ध्रुव', full: 'ध्रुव (स्थिर र दिगो)' },
+  Kshipra: { short: 'क्षिप्र', full: 'क्षिप्र (शीघ्र र हलुका)' },
+  Mridu: { short: 'मृदु', full: 'मृदु (कोमल र मैत्री)' },
+  Chara: { short: 'चर', full: 'चर (गतिशील र यात्रा)' },
+  Tikshna: { short: 'तीक्ष्ण', full: 'तीक्ष्ण (तीव्र र निर्णायक)' },
+  Ugra: { short: 'उग्र', full: 'उग्र (कठोर र साहसी)' },
+  Mishra: { short: 'मिश्र', full: 'मिश्र (साधारण / सन्तुलित)' },
 };
 
 export function trSign(signName: string, lang: AppLanguage): string {
   if (lang === 'en') return signName;
-  return SIGN_NE[signName] || signName;
+  if (SIGN_NE[signName]) return SIGN_NE[signName];
+  const paren = signName.match(/\(([^)]+)\)/);
+  if (paren && SIGN_NE[paren[1].trim()]) return SIGN_NE[paren[1].trim()];
+  const first = signName.split(' ')[0].trim();
+  return SIGN_NE[first] || signName;
 }
 
 export function trPlanet(planetName: string, lang: AppLanguage): string {
@@ -238,8 +327,66 @@ export function trNakshatra(nakName: string, lang: AppLanguage): string {
 
 export function trVara(varaFull: string, lang: AppLanguage): string {
   if (lang === 'en') return varaFull;
-  const firstWord = varaFull.split(' ')[0];
-  return VARA_NE[firstWord] || varaFull;
+  if (VARA_NE[varaFull]) return VARA_NE[varaFull];
+  const firstWord = varaFull.split(' ')[0].trim();
+  if (VARA_NE[firstWord]) return VARA_NE[firstWord];
+  const paren = varaFull.match(/\(([^)]+)\)/);
+  if (paren && VARA_NE[paren[1].trim()]) return VARA_NE[paren[1].trim()];
+  return varaFull;
+}
+
+export function trTithi(tithiRaw: string, lang: AppLanguage): string {
+  if (lang === 'en') return tithiRaw;
+  let out = tithiRaw;
+  for (const [k, v] of Object.entries(TITHI_NE)) {
+    if (out.includes(k)) {
+      out = out.replace(k, v);
+    }
+  }
+  out = out.replace(/\bShukla\b/g, 'शुक्ल').replace(/\bKrishna\b/g, 'कृष्ण');
+  return out;
+}
+
+export function trPaksha(pakshaRaw: string, lang: AppLanguage): string {
+  if (lang === 'en') return pakshaRaw;
+  if (pakshaRaw.startsWith('Shukla')) return 'शुक्ल पक्ष';
+  if (pakshaRaw.startsWith('Krishna')) return 'कृष्ण पक्ष';
+  return pakshaRaw;
+}
+
+export function trDirection(dirRaw: string, lang: AppLanguage): string {
+  if (lang === 'en') return dirRaw;
+  return DIRECTION_NE[dirRaw] || dirRaw;
+}
+
+export function trChoghadiya(name: string, lang: AppLanguage): string {
+  if (lang === 'en') return name;
+  return CHOGHADIYA_NE[name] || name;
+}
+
+export function trTaraName(name: string, lang: AppLanguage): string {
+  if (lang === 'en') return name;
+  for (const [k, v] of Object.entries(TARA_NAME_NE)) {
+    if (name.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  return name;
+}
+
+export function trNakNature(groupRaw: string, lang: AppLanguage, shortOnly = false): string {
+  if (lang === 'en') return shortOnly ? groupRaw.split(' ')[0] : groupRaw;
+  const key = groupRaw.split(' ')[0].trim();
+  const entry = NAK_NATURE_NE[key];
+  if (!entry) return shortOnly ? key : groupRaw;
+  return shortOnly ? entry.short : entry.full;
+}
+
+export function trHoursRemaining(raw: string, lang: AppLanguage): string {
+  if (lang === 'en') {
+    return raw.includes('left') || raw.includes('remaining') ? raw : `${raw} remaining`;
+  }
+  const cleaned = raw.replace(/\s*left\b/gi, '').replace(/\s*remaining\b/gi, '').trim();
+  const localizedUnits = cleaned.replace(/(\d+(?:\.\d+)?)h/g, '$1 घण्टा').replace(/(\d+)m/g, '$1 मि.');
+  return `${localizedUnits} बाँकी`;
 }
 
 /* ==================== 3. HORAI & GOWRI NEPALI TRANSLATIONS ==================== */
@@ -681,6 +828,7 @@ export function buildLocalizedPersonalSummary(
   const rahuSlot = panchangReport.muhurats.find((m) => m.name === 'Rahu Kaal');
   const cityNe = formatCityForLang(profile.location.name, 'ne');
   const varaNe = trVara(panchangReport.vara.name, 'ne');
+  const tithiNe = trTithi(panchangReport.tithi.name, 'ne');
   const transitNakNe = trNakshatra(panchangReport.nakshatra.name, 'ne');
   const activeHoraiNe = HORAI_NE_META[panchangReport.activeHorai.lord].horaiName;
 
@@ -692,7 +840,7 @@ export function buildLocalizedPersonalSummary(
     currentChapterParagraph: `हाल तपाईं ${vedicReport.activeMahadasha.years}-वर्षे ${mahaNe} महादशा (${vedicReport.activeMahadasha.endDate} सम्म, ${vedicReport.activeMahadasha.progressPercent}% पूरा) र ${antarNe} अन्तर्दशा (${vedicReport.activeAntardasha.endDate} सम्म) तथा व्यक्तिगत अंक वर्ष ${numerologyReport.personalYear.final} मा हुनुहुन्छ। ${mahaGuide.plainMeaning} मुख्य ध्यान दिनुपर्ने क्षेत्र: ${mahaGuide.bestFocus} साथै ${antarNe} उप-अवधिले थप्ने जोड: ${antarGuide.bestFocus}`,
     strengthsParagraph: `तपाईंको कुण्डलीमा सबैभन्दा बलियो जीवन-क्षेत्र भाव ${top1.house} (${top1Guide.shortTitle} — ${top1.bindus} सर्वाष्टकवर्ग बिन्दु, औसत २८) र भाव ${top2.house} (${top2Guide.shortTitle} — ${top2.bindus} बिन्दु) हुन्। ${top1Guide.whenStrong} ${top2Guide.whenStrong}`,
     careAreaParagraph: `धैर्य र नियमित अनुशासन आवश्यक पर्ने क्षेत्र भाव ${lowest.house} (${lowGuide.shortTitle} — ${lowest.bindus} बिन्दु) हो। यसको अर्थ अशुभ होइन, बरु यस क्षेत्रमा हतारो नगरी निरन्तर मिहिनेत गर्दा दिगो सफलता मिल्छ: ${lowGuide.whenLow}`,
-    todayGuidanceParagraph: `${cityNe} को आजको पञ्चाङ्ग अनुसार (${varaNe}, ${panchangReport.tithi.name}, चन्द्र नक्षत्र: ${transitNakNe}): तपाईंको व्यक्तिगत ताराबल आज ${panchangReport.personalTarabala.isAuspicious ? 'सकारात्मक र सहयोगी' : 'मिश्रित (सोचविचार गरी कदम चाल्ने)'} छ। हाल ${activeHoraiNe} (${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime}) चलिरहेको छ${rahuSlot ? ` भने राहुकाल (${rahuSlot.startTime}–${rahuSlot.endTime}) मा नयाँ शुभ कार्यको सट्टा नियमित काम गर्नु उत्तम हुन्छ` : ''}।`,
+    todayGuidanceParagraph: `${cityNe} को आजको पञ्चाङ्ग अनुसार (${varaNe}, ${tithiNe} तिथि, चन्द्र नक्षत्र: ${transitNakNe}): तपाईंको व्यक्तिगत ताराबल आज ${panchangReport.personalTarabala.isAuspicious ? 'सकारात्मक र सहयोगी' : 'मिश्रित (सोचविचार गरी कदम चाल्ने)'} छ। हाल ${activeHoraiNe} (${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime}) चलिरहेको छ${rahuSlot ? ` भने राहुकाल (${rahuSlot.startTime}–${rahuSlot.endTime}) मा नयाँ शुभ कार्यको सट्टा नियमित काम गर्नु उत्तम हुन्छ` : ''}।`,
     quickBulletTakeaways: [
       {
         label: 'मुख्य परिचय (लग्न र राशि)',

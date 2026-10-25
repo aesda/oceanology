@@ -20,7 +20,7 @@ interface Props {
 type NumSubView = 'CORE_CHEIRO' | 'COLORCHART' | 'PROPORTIONAL_TUNER';
 
 export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChange }) => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [subView, setSubView] = useState<NumSubView>('CORE_CHEIRO');
   const [selectedCell, setSelectedCell] = useState<DecozYearCell>(
     report.colorChartYears.find((c) => c.calendarYear === new Date().getFullYear()) ||
@@ -160,7 +160,11 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
         <KpiStatCard
           label={t('Current Personal Year', 'हालको व्यक्तिगत वर्ष')}
           value={t(`Year ${report.personalYear.final}`, `वर्ष ${report.personalYear.final}`)}
-          benchmarkText={DECOZ_COLORS[report.personalYear.singleDigit]?.keyword || '9-Year Cycle'}
+          benchmarkText={
+            lang === 'ne'
+              ? '९-वर्षे व्यक्तिगत अंक चक्र'
+              : DECOZ_COLORS[report.personalYear.singleDigit]?.keyword || '9-Year Cycle'
+          }
           status={{
             tone: 'optimal',
             label: t(`${new Date().getFullYear()} Cycle`, `${new Date().getFullYear()} चक्र`),
@@ -172,7 +176,11 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
 
         <KpiStatCard
           label={t('Personal Month & Day', 'व्यक्तिगत महिना र दिन')}
-          value={`M${report.personalMonth.singleDigit} • D${report.personalDay.singleDigit}`}
+          value={
+            lang === 'ne'
+              ? `महिना ${report.personalMonth.singleDigit} • दिन ${report.personalDay.singleDigit}`
+              : `M${report.personalMonth.singleDigit} • D${report.personalDay.singleDigit}`
+          }
           benchmarkText={
             report.karmicLessons.length > 0
               ? t(

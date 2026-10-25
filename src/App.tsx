@@ -528,12 +528,38 @@ function AppWorkspace() {
           </button>
         </div>
 
-        {/* Mobile Quick Language Switcher inside Drawer */}
-        <div className="lg:hidden px-2 flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-[var(--text-muted)]">
-            {t('Language', 'भाषा छनोट')}
-          </span>
-          <LanguageSwitchButton />
+        {/* Mobile Quick Language & Reading Comfort Controls inside Drawer */}
+        <div className="lg:hidden px-2 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold text-[var(--text-muted)]">
+              {t('Language', 'भाषा छनोट')}
+            </span>
+            <LanguageSwitchButton />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setFloralMotion(!floralMotion)}
+              className={`flex-1 ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
+            >
+              <SacredFlowerIcon
+                variety="lotus"
+                primaryHex="#EC4899"
+                secondaryHex="#FBCFE8"
+                size={15}
+                animated={floralMotion}
+              />
+              <span>{t('Flower Bloom', 'पुष्प गति')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setLargeText(!largeText)}
+              className={`flex-1 ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
+            >
+              <Type className="w-4 h-4" />
+              <span>{largeText ? t('Large On', 'ठूलो अक्षर') : t('Large Text', 'अक्षर आकार')}</span>
+            </button>
+          </div>
         </div>
 
         {/* Grouped Navigation Links */}
@@ -642,26 +668,26 @@ function AppWorkspace() {
       {/* ==================== MAIN CONTENT COLUMN ==================== */}
       <div className="flex-1 min-w-0 flex flex-col relative z-10">
         {/* Sticky Global Context Topbar */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-3.5 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open navigation menu"
-              className="lg:hidden ui-toolbar-icon-btn"
+              className="lg:hidden ui-toolbar-icon-btn shrink-0"
             >
               <Menu className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-base font-bold text-[var(--text)] truncate">
+              <span className="text-sm sm:text-base font-bold text-[var(--text)] truncate">
                 {currentViewLabel}
               </span>
               <button
                 type="button"
                 onClick={() => handleNavigate('HORAI')}
                 title="Open Live 24-Petal Horai Sacred Clock"
-                className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-lg floral-banner-glow border border-[var(--border)] text-xs font-semibold text-[var(--text)] hover:border-[var(--accent)] transition tabular-nums whitespace-nowrap shrink-0"
+                className="hidden xl:inline-flex items-center gap-1.5 h-8 px-3 rounded-lg floral-banner-glow border border-[var(--border)] text-xs font-semibold text-[var(--text)] hover:border-[var(--accent)] transition tabular-nums whitespace-nowrap shrink-0"
               >
                 <SacredFlowerIcon
                   variety={panchangReport.activeHorai.sacredFlower.variety}
@@ -689,19 +715,23 @@ function AppWorkspace() {
           </div>
 
           {/* Right Global Controls — Identical 36px Toolbar Scale to LandingPage */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <LanguageSwitchButton />
 
             <button
               type="button"
               onClick={() => setShowProfileModal(true)}
-              className="ui-toolbar-btn"
+              aria-label="Edit birth profile and location"
+              title="Edit birth profile and location"
+              className="ui-toolbar-btn px-2.5 sm:px-3"
             >
               <MapPin className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
-              <span className="hidden md:inline text-[var(--text)]">
+              <span className="hidden xl:inline text-[var(--text)]">
                 {profile.firstName} • {cityDisplay}
               </span>
-              <span className="md:hidden text-[var(--text)]">{t('Profile', 'विवरण')}</span>
+              <span className="hidden sm:inline xl:hidden text-[var(--text)]">
+                {profile.firstName}
+              </span>
             </button>
 
             <select
@@ -723,7 +753,7 @@ function AppWorkspace() {
               onClick={() => setFloralMotion(!floralMotion)}
               aria-label="Toggle sacred flower animations"
               title="Toggle Floating Flower Petals & Click Blooms"
-              className={`ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
+              className={`hidden md:inline-flex ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
             >
               <SacredFlowerIcon
                 variety="lotus"
@@ -732,7 +762,7 @@ function AppWorkspace() {
                 size={16}
                 animated={floralMotion}
               />
-              <span className="hidden xl:inline">{t('Bloom', 'पुष्प')}</span>
+              <span className="hidden 2xl:inline">{t('Bloom', 'पुष्प')}</span>
             </button>
 
             <button
@@ -740,10 +770,10 @@ function AppWorkspace() {
               onClick={() => setLargeText(!largeText)}
               aria-label="Toggle larger text size"
               title="Toggle Larger Reading Text"
-              className={`ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
+              className={`hidden md:inline-flex ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
             >
               <Type className="w-4 h-4" />
-              <span className="hidden sm:inline">{largeText ? t('Large', 'ठूलो') : 'Aa'}</span>
+              <span className="hidden 2xl:inline">{largeText ? t('Large', 'ठूलो') : 'Aa'}</span>
             </button>
 
             <button
@@ -760,7 +790,8 @@ function AppWorkspace() {
               type="button"
               disabled={pdfExporting}
               onClick={handleGlobalDownloadPdf}
-              className="ui-toolbar-cta disabled:opacity-60"
+              aria-label="Download PDF Report"
+              className="ui-toolbar-cta px-2.5 sm:px-3.5 disabled:opacity-60"
             >
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">
@@ -882,7 +913,13 @@ function AppWorkspace() {
                         'Combined harmony across Western, Vedic, Panchang & Numerology',
                         'वैदिक, पाश्चात्य, पञ्चाङ्ग र अंक ज्योतिषको संयुक्त तालमेल'
                       )}
-                      benchmarkText={synthesisReport.resonanceTier}
+                      benchmarkText={
+                        lang === 'ne'
+                          ? synthesisReport.overallResonanceScore >= 75
+                            ? 'उच्च ग्रह सामञ्जस्य'
+                            : 'सन्तुलित ग्रह सामञ्जस्य'
+                          : synthesisReport.resonanceTier
+                      }
                       status={{
                         tone:
                           synthesisReport.overallResonanceScore >= 75 ? 'optimal' : 'favorable',
@@ -936,7 +973,11 @@ function AppWorkspace() {
                         `Life Path #${numerologyReport.lifePath.final}`,
                         `मूलांक #${numerologyReport.lifePath.final}`
                       )}
-                      plainHint={numerologyReport.personalYear.meaning.split('.')[0]}
+                      plainHint={
+                        lang === 'ne'
+                          ? `व्यक्तिगत वर्ष ${numerologyReport.personalYear.final} — सक्रिय उन्नति र लक्ष्य प्राप्ति`
+                          : numerologyReport.personalYear.meaning.split('.')[0]
+                      }
                       benchmarkText={t(
                         `Month ${numerologyReport.personalMonth.singleDigit} • Day ${numerologyReport.personalDay.singleDigit}`,
                         `महिना ${numerologyReport.personalMonth.singleDigit} • दिन ${numerologyReport.personalDay.singleDigit}`
@@ -1514,7 +1555,7 @@ function AppWorkspace() {
                           `D9 Sign: ${atmakaraka.navamshaSignName}`,
                           `नवांश राशि: ${trSign(atmakaraka.navamshaSignName, 'ne')}`
                         )}
-                        status={{ tone: 'optimal', label: 'Jaimini AK' }}
+                        status={{ tone: 'optimal', label: t('Jaimini AK', 'जैमिनी AK') }}
                         icon={<Sparkles className="w-4 h-4" />}
                       />
                     )}
@@ -1539,7 +1580,7 @@ function AppWorkspace() {
                         'Notable planetary combinations active in your chart',
                         'कुण्डलीमा सक्रिय प्रमुख शास्त्रीय ग्रह योगहरू'
                       )}
-                      benchmarkText="Parashara & Phaladeepika"
+                      benchmarkText={t('Parashara & Phaladeepika', 'पराशर र फलदीपिका')}
                       status={{ tone: 'favorable', label: t('Active Combinations', 'सक्रिय योग') }}
                       icon={<BookOpen className="w-4 h-4" />}
                       actionLabel={t('Read Yoga details', 'योग विवरण पढ्नुहोस्')}
