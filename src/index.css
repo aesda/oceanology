@@ -122,37 +122,36 @@ html.dark {
   }
 }
 
-/* Lively Botanical Product Surfaces — High-Contrast Cards + Gentle Floral Hover Elevation */
+/* Lively Botanical Product Surfaces — Strict 12px/8px/6px Radius System */
 .obs-card,
 .folio-sheet {
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow:
-    0 2px 10px -2px rgba(15, 23, 42, 0.05),
-    0 1px 3px rgba(15, 23, 42, 0.04);
+    0 2px 8px -2px rgba(15, 23, 42, 0.05),
+    0 1px 2px rgba(15, 23, 42, 0.03);
   transition:
-    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.25s ease;
+    box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease;
 }
 
 .obs-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
   box-shadow:
-    0 10px 26px -8px rgba(79, 70, 229, 0.11),
-    0 4px 12px -4px rgba(236, 72, 153, 0.08);
+    0 8px 22px -6px rgba(67, 56, 202, 0.1),
+    0 2px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
 .obs-panel {
   background-color: var(--surface-muted);
   border: 1px solid var(--border);
-  border-radius: 11px;
-  transition: border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .obs-panel:hover {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
 }
 
 .editorial-eyebrow {
@@ -175,10 +174,10 @@ html.dark {
   background-color: var(--surface);
   border: 1px solid var(--border-strong);
   color: var(--text);
-  border-radius: 9px;
-  padding: 9px 13px;
+  border-radius: 8px;
+  padding: 8px 12px;
   font-size: 0.9375rem;
-  min-height: 42px;
+  min-height: 40px;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -188,7 +187,7 @@ html.dark {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
-/* Accessible Semantic Badges */
+/* Accessible Semantic Badges (Uniform 6px radius) */
 .obs-badge-brass {
   background-color: var(--accent-bg);
   color: var(--accent);
@@ -217,32 +216,29 @@ html.dark {
   border-radius: 6px;
 }
 
-/* Fitts's Law Compliant Buttons with Floral Gradient Liveliness */
+/* Disciplined Single-Accent Buttons (Uniform 8px radius, Single-Line, 40px Standard) */
 .btn-editorial-primary {
-  background-image: linear-gradient(135deg, #4338CA 0%, #6366F1 55%, #DB2777 100%);
-  background-size: 160% 160%;
-  background-position: 0% 50%;
+  background: linear-gradient(180deg, #4F46E5 0%, #4338CA 100%);
   color: #ffffff;
-  padding: 10px 18px;
-  min-height: 42px;
-  font-size: 0.9375rem;
+  padding: 9px 16px;
+  min-height: 40px;
+  font-size: 0.9rem;
+  line-height: 1.2;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition:
-    background-position 0.35s ease,
-    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s ease;
-  box-shadow:
-    0 4px 14px -3px rgba(79, 70, 229, 0.38),
-    0 2px 6px -2px rgba(219, 39, 119, 0.22);
+    filter 0.18s ease,
+    transform 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.26);
 }
 
 .btn-editorial-primary:hover {
-  background-position: 100% 50%;
+  filter: brightness(1.07);
   transform: translateY(-1px);
-  box-shadow:
-    0 8px 20px -4px rgba(79, 70, 229, 0.45),
-    0 4px 10px -2px rgba(219, 39, 119, 0.3);
+  box-shadow: 0 6px 14px -3px rgba(67, 56, 202, 0.36);
 }
 
 .btn-editorial-primary:active {
@@ -253,23 +249,129 @@ html.dark {
   background-color: var(--surface);
   color: var(--text);
   border: 1px solid var(--border-strong);
-  padding: 10px 16px;
-  min-height: 42px;
-  font-size: 0.9375rem;
+  padding: 9px 15px;
+  min-height: 40px;
+  font-size: 0.9rem;
+  line-height: 1.2;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    transform 0.18s ease,
-    box-shadow 0.2s ease;
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.16s ease;
 }
 
 .btn-editorial-secondary:hover {
   border-color: var(--accent);
   background-color: var(--bg-elevated);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.16);
+}
+
+/* Unified 36px Header / Navbar Utility Controls (Eliminates Multi-Line Wrap & Height Mismatch) */
+.ui-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.ui-toolbar-btn:hover {
+  border-color: var(--border-strong);
+  background-color: var(--bg-elevated);
+  color: var(--text);
+}
+
+.ui-toolbar-btn-active {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background-color: var(--accent-bg);
+  color: var(--accent);
+}
+
+.ui-toolbar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.ui-toolbar-icon-btn:hover {
+  border-color: var(--border-strong);
+  background-color: var(--bg-elevated);
+  color: var(--text);
+}
+
+.ui-toolbar-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #4F46E5 0%, #4338CA 100%);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  line-height: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(67, 56, 202, 0.25);
+  transition: filter 0.16s ease, transform 0.16s ease;
+}
+
+.ui-toolbar-cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-0.5px);
+}
+
+/* Unified 32px Filter Chips Across All Views */
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+}
+
+.ui-chip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.ui-chip-active {
+  background-color: var(--accent-bg);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
 }
 
 .tabular-nums {

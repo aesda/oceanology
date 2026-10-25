@@ -19,7 +19,7 @@ import { VedicReport } from '../engines/vedicEngine';
 import { PanchangReport } from '../engines/panchangEngine';
 import { NumerologyReport } from '../engines/numerologyEngine';
 import { CosmicSynthesisReport } from '../engines/synthesisEngine';
-import { gregorianToBikramSambat } from '../engines/locationAtlas';
+import { cleanCityName, gregorianToBikramSambat } from '../engines/locationAtlas';
 import { getNakshatraTreatiseByIndex } from '../data/nakshatraCodex';
 import { PLANET_TREATISES } from '../data/classicalCompendium';
 import {
@@ -200,8 +200,8 @@ export const PersonalReportReader: React.FC<Props> = ({
         </div>
         <div className="flex flex-wrap items-start justify-between gap-4 relative z-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-sm font-semibold">
-              <SacredFlowerIcon variety="lotus" primaryHex="#EC4899" secondaryHex="#FDE68A" size={18} />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--accent-bg)] text-[var(--accent)] text-xs sm:text-sm font-semibold border border-[var(--accent)]/20">
+              <SacredFlowerIcon variety="lotus" primaryHex="#EC4899" secondaryHex="#FDE68A" size={17} />
               <span>Easy-to-Read Personal Horoscope &amp; Multi-Page PDF Dossier</span>
             </div>
 
@@ -209,7 +209,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               {profile.firstName} {profile.middleName} {profile.lastName}
             </h1>
 
-            <p className="text-base text-[var(--text-secondary)] leading-relaxed">
+            <p className="text-base text-[var(--text-secondary)] leading-relaxed tabular-nums">
               Born{' '}
               <strong className="text-[var(--text)]">
                 {profile.year}-{pad2(profile.month)}-{pad2(profile.day)}
@@ -220,8 +220,8 @@ export const PersonalReportReader: React.FC<Props> = ({
                   ? 'Solar Noon (Unknown Birth Time)'
                   : `${pad2(profile.hour)}:${pad2(profile.minute)}`}
               </strong>{' '}
-              in <strong className="text-[var(--text)]">{profile.location.name}</strong> (Nepali B.S.{' '}
-              {bsBirth.formattedEn})
+              in <strong className="text-[var(--text)]">{cleanCityName(profile.location.name)}</strong>,{' '}
+              {profile.location.country} (Nepali B.S. {bsBirth.formattedEn})
             </p>
           </div>
 
@@ -680,8 +680,9 @@ export const PersonalReportReader: React.FC<Props> = ({
               Today’s Horai Time, Best Upcoming Dates &amp; Practical Remedies
             </h2>
             <p className="text-base text-[var(--text-secondary)]">
-              Personalized for {profile.location.name} using your Birth Star ({moonPlanet.nakshatraName}
-              ). Scores of <strong>70+</strong> mark strong green-light windows.
+              Personalized for {cleanCityName(profile.location.name)} using your Birth Star (
+              {moonPlanet.nakshatraName}). Scores of <strong>70+</strong> mark strong green-light
+              windows.
             </p>
           </div>
 

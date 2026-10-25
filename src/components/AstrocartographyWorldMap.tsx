@@ -6,8 +6,9 @@ import { Globe, Heart, Home, Sparkles, Briefcase, MapPin, Info } from 'lucide-re
 import { AstrocartographyLine, NatalChartResult } from '../engines/astronomyEngine';
 import { BirthProfile, CityLocation, WORLD_CITIES } from '../types/oceanology';
 import { ACG_LINE_INTERPRETATIONS } from '../data/classicalCompendium';
+import { cleanCityName } from '../engines/locationAtlas';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
-import { KpiStatCard, SegmentedTabs, StatusBadge } from './ui/DashboardPrimitives';
+import { KpiStatCard, SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
 
 interface Props {
   profile: BirthProfile;
@@ -362,34 +363,28 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
   return (
     <div className="space-y-6">
       {/* ==================== PAGE HEADER & REGION LENS ==================== */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-            World Astrocartography &amp; Relocation Atlas
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Planetary MC/IC/ASC/DSC lines for {profile.firstName} {profile.lastName}. Click any city
-            or map coordinate to evaluate livability.
-          </p>
-        </div>
-
-        <SegmentedTabs
-          ariaLabel="Map region zoom"
-          value={region}
-          onChange={setRegion}
-          items={(Object.keys(MAP_REGIONS) as MapRegionId[]).map((rKey) => ({
-            id: rKey,
-            label: MAP_REGIONS[rKey].label,
-          }))}
-        />
-      </div>
+      <WorkspacePageHeader
+        title="World Astrocartography & Relocation Atlas"
+        subtitle={`Planetary MC/IC/ASC/DSC lines for ${profile.firstName} ${profile.lastName}. Click any city or map coordinate to evaluate livability.`}
+        actions={
+          <SegmentedTabs
+            ariaLabel="Map region zoom"
+            value={region}
+            onChange={setRegion}
+            items={(Object.keys(MAP_REGIONS) as MapRegionId[]).map((rKey) => ({
+              id: rKey,
+              label: MAP_REGIONS[rKey].label,
+            }))}
+          />
+        }
+      />
 
       {/* ==================== ROW 1: 4 CONTEXTUAL RELOCATION KPIs ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiStatCard
           label="Selected Location Score"
           value={`${activeEvaluation.overallScore}%`}
-          subvalue={activeCity.name.split(' ')[0]}
+          subvalue={cleanCityName(activeCity.name)}
           benchmarkText={activeEvaluation.primaryTag}
           status={{
             tone: activeEvaluation.overallScore >= 75 ? 'optimal' : 'favorable',
@@ -401,7 +396,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
         {topCareerCity && (
           <KpiStatCard
             label="Top Career Hub (MC)"
-            value={topCareerCity.city.name}
+            value={cleanCityName(topCareerCity.city.name)}
             subvalue={`${topCareerCity.careerScore}%`}
             benchmarkText={topCareerCity.city.country}
             status={{ tone: 'optimal', label: 'Career Peak' }}
@@ -414,7 +409,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
         {topSanctuaryCity && (
           <KpiStatCard
             label="Top Sanctuary Hub (IC)"
-            value={topSanctuaryCity.city.name}
+            value={cleanCityName(topSanctuaryCity.city.name)}
             subvalue={`${topSanctuaryCity.sanctuaryScore}%`}
             benchmarkText={topSanctuaryCity.city.country}
             status={{ tone: 'favorable', label: 'Home & Peace' }}
@@ -427,7 +422,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
         {topLoveCity && (
           <KpiStatCard
             label="Top Partnership Hub (DSC)"
-            value={topLoveCity.city.name}
+            value={cleanCityName(topLoveCity.city.name)}
             subvalue={`${topLoveCity.loveScore}%`}
             benchmarkText={topLoveCity.city.country}
             status={{ tone: 'info', label: 'Love & Union' }}
@@ -446,11 +441,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
             <button
               type="button"
               onClick={() => setSelectedPlanet('ALL')}
-              className={`px-2.5 py-1 rounded-md font-medium transition ${
-                selectedPlanet === 'ALL'
-                  ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
-                  : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
+              className={`ui-chip ${selectedPlanet === 'ALL' ? 'ui-chip-active' : ''}`}
             >
               All 10 Planets
             </button>
@@ -459,11 +450,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                 key={line.planet}
                 type="button"
                 onClick={() => setSelectedPlanet(line.planet)}
-                className={`px-2.5 py-1 rounded-md font-medium flex items-center gap-1 transition ${
-                  selectedPlanet === line.planet
-                    ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
-                    : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-                }`}
+                className={`ui-chip ${selectedPlanet === line.planet ? 'ui-chip-active' : ''}`}
               >
                 <span style={{ color: line.color }}>{line.symbol}</span>
                 <span>{line.planet}</span>

@@ -4,6 +4,7 @@ import { VedicReport } from '../engines/vedicEngine';
 import { PanchangReport } from '../engines/panchangEngine';
 import { NumerologyReport } from '../engines/numerologyEngine';
 import { CosmicSynthesisReport } from '../engines/synthesisEngine';
+import { cleanCityName } from '../engines/locationAtlas';
 import { getNakshatraTreatiseByIndex } from './nakshatraCodex';
 
 export interface HousePlainMeaning {
@@ -376,7 +377,7 @@ export function buildPlainEnglishPersonalSummary(
 
   const careAreaParagraph = `The life area asking for the most patience and deliberate structure is House ${lowest.house} (${lowGuide.shortTitle} — ${lowest.bindus} points). This is not "bad luck"—it simply means results here come from steady habits rather than shortcuts: ${lowGuide.whenLow}`;
 
-  const todayGuidanceParagraph = `For ${profile.location.name} today (${panchangReport.vara.name}, ${panchangReport.tithi.name}, Moon in ${panchangReport.nakshatra.name}): your personal star harmony (Tarabala) is ${panchangReport.personalTarabala.isAuspicious ? 'supportive for constructive steps' : 'mixed—pace major commitments carefully'}. Your best window today is ${synthesisReport.bestWindowToday}${rahuSlot ? `, while ${rahuSlot.startTime}–${rahuSlot.endTime} (Rahu Kaal) is best reserved for routine work rather than brand-new launches` : ''}.`;
+  const todayGuidanceParagraph = `For ${cleanCityName(profile.location.name)} today (${panchangReport.vara.name}, ${panchangReport.tithi.name}, Moon in ${panchangReport.nakshatra.name}): your personal star harmony (Tarabala) is ${panchangReport.personalTarabala.isAuspicious ? 'supportive for constructive steps' : 'mixed—pace major commitments carefully'}. Your best window today is ${synthesisReport.bestWindowToday}${rahuSlot ? `, while ${rahuSlot.startTime}–${rahuSlot.endTime} (Rahu Kaal) is best reserved for routine work rather than brand-new launches` : ''}.`;
 
   const quickBulletTakeaways = [
     {

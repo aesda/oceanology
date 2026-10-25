@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { CityLocation } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
+import { cleanCityName } from '../engines/locationAtlas';
 import { getRecommendedHoraisForAction } from '../engines/panchangEngine';
 import {
   ActionCategory,
@@ -27,6 +28,7 @@ import {
   SegmentedTabs,
   StatusBadge,
   SemanticTone,
+  WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 import { SacredFlowerIcon } from './ui/FloralAnimations';
 
@@ -171,27 +173,21 @@ export const ActionConsequenceLab: React.FC<Props> = ({
   return (
     <div className="space-y-6">
       {/* ==================== PAGE HEADER & MODE SWITCHER ==================== */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-            Action Timing &amp; Consequence Planner
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Evaluate 20 major life decisions against Muhurta electional rules, personal Tarabala, and
-            planetary conduct.
-          </p>
-        </div>
-
-        <SegmentedTabs
-          ariaLabel="Action planner mode"
-          value={labTab}
-          onChange={setLabTab}
-          items={[
-            { id: 'MUHURTA_ORACLE', label: 'Action Timing', count: 20 },
-            { id: 'BEHAVIORAL_KARMA', label: 'Planetary Karma-Vipaka', count: 9 },
-          ]}
-        />
-      </div>
+      <WorkspacePageHeader
+        title="Action Timing & Consequence Planner"
+        subtitle="Evaluate 20 major life decisions against Muhurta electional rules, personal Tarabala, Horai planetary hours, and planetary conduct."
+        actions={
+          <SegmentedTabs
+            ariaLabel="Action planner mode"
+            value={labTab}
+            onChange={setLabTab}
+            items={[
+              { id: 'MUHURTA_ORACLE', label: 'Action Timing', count: 20 },
+              { id: 'BEHAVIORAL_KARMA', label: 'Planetary Karma-Vipaka', count: 9 },
+            ]}
+          />
+        }
+      />
 
       {/* ==================== MODE 1: MUHURTA DECISION DASHBOARD ==================== */}
       {labTab === 'MUHURTA_ORACLE' && (
@@ -216,11 +212,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                           }
                         }
                       }}
-                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
-                        active
-                          ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold border border-[var(--accent)]/30'
-                          : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-                      }`}
+                      className={`ui-chip ${active ? 'ui-chip-active' : ''}`}
                     >
                       {cat}
                     </button>
@@ -228,8 +220,8 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 })}
               </div>
 
-              <span className="text-xs text-[var(--text-muted)] font-mono">
-                Location: {location.name}
+              <span className="text-xs font-medium text-[var(--text-muted)]">
+                Location: {cleanCityName(location.name)}
               </span>
             </div>
 
@@ -526,8 +518,8 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 ]}
               />
 
-              <span className="text-xs text-[var(--text-muted)] font-mono">
-                Evaluated at {selectedDateStr} {selectedTimeStr} ({location.name})
+              <span className="text-xs text-[var(--text-muted)] tabular-nums">
+                Evaluated at {selectedDateStr} {selectedTimeStr} ({cleanCityName(location.name)})
               </span>
             </div>
 

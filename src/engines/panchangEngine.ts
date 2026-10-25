@@ -269,7 +269,7 @@ export const HORAI_LORD_META: Record<HoraiLordId, HoraiLordMetadata> = {
     id: 'Saturn',
     horaiName: 'Sani Horai',
     sanskritHora: 'Shani Hora',
-    tamilName: 'सनि ஓரை / சனி ஓரை',
+    tamilName: 'சனி ஓரை',
     devanagariName: 'शनि होरा',
     quality: 'Manda (Avoid New Starts)',
     tone: 'avoid',

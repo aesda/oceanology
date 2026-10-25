@@ -9,13 +9,14 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { PanchangReport } from '../engines/panchangEngine';
-import { gregorianToBikramSambat } from '../engines/locationAtlas';
+import { cleanCityName, gregorianToBikramSambat } from '../engines/locationAtlas';
 import {
   DayTimelineBar,
   KpiStatCard,
   SegmentedTabs,
   StatusBadge,
   SemanticTone,
+  WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 import { SacredFlowerIcon } from './ui/FloralAnimations';
 
@@ -48,38 +49,36 @@ export const PanchangDashboard: React.FC<Props> = ({
   return (
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER BAR ==================== */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-              Daily Panchang &amp; Nepali Patro — {panchang.location.name}
-            </h1>
+      <WorkspacePageHeader
+        title={
+          <span className="inline-flex flex-wrap items-center gap-2.5">
+            <span>Daily Panchang &amp; Nepali Patro — {cleanCityName(panchang.location.name)}</span>
             <StatusBadge tone="info" label={`${bsDate.formattedEn} (${bsDate.formattedNp})`} />
-          </div>
-          <p className="text-xs text-[var(--text-secondary)] font-mono">
-            {panchang.vara.name} • Gregorian {panchang.dateStr} • Solar Month:{' '}
-            {panchang.bikramSambat.monthName} • Elevation {panchang.location.elevationMeters}m
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="obs-panel px-3.5 py-2 text-xs font-mono flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-[var(--accent)]" />
-            <span className="text-[var(--text-secondary)]">Vedic Clock:</span>
-            <span className="font-semibold text-[var(--text)]">{panchang.vedicClock.formatted}</span>
-          </div>
-          {onOpenActionSimulator && (
-            <button
-              type="button"
-              onClick={onOpenActionSimulator}
-              className="btn-editorial-secondary text-xs inline-flex items-center gap-1.5"
-            >
-              <Scale className="w-3.5 h-3.5 text-[var(--accent)]" />
-              <span>Test Action Today</span>
-            </button>
-          )}
-        </div>
-      </div>
+          </span>
+        }
+        subtitle={`${panchang.vara.name} • Gregorian ${panchang.dateStr} • Solar Month: ${panchang.bikramSambat.monthName} • Elevation ${panchang.location.elevationMeters}m`}
+        actions={
+          <>
+            <div className="obs-panel h-10 px-3.5 text-xs font-medium tabular-nums inline-flex items-center gap-2">
+              <Clock className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span className="text-[var(--text-secondary)]">Vedic Clock:</span>
+              <span className="font-semibold text-[var(--text)]">
+                {panchang.vedicClock.formatted}
+              </span>
+            </div>
+            {onOpenActionSimulator && (
+              <button
+                type="button"
+                onClick={onOpenActionSimulator}
+                className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
+              >
+                <Scale className="w-4 h-4 text-[var(--accent)]" />
+                <span>Test Action Today</span>
+              </button>
+            )}
+          </>
+        }
+      />
 
       {/* ==================== ROW 1: 4 CONTEXTUAL KPI STAT CARDS ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -168,7 +167,7 @@ export const PanchangDashboard: React.FC<Props> = ({
                 Active Horai Right Now
               </span>
               <StatusBadge tone={panchang.activeHorai.tone} label={panchang.activeHorai.quality} />
-              <span className="text-xs font-mono text-[var(--text-secondary)]">
+              <span className="text-xs font-semibold tabular-nums text-[var(--text-secondary)]">
                 {panchang.activeHorai.startTime}–{panchang.activeHorai.endTime} (
                 {panchang.activeHorai.minutesRemaining}m left)
               </span>
@@ -177,7 +176,7 @@ export const PanchangDashboard: React.FC<Props> = ({
               {panchang.activeHorai.horaiName} ({panchang.activeHorai.lord}) • Active Gowri:{' '}
               {panchang.activeGowri.name}
             </h2>
-            <p className="text-sm text-[var(--text-secondary)]">
+            <p className="text-sm text-[var(--text-secondary)] tabular-nums">
               Nalla Neram Today: <strong>{panchang.nallaNeram[0].startTime}–{panchang.nallaNeram[0].endTime}</strong>{' '}
               &amp; <strong>{panchang.nallaNeram[1].startTime}–{panchang.nallaNeram[1].endTime}</strong>
             </p>
@@ -203,12 +202,12 @@ export const PanchangDashboard: React.FC<Props> = ({
             <h2 className="text-base font-bold text-[var(--text)]">
               Daylight Auspicious &amp; Caution Windows
             </h2>
-            <p className="text-xs text-[var(--text-muted)]">
-              Proportional solar octants computed for {panchang.location.name} (
+            <p className="text-xs text-[var(--text-muted)] tabular-nums">
+              Proportional solar octants computed for {cleanCityName(panchang.location.name)} (
               {panchang.location.latitude.toFixed(2)}°N, {panchang.location.longitude.toFixed(2)}°E)
             </p>
           </div>
-          <span className="text-xs font-mono text-[var(--text-secondary)]">
+          <span className="text-xs font-medium text-[var(--text-secondary)]">
             Chandra: {panchang.moonSign} • Surya: {panchang.sunSign}
           </span>
         </div>

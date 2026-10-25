@@ -637,3 +637,12 @@ export function gregorianToBikramSambat(year: number, month: number, day: number
     formattedNp: `${bsYear} ${mObj.np} ${bsDay} गते`,
   };
 }
+
+
+/**
+ * Strips parenthetical native script (e.g. "Kathmandu (काठमाडौँ)" -> "Kathmandu")
+ * while preserving multi-word English city names like "New York" or "New Delhi".
+ */
+export function cleanCityName(rawName: string): string {
+  return rawName.replace(/\s*\([^)]*\)\s*/g, '').trim();
+}

@@ -24,6 +24,7 @@ import {
   SegmentedTabs,
   StatusBadge,
   SemanticTone,
+  WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 
 interface Props {
@@ -137,42 +138,36 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
   return (
     <div className="space-y-6">
       {/* ==================== PAGE HEADER ==================== */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-            28 Nakshatras &amp; 108 Navamsha Padas
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Complete reference across all 27 sidereal mansions plus intercalary Abhijit, Padas,
-            electional rules, and Taittiriya Shaktis.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedIdx(moonPlanet.nakshatraIndex)}
-            className="btn-editorial-secondary text-xs inline-flex items-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
-            <span>
-              My Birth Star: {moonPlanet.nakshatraName} (P{moonPlanet.nakshatraPada})
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowStarWheel(!showStarWheel)}
-            className="btn-editorial-secondary text-xs inline-flex items-center gap-1.5"
-          >
-            <span>{showStarWheel ? 'Hide Ecliptic Ring' : 'Show Ecliptic Ring'}</span>
-            {showStarWheel ? (
-              <ChevronUp className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5" />
-            )}
-          </button>
-        </div>
-      </div>
+      <WorkspacePageHeader
+        title="28 Nakshatras & 108 Navamsha Padas"
+        subtitle="Complete reference across all 27 sidereal mansions plus intercalary Abhijit, Padas, electional rules, and Taittiriya Shaktis."
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setSelectedIdx(moonPlanet.nakshatraIndex)}
+              className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
+            >
+              <Sparkles className="w-4 h-4 text-[var(--accent)]" />
+              <span>
+                My Birth Star: {moonPlanet.nakshatraName} (P{moonPlanet.nakshatraPada})
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowStarWheel(!showStarWheel)}
+              className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
+            >
+              <span>{showStarWheel ? 'Hide Ecliptic Ring' : 'Show Ecliptic Ring'}</span>
+              {showStarWheel ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+          </>
+        }
+      />
 
       {/* Collapsible Interactive 27-Star Ecliptic Wheel */}
       {showStarWheel && (

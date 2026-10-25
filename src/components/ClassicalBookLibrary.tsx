@@ -14,7 +14,7 @@ import { VedicReport } from '../engines/vedicEngine';
 import { HOUSE_TREATISES, PLANET_TREATISES } from '../data/classicalCompendium';
 import { CLASSICAL_CANON_BOOKS, PLANET_IN_BHAVA_RULINGS } from '../data/canonAnthology';
 import { STANDARD_27_NAKSHATRAS } from '../data/nakshatraCodex';
-import { SegmentedTabs, StatusBadge } from './ui/DashboardPrimitives';
+import { SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
 
 interface Props {
   chart: NatalChartResult;
@@ -68,29 +68,23 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
   return (
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER & SEGMENTED SWITCHER ==================== */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-            Classical Source Library &amp; Natal Readings
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)]">
-            108 Planet-in-House rulings, detected Parashari Yogas, 12 Bhava domains, and 9 primary
-            source texts.
-          </p>
-        </div>
-
-        <SegmentedTabs
-          ariaLabel="Library reading sections"
-          value={readingMode}
-          onChange={setReadingMode}
-          items={[
-            { id: 'PLANETS', label: 'Planet Readings', count: chart.planets.length },
-            { id: 'YOGAS_REMEDIES', label: 'Yogas & Remedies', count: vedic.yogas.length },
-            { id: 'HOUSES', label: '12 Houses', count: 12 },
-            { id: 'CANON_BOOKS', label: 'Source Books', count: CLASSICAL_CANON_BOOKS.length },
-          ]}
-        />
-      </div>
+      <WorkspacePageHeader
+        title="Classical Source Library & Natal Readings"
+        subtitle="108 Planet-in-House rulings, detected Parashari Yogas, 12 Bhava domains, and 9 primary source texts."
+        actions={
+          <SegmentedTabs
+            ariaLabel="Library reading sections"
+            value={readingMode}
+            onChange={setReadingMode}
+            items={[
+              { id: 'PLANETS', label: 'Planet Readings', count: chart.planets.length },
+              { id: 'YOGAS_REMEDIES', label: 'Yogas & Remedies', count: vedic.yogas.length },
+              { id: 'HOUSES', label: '12 Houses', count: 12 },
+              { id: 'CANON_BOOKS', label: 'Source Books', count: CLASSICAL_CANON_BOOKS.length },
+            ]}
+          />
+        }
+      />
 
       {/* ==================== TAB 1: PLANET-IN-HOUSE READINGS ==================== */}
       {readingMode === 'PLANETS' && (

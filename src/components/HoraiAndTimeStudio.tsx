@@ -21,12 +21,13 @@ import {
   HoraiLordId,
   HoraiSlot,
 } from '../engines/panchangEngine';
-import { gregorianToBikramSambat } from '../engines/locationAtlas';
+import { cleanCityName, gregorianToBikramSambat } from '../engines/locationAtlas';
 import {
   DayTimelineBar,
   KpiStatCard,
   SegmentedTabs,
   StatusBadge,
+  WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 import {
   BloomingLotusMandala,
@@ -134,101 +135,101 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
   return (
     <div className="space-y-6 animate-bloom-in">
       {/* ==================== TOP HEADER & DATE / CLOCK CONTROLS ==================== */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2.5">
+      <WorkspacePageHeader
+        title={
+          <span className="inline-flex flex-wrap items-center gap-2.5">
             <SacredFlowerIcon
               variety={activeHorai.sacredFlower.variety}
               primaryHex={activeHorai.sacredFlower.primaryHex}
               secondaryHex={activeHorai.sacredFlower.secondaryHex}
-              size={30}
+              size={26}
             />
-            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight">
-              Live Horai Time, Gowri &amp; Sacred Clock
-            </h1>
+            <span>Live Horai Time, Gowri &amp; Sacred Clock</span>
             <StatusBadge
               tone="optimal"
-              label={`${location.name} • ${cityClockFormatted}`}
+              label={`${cleanCityName(location.name)} • ${cityClockFormatted}`}
             />
-          </div>
-          <p className="text-sm text-[var(--text-secondary)]">
+          </span>
+        }
+        subtitle={
+          <>
             {livePanchang.vara.name} • Gregorian {livePanchang.dateStr} • Nepali{' '}
             <strong>{bsDate.formattedEn}</strong> • Sunrise {livePanchang.sunriseTime} / Sunset{' '}
             {livePanchang.sunsetTime}
-          </p>
-        </div>
+          </>
+        }
+        actions={
+          <>
+            <div className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] p-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setDateOffsetDays((d) => d - 1);
+                  setSelectedSlotNum(null);
+                }}
+                aria-label="Previous day"
+                className="p-2 rounded-md text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDateOffsetDays(0);
+                  setSelectedSlotNum(null);
+                }}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold tabular-nums transition ${
+                  dateOffsetDays === 0
+                    ? 'bg-[var(--accent-bg)] text-[var(--accent)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                }`}
+              >
+                {dateOffsetDays === 0
+                  ? 'Live Today'
+                  : dateOffsetDays > 0
+                  ? `+${dateOffsetDays}d (${livePanchang.dateStr})`
+                  : `${dateOffsetDays}d (${livePanchang.dateStr})`}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDateOffsetDays((d) => d + 1);
+                  setSelectedSlotNum(null);
+                }}
+                aria-label="Next day"
+                className="p-2 rounded-md text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
 
-        {/* Date Switcher & Hora Mode Toggle */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1 shadow-sm">
-            <button
-              type="button"
-              onClick={() => {
-                setDateOffsetDays((d) => d - 1);
-                setSelectedSlotNum(null);
-              }}
-              aria-label="Previous day"
-              className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setDateOffsetDays(0);
-                setSelectedSlotNum(null);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                dateOffsetDays === 0
-                  ? 'bg-[var(--accent-bg)] text-[var(--accent)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
-            >
-              {dateOffsetDays === 0
-                ? 'Live Today'
-                : dateOffsetDays > 0
-                ? `+${dateOffsetDays}d (${livePanchang.dateStr})`
-                : `${dateOffsetDays}d (${livePanchang.dateStr})`}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setDateOffsetDays((d) => d + 1);
-                setSelectedSlotNum(null);
-              }}
-              aria-label="Next day"
-              className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="inline-flex items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1 shadow-sm text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setUseEqualHours(false)}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                !useEqualHours
-                  ? 'bg-[var(--accent)] text-white shadow-sm'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
-            >
-              Solar Hora
-            </button>
-            <button
-              type="button"
-              onClick={() => setUseEqualHours(true)}
-              className={`px-3 py-1.5 rounded-lg transition ${
-                useEqualHours
-                  ? 'bg-[var(--accent)] text-white shadow-sm'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
-            >
-              1-Hr Horai
-            </button>
-          </div>
-        </div>
-      </div>
+            <div className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] p-0.5 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setUseEqualHours(false)}
+                className={`px-3 py-1.5 rounded-md transition ${
+                  !useEqualHours
+                    ? 'bg-[var(--surface)] text-[var(--accent)] shadow-xs border border-[var(--border)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                }`}
+              >
+                Solar Hora
+              </button>
+              <button
+                type="button"
+                onClick={() => setUseEqualHours(true)}
+                className={`px-3 py-1.5 rounded-md transition ${
+                  useEqualHours
+                    ? 'bg-[var(--surface)] text-[var(--accent)] shadow-xs border border-[var(--border)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                }`}
+              >
+                1-Hr Horai
+              </button>
+            </div>
+          </>
+        }
+      />
 
       {/* ==================== HERO LIVE HORAI FLORAL BANNER ==================== */}
       <div className="obs-card floral-banner-glow p-6 sm:p-7 relative overflow-hidden group">
@@ -239,23 +240,26 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           <div className="lg:col-span-7 space-y-3">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/35 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md obs-badge-sage text-xs font-bold">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
                 <span>ACTIVE HORAI RIGHT NOW</span>
               </span>
               <StatusBadge tone={activeHorai.tone} label={activeHorai.quality} />
-              <span className="text-xs font-mono text-[var(--text-secondary)] bg-[var(--surface)]/80 px-2.5 py-1 rounded-md border border-[var(--border)]">
+              <span className="text-xs font-medium text-[var(--text-secondary)] bg-[var(--surface)]/85 px-2.5 py-1 rounded-md border border-[var(--border)]">
                 {activeHorai.devanagariName} • {activeHorai.tamilName}
               </span>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-md flex items-center justify-center shrink-0">
+              <div className="w-14 h-14 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-sm flex items-center justify-center shrink-0">
                 <SacredFlowerIcon
                   variety={activeHorai.sacredFlower.variety}
                   primaryHex={activeHorai.sacredFlower.primaryHex}
                   secondaryHex={activeHorai.sacredFlower.secondaryHex}
-                  size={44}
+                  size={40}
                 />
               </div>
               <div>
@@ -265,9 +269,9 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                     ({activeHorai.lord} Planetary Hour)
                   </span>
                 </h2>
-                <p className="text-sm font-medium text-[var(--text-secondary)] mt-0.5">
-                  Sacred Flower: <strong>{activeHorai.sacredFlower.name}</strong> • Window:{' '}
-                  <strong className="font-mono">{slotTimeStr(activeHorai)}</strong>
+                <p className="text-sm font-medium text-[var(--text-secondary)] mt-0.5 tabular-nums">
+                  Sacred Flower: <strong className="text-[var(--text)]">{activeHorai.sacredFlower.name}</strong> •
+                  Window: <strong className="text-[var(--text)]">{slotTimeStr(activeHorai)}</strong>
                 </p>
               </div>
             </div>
@@ -293,25 +297,25 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
           </div>
 
           {/* Right Live Countdown & Progress Card */}
-          <div className="lg:col-span-5 bg-[var(--surface)]/95 backdrop-blur-md rounded-2xl border border-[var(--border)] p-5 shadow-sm space-y-4">
+          <div className="lg:col-span-5 bg-[var(--surface)]/95 backdrop-blur-md rounded-xl border border-[var(--border)] p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
                 Time Remaining in {activeHorai.horaiName}
               </span>
-              <span className="text-xs font-mono text-[var(--accent)] font-semibold">
+              <span className="text-xs tabular-nums text-[var(--accent)] font-semibold">
                 Vedic {livePanchang.vedicClock.formatted}
               </span>
             </div>
 
             <div className="flex items-baseline justify-between gap-3">
-              <div className="text-3xl sm:text-4xl font-extrabold font-mono tabular-nums text-[var(--text)]">
+              <div className="text-3xl sm:text-4xl font-extrabold tabular-nums text-[var(--text)]">
                 {dateOffsetDays === 0
                   ? `${displayMinsLeft.toString().padStart(2, '0')}m : ${activeSecondsPart
                       .toString()
                       .padStart(2, '0')}s`
                   : `${activeHorai.durationMinutes} min`}
               </div>
-              <span className="text-sm font-semibold text-[var(--text-secondary)]">
+              <span className="text-sm font-semibold text-[var(--text-secondary)] tabular-nums">
                 {activeHorai.progressPercent}% elapsed
               </span>
             </div>
@@ -421,21 +425,17 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
             {(
               [
                 { id: 'ALL', label: 'All 24 Hours' },
-                { id: 'WEALTH', label: 'Wealth & Gold (Sukra/Guru)' },
+                { id: 'WEALTH', label: 'Wealth & Gold' },
                 { id: 'CONTRACTS', label: 'Contracts & Study' },
                 { id: 'HEALING', label: 'Healing & Travel' },
-                { id: 'DEBT', label: 'Repay Debt (Sevvai)' },
+                { id: 'DEBT', label: 'Repay Debt' },
               ] as { id: HoraiFilter; label: string }[]
             ).map((f) => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => setHoraiFilter(f.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                  horaiFilter === f.id
-                    ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-sm'
-                    : 'bg-[var(--surface-muted)] text-[var(--text-secondary)] border-[var(--border)] hover:text-[var(--text)]'
-                }`}
+                className={`ui-chip ${horaiFilter === f.id ? 'ui-chip-active' : ''}`}
               >
                 {f.label}
               </button>

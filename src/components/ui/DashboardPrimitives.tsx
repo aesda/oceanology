@@ -204,8 +204,8 @@ export const ScoreTrendChart: React.FC<{
                 y={y + 4}
                 textAnchor="end"
                 fontSize="11.5"
-                fontFamily="JetBrains Mono, monospace"
                 fill="var(--text-muted)"
+                className="tabular-nums"
               >
                 {tick}
               </text>
@@ -288,9 +288,9 @@ export const ScoreTrendChart: React.FC<{
                   y={cy - 10}
                   textAnchor="middle"
                   fontSize="11.5"
-                  fontFamily="JetBrains Mono, monospace"
                   fontWeight={isSelected || isPeak ? '700' : '600'}
                   fill={isOptimal ? 'var(--sage)' : 'var(--text)'}
+                  className="tabular-nums"
                 >
                   {pt.value}
                 </text>
@@ -408,9 +408,9 @@ export const BenchmarkBarChart: React.FC<{
                 y={y - 6}
                 textAnchor="middle"
                 fontSize="11.5"
-                fontFamily="JetBrains Mono, monospace"
                 fontWeight="700"
                 fill="var(--text)"
+                className="tabular-nums"
               >
                 {it.value}
               </text>
@@ -502,7 +502,7 @@ export const DayTimelineBar: React.FC<{
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] font-mono">
+      <div className="flex items-center justify-between text-sm font-medium text-[var(--text-secondary)] tabular-nums">
         <span>☀ Sunrise {sunriseTime}</span>
         <span>Daylight Window Timeline</span>
         <span>🌇 Sunset {sunsetTime}</span>
@@ -553,7 +553,7 @@ export const DayTimelineBar: React.FC<{
           Avoid Starting New Work (Rahu Kaal / Yamaganda)
         </span>
         {nowPct >= 0 && nowPct <= 100 && (
-          <span className="inline-flex items-center gap-1.5 font-mono text-[var(--text-muted)]">
+          <span className="inline-flex items-center gap-1.5 text-[var(--text-muted)]">
             <span className="w-2.5 h-2.5 rounded-full bg-[var(--text)] inline-block" />
             Vertical line = Current local time
           </span>
@@ -619,6 +619,32 @@ export function SegmentedTabs<T extends string>({
     </div>
   );
 }
+
+export const WorkspacePageHeader: React.FC<{
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  eyebrow?: React.ReactNode;
+  actions?: React.ReactNode;
+}> = ({ title, subtitle, eyebrow, actions }) => (
+  <div className="flex flex-wrap items-start justify-between gap-4 pb-1">
+    <div className="space-y-1.5 max-w-3xl">
+      {eyebrow && (
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold border border-[var(--accent)]/20">
+          {eyebrow}
+        </div>
+      )}
+      <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-[var(--text)] leading-tight">
+        {title}
+      </h1>
+      {subtitle && (
+        <p className="text-sm sm:text-[15px] text-[var(--text-secondary)] leading-relaxed tabular-nums">
+          {subtitle}
+        </p>
+      )}
+    </div>
+    {actions && <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div>}
+  </div>
+);
 
 export const EmptyStateCard: React.FC<{
   title: string;

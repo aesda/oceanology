@@ -4,7 +4,7 @@ import { DivisionalChartEntry, VedicReport } from './vedicEngine';
 import { PanchangReport } from './panchangEngine';
 import { NumerologyReport } from './numerologyEngine';
 import { CosmicSynthesisReport } from './synthesisEngine';
-import { gregorianToBikramSambat } from './locationAtlas';
+import { cleanCityName, gregorianToBikramSambat } from './locationAtlas';
 import { getNakshatraTreatiseByIndex } from '../data/nakshatraCodex';
 import { PLANET_TREATISES } from '../data/classicalCompendium';
 import {
@@ -309,7 +309,7 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     } (${tzStr})  |  Nepali Date: B.S. ${bsBirth.formattedEn}`
   );
   const birthLine2 = cleanPdfText(
-    `Birthplace: ${profile.location.name}, ${profile.location.country} (${profile.location.latitude.toFixed(
+    `Birthplace: ${cleanCityName(profile.location.name)}, ${profile.location.country} (${profile.location.latitude.toFixed(
       2
     )}°N, ${profile.location.longitude.toFixed(2)}°E)  |  Zodiac: ${ayanamsha}  |  Houses: ${houseSystem}`
   );
@@ -802,7 +802,7 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   // ==================== SECTION 7: DAILY PANCHANG, HORAI TIME & 10-DECISION TIMING GUIDE ====================
   drawSectionHeader(
     'Section 7 of 8',
-    `Daily Panchang, Horai Time & Decision Timing (${profile.location.name})`,
+    `Daily Panchang, Horai Time & Decision Timing (${cleanCityName(profile.location.name)})`,
     `Computed for ${panchangReport.dateStr} (${panchangReport.vara.name})  |  Sunrise ${panchangReport.sunriseTime} - Sunset ${panchangReport.sunsetTime}`
   );
 

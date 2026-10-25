@@ -37,7 +37,7 @@ import { calculateVedicReport } from './engines/vedicEngine';
 import { calculatePanchang } from './engines/panchangEngine';
 import { calculateNumerology } from './engines/numerologyEngine';
 import { generateCosmicSynthesis } from './engines/synthesisEngine';
-import { gregorianToBikramSambat } from './engines/locationAtlas';
+import { cleanCityName, gregorianToBikramSambat } from './engines/locationAtlas';
 import { downloadDetailedPdfReport } from './engines/pdfReportGenerator';
 import { PLANET_TREATISES } from './data/classicalCompendium';
 import {
@@ -67,6 +67,7 @@ import {
   KpiStatCard,
   SegmentedTabs,
   StatusBadge,
+  WorkspacePageHeader,
 } from './components/ui/DashboardPrimitives';
 import {
   FloatingPetalsBackdrop,
@@ -469,7 +470,7 @@ export function App() {
             onClick={() => handleNavigate('HOME')}
             className="flex items-center gap-2.5 text-left"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shadow-sm shrink-0">
               <SacredFlowerIcon
                 variety="lotus"
                 primaryHex="#FDE68A"
@@ -490,9 +491,9 @@ export function App() {
             type="button"
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Close navigation menu"
-            className="lg:hidden p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)]"
+            className="lg:hidden ui-toolbar-icon-btn"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -519,7 +520,7 @@ export function App() {
                     <span className="truncate">{item.label}</span>
                   </span>
                   {item.badgeText && (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-pink-500/15 text-pink-700 dark:text-pink-300 border border-pink-400/30">
+                    <span className="px-2 py-0.5 obs-badge-brass text-[11px] font-semibold">
                       {item.badgeText}
                     </span>
                   )}
@@ -543,7 +544,7 @@ export function App() {
             </span>
             <Sliders className="w-4 h-4 text-[var(--accent)] shrink-0" />
           </div>
-          <div className="text-xs font-mono text-[var(--text-muted)] truncate">
+          <div className="text-xs text-[var(--text-muted)] truncate">
             {natalChart.ascendant.signName} Rising • {moonPlanet.nakshatraName}
           </div>
         </button>
@@ -596,15 +597,15 @@ export function App() {
       {/* ==================== MAIN CONTENT COLUMN ==================== */}
       <div className="flex-1 min-w-0 flex flex-col relative z-10">
         {/* Sticky Global Context Topbar */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/92 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+        <header className="sticky top-0 z-30 h-16 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open navigation menu"
-              className="lg:hidden p-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text)]"
+              className="lg:hidden ui-toolbar-icon-btn"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2.5 min-w-0">
@@ -615,17 +616,17 @@ export function App() {
                 type="button"
                 onClick={() => handleNavigate('HORAI')}
                 title="Open Live 24-Petal Horai Sacred Clock"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full floral-banner-glow border border-[var(--border)] text-xs font-bold text-[var(--text)] hover:border-[var(--accent)] transition"
+                className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 rounded-lg floral-banner-glow border border-[var(--border)] text-xs font-semibold text-[var(--text)] hover:border-[var(--accent)] transition tabular-nums whitespace-nowrap shrink-0"
               >
                 <SacredFlowerIcon
                   variety={panchangReport.activeHorai.sacredFlower.variety}
                   primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
                   secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
-                  size={16}
+                  size={15}
                   animated={floralMotion}
                 />
                 <span>{panchangReport.activeHorai.horaiName}</span>
-                <span className="font-mono text-[var(--accent)]">
+                <span className="text-[var(--accent)] font-bold tabular-nums">
                   • {panchangReport.activeHorai.minutesRemaining}m
                 </span>
               </button>
@@ -633,24 +634,24 @@ export function App() {
                 <button
                   type="button"
                   onClick={() => setShowProfileModal(true)}
-                  className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-xs font-semibold hover:underline"
+                  className="hidden xl:inline-flex items-center gap-1.5 h-7 px-2.5 obs-badge-brass text-xs font-semibold hover:underline whitespace-nowrap shrink-0"
                 >
-                  <span>Sample profile • Edit birth details</span>
+                  <span>Sample profile • Edit</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* Right Global Controls */}
-          <div className="flex items-center gap-2">
+          {/* Right Global Controls — Identical 36px Toolbar Scale to LandingPage */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setShowProfileModal(true)}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--accent)] text-sm font-medium transition"
+              className="ui-toolbar-btn"
             >
-              <MapPin className="w-4 h-4 text-[var(--accent)]" />
+              <MapPin className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
               <span className="hidden md:inline text-[var(--text)]">
-                {profile.firstName} • {profile.location.name.split(' ')[0]}
+                {profile.firstName} • {cleanCityName(profile.location.name)}
               </span>
               <span className="md:hidden text-[var(--text)]">Profile</span>
             </button>
@@ -659,7 +660,7 @@ export function App() {
               aria-label="Zodiac Ayanamsha mode"
               value={ayanamsha}
               onChange={(e) => setAyanamsha(e.target.value as AyanamshaMode)}
-              className="obs-input py-1.5 px-2.5 text-sm font-mono hidden 2xl:block w-auto min-h-[38px]"
+              className="hidden 2xl:block h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-xs font-semibold text-[var(--text-secondary)] hover:border-[var(--border-strong)] transition cursor-pointer"
             >
               <option value="LAHIRI">Lahiri Sidereal</option>
               <option value="TROPICAL">Tropical (0°)</option>
@@ -674,11 +675,7 @@ export function App() {
               onClick={() => setFloralMotion(!floralMotion)}
               aria-label="Toggle sacred flower animations"
               title="Toggle Floating Flower Petals & Click Blooms"
-              className={`px-2.5 py-2 rounded-lg border text-sm font-semibold transition inline-flex items-center gap-1.5 ${
-                floralMotion
-                  ? 'border-pink-400/50 bg-pink-500/10 text-pink-700 dark:text-pink-300'
-                  : 'border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]'
-              }`}
+              className={`ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
             >
               <SacredFlowerIcon
                 variety="lotus"
@@ -687,7 +684,7 @@ export function App() {
                 size={16}
                 animated={floralMotion}
               />
-              <span className="hidden xl:inline">{floralMotion ? 'Bloom' : 'Calm'}</span>
+              <span className="hidden xl:inline">Bloom</span>
             </button>
 
             <button
@@ -695,21 +692,18 @@ export function App() {
               onClick={() => setLargeText(!largeText)}
               aria-label="Toggle larger text size"
               title="Toggle Larger Reading Text"
-              className={`px-2.5 py-2 rounded-lg border text-sm font-semibold transition inline-flex items-center gap-1.5 ${
-                largeText
-                  ? 'border-[var(--accent)] bg-[var(--accent-bg)] text-[var(--accent)]'
-                  : 'border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-              }`}
+              className={`ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
             >
               <Type className="w-4 h-4" />
-              <span className="hidden sm:inline">{largeText ? 'Large Text' : 'Aa'}</span>
+              <span className="hidden sm:inline">{largeText ? 'Large' : 'Aa'}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
               aria-label="Toggle color theme"
-              className="p-2 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)] transition"
+              title="Switch light and dark theme"
+              className="ui-toolbar-icon-btn"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
@@ -718,9 +712,9 @@ export function App() {
               type="button"
               disabled={pdfExporting}
               onClick={handleGlobalDownloadPdf}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-editorial-primary text-sm disabled:opacity-60"
+              className="ui-toolbar-cta disabled:opacity-60"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">
                 {pdfExporting ? 'Building…' : 'PDF Report'}
               </span>
@@ -799,38 +793,30 @@ export function App() {
               {studioTab === 'SYNTHESIS' && (
                 <div className="space-y-6">
                   {/* Page Header */}
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight">
-                        {profile.firstName} {profile.lastName} — Personal Overview
-                      </h1>
-                      <p className="text-base text-[var(--text-secondary)]">
-                        {natalChart.ascendant.signSymbol} {natalChart.ascendant.signName} Rising (
-                        {natalChart.ascendant.formattedDMS}) • Birth Star:{' '}
-                        {moonPlanet.nakshatraName} (Pada {moonPlanet.nakshatraPada}) • Nepali B.S.{' '}
-                        {birthBsDate.formattedEn}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => handleNavigate('FULL_REPORT')}
-                        className="btn-editorial-primary text-sm inline-flex items-center gap-2"
-                      >
-                        <FileText className="w-4 h-4" />
-                        <span>Read Easy Report &amp; PDF</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleNavigate('WHAT_HAPPENS_IF')}
-                        className="btn-editorial-secondary text-sm inline-flex items-center gap-2"
-                      >
-                        <Scale className="w-4 h-4 text-[var(--accent)]" />
-                        <span>Check Best Dates</span>
-                      </button>
-                    </div>
-                  </div>
+                  <WorkspacePageHeader
+                    title={`${profile.firstName} ${profile.lastName} — Personal Overview`}
+                    subtitle={`${natalChart.ascendant.signSymbol} ${natalChart.ascendant.signName} Rising (${natalChart.ascendant.formattedDMS}) • Birth Star: ${moonPlanet.nakshatraName} (Pada ${moonPlanet.nakshatraPada}) • Nepali B.S. ${birthBsDate.formattedEn}`}
+                    actions={
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleNavigate('FULL_REPORT')}
+                          className="btn-editorial-primary text-sm inline-flex items-center gap-2"
+                        >
+                          <FileText className="w-4 h-4" />
+                          <span>Read Easy Report &amp; PDF</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleNavigate('WHAT_HAPPENS_IF')}
+                          className="btn-editorial-secondary text-sm inline-flex items-center gap-2"
+                        >
+                          <Scale className="w-4 h-4 text-[var(--accent)]" />
+                          <span>Check Best Dates</span>
+                        </button>
+                      </>
+                    }
+                  />
 
                   {/* Row 1: 4 Contextual KPI Stat Cards with Plain-English Hints */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -1096,17 +1082,10 @@ export function App() {
               {/* 2. NATAL WHEEL, EPHEMERIS & 360° SABIAN */}
               {studioTab === 'WESTERN' && (
                 <div className="space-y-6">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight">
-                        Natal Sky Wheel, Planetary Positions &amp; Degree Meanings
-                      </h1>
-                      <p className="text-base text-[var(--text-secondary)]">
-                        Exact planetary degrees, plain-English house meanings, birth-time
-                        fine-tuning, and Sabian degree symbols.
-                      </p>
-                    </div>
-                  </div>
+                  <WorkspacePageHeader
+                    title="Natal Sky Wheel, Planetary Positions & Degree Meanings"
+                    subtitle="Exact planetary degrees, plain-English house meanings, birth-time fine-tuning, and Sabian degree symbols."
+                  />
 
                   {/* Row 1: 4 Contextual KPIs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -1352,15 +1331,10 @@ export function App() {
               {/* 3. VEDIC JYOTISH, SARVASHTAKAVARGA & KP */}
               {studioTab === 'VEDIC_KP' && (
                 <div className="space-y-6">
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight">
-                      Vedic Kundali, 12-House Strength Scores &amp; Life Periods
-                    </h1>
-                    <p className="text-base text-[var(--text-secondary)]">
-                      Inspect your divisional Kundali charts (D1–D60), 12-house Ashtakavarga strength
-                      scores, Vimshottari Dasha chapters, and KP sub-lords.
-                    </p>
-                  </div>
+                  <WorkspacePageHeader
+                    title="Vedic Kundali, 12-House Strength Scores & Life Periods"
+                    subtitle="Inspect your divisional Kundali charts (D1–D60), 12-house Ashtakavarga strength scores, Vimshottari Dasha chapters, and KP sub-lords."
+                  />
 
                   {/* Row 1: 4 Contextual KPIs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -1852,7 +1826,7 @@ export function App() {
                 <h2 className="text-xl font-bold text-[var(--text)]">
                   Birth Profile &amp; Calculation Settings
                 </h2>
-                <p className="text-sm text-[var(--text-muted)] font-mono mt-0.5">
+                <p className="text-sm text-[var(--text-muted)] tabular-nums mt-0.5">
                   Nepali Bikram Sambat: {birthBsDate.formattedEn} ({birthBsDate.formattedNp}) •{' '}
                   {formatUtcOffset(profile.location.timezoneOffsetHours)}
                 </p>
@@ -1861,9 +1835,9 @@ export function App() {
                 type="button"
                 onClick={() => setShowProfileModal(false)}
                 aria-label="Close modal"
-                className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text)]"
+                className="ui-toolbar-icon-btn"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1927,7 +1901,7 @@ export function App() {
                     onChange={(e) =>
                       setProfile({ ...profile, year: parseInt(e.target.value, 10) || 1996 })
                     }
-                    className="obs-input font-mono"
+                    className="obs-input tabular-nums font-medium"
                   />
                   <input
                     type="number"
@@ -1940,7 +1914,7 @@ export function App() {
                         month: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)),
                       })
                     }
-                    className="obs-input font-mono"
+                    className="obs-input tabular-nums font-medium"
                   />
                   <input
                     type="number"
@@ -1953,7 +1927,7 @@ export function App() {
                         day: Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1)),
                       })
                     }
-                    className="obs-input font-mono"
+                    className="obs-input tabular-nums font-medium"
                   />
                 </div>
               </div>
@@ -1975,7 +1949,7 @@ export function App() {
                         hour: Math.min(23, Math.max(0, parseInt(e.target.value, 10) || 0)),
                       })
                     }
-                    className="obs-input font-mono disabled:opacity-40"
+                    className="obs-input tabular-nums font-medium disabled:opacity-40"
                   />
                   <input
                     type="number"
@@ -1989,7 +1963,7 @@ export function App() {
                         minute: Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0)),
                       })
                     }
-                    className="obs-input font-mono disabled:opacity-40"
+                    className="obs-input tabular-nums font-medium disabled:opacity-40"
                   />
                   <input
                     type="number"
@@ -2003,7 +1977,7 @@ export function App() {
                         second: Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0)),
                       })
                     }
-                    className="obs-input font-mono disabled:opacity-40"
+                    className="obs-input tabular-nums font-medium disabled:opacity-40"
                   />
                 </div>
               </div>

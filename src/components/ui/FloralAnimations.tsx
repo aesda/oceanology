@@ -109,7 +109,6 @@ const PETAL_PALETTE = [
   { primary: '#FBBF24', secondary: '#FEF08A' }, // Swarna Marigold
   { primary: '#818CF8', secondary: '#E0E7FF' }, // Neelakamala Indigo Lotus
   { primary: '#FB7185', secondary: '#FFE4E6' }, // Japa Coral Blossom
-  { primary: '#34D399', secondary: '#D1FAE5' }, // Sacred Tulsi / Parijata Leaf
   { primary: '#F9A8D4', secondary: '#FDF2F8' }, // Mallika Soft Blossom
 ];
 
@@ -117,21 +116,26 @@ export const FloatingPetalsBackdrop: React.FC<{ enabled?: boolean }> = ({
   enabled = true,
 }) => {
   const petals = useMemo<FloatingPetalSpec[]>(() => {
-    return Array.from({ length: 26 }, (_, idx) => {
+    return Array.from({ length: 22 }, (_, idx) => {
       const palette = PETAL_PALETTE[idx % PETAL_PALETTE.length];
+      // Frame the left (1%..16%) and right (84%..98%) botanical margins so center text stays crystal-clear
+      const isLeftMargin = idx % 2 === 0;
+      const laneOffset = ((idx * 3.7) % 14.5) + 1.2;
+      const leftPct = isLeftMargin ? laneOffset : 98.8 - laneOffset;
+
       return {
         id: idx,
-        leftPct: (idx * 3.85 + (idx % 3) * 2.1) % 98,
-        durationSec: 15 + (idx % 7) * 2.8,
-        delaySec: -((idx * 2.3) % 24),
-        swayDurationSec: 3.6 + (idx % 5) * 0.9,
-        driftPx: idx % 2 === 0 ? 45 + (idx % 4) * 16 : -(45 + (idx % 4) * 16),
-        swayPx: idx % 2 === 0 ? 22 : -22,
-        scale: 0.68 + (idx % 5) * 0.14,
-        opacity: idx % 5 === 0 ? 0.56 : 0.42,
+        leftPct,
+        durationSec: 16 + (idx % 7) * 2.8,
+        delaySec: -((idx * 2.4) % 24),
+        swayDurationSec: 3.8 + (idx % 5) * 0.9,
+        driftPx: isLeftMargin ? 28 + (idx % 4) * 12 : -(28 + (idx % 4) * 12),
+        swayPx: isLeftMargin ? 16 : -16,
+        scale: 0.72 + (idx % 4) * 0.12,
+        opacity: idx % 4 === 0 ? 0.38 : 0.28,
         primary: palette.primary,
         secondary: palette.secondary,
-        isFullFlower: idx % 4 === 0,
+        isFullFlower: idx % 3 === 0,
       };
     });
   }, []);
@@ -141,7 +145,7 @@ export const FloatingPetalsBackdrop: React.FC<{ enabled?: boolean }> = ({
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-0 pointer-events-none overflow-hidden z-[5] no-print"
+      className="fixed inset-0 pointer-events-none overflow-hidden z-[1] no-print"
     >
       {petals.map((p) => (
         <div
@@ -555,8 +559,8 @@ export const HoraiLotusClockWheel: React.FC<HoraiLotusClockWheelProps> = ({
                 fill="#FFFFFF"
                 fillOpacity="0.92"
                 fontSize="8.5"
-                fontFamily="monospace"
-                className="pointer-events-none"
+                fontWeight="600"
+                className="pointer-events-none tabular-nums"
               >
                 {(useEqualHours ? slot.equalStartTime : slot.startTime).slice(0, 5)}
               </text>
@@ -666,7 +670,8 @@ export const HoraiLotusClockWheel: React.FC<HoraiLotusClockWheelProps> = ({
           textAnchor="middle"
           fill="var(--text-secondary)"
           fontSize="10"
-          fontFamily="monospace"
+          fontWeight="600"
+          className="tabular-nums"
         >
           {useEqualHours
             ? `${inspectedSlot.equalStartTime}–${inspectedSlot.equalEndTime}`

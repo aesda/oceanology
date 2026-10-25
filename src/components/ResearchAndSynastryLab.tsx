@@ -10,6 +10,7 @@ import {
   KpiStatCard,
   SegmentedTabs,
   StatusBadge,
+  WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 
 interface Props {
@@ -42,27 +43,25 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
   return (
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER & SUB-VIEW SWITCHER ==================== */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-            Compatibility &amp; Ephemeris Aspect Finder
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)]">
-            36-Guna Ashtakoota matchmaking, bi-wheel synastry aspects, and multi-century planetary
-            aspect search.
-          </p>
-        </div>
-
-        <SegmentedTabs
-          ariaLabel="Compatibility or ephemeris mode"
-          value={subView}
-          onChange={setSubView}
-          items={[
-            { id: 'SYNASTRY_MILAN', label: '36-Guna & Bi-Wheel' },
-            { id: 'EPHEMERIS_SEARCH', label: 'Ephemeris Aspect Finder', count: ephemerisHits.length },
-          ]}
-        />
-      </div>
+      <WorkspacePageHeader
+        title="Compatibility & Ephemeris Aspect Finder"
+        subtitle="36-Guna Ashtakoota matchmaking, bi-wheel synastry aspects, and multi-century planetary aspect search."
+        actions={
+          <SegmentedTabs
+            ariaLabel="Compatibility or ephemeris mode"
+            value={subView}
+            onChange={setSubView}
+            items={[
+              { id: 'SYNASTRY_MILAN', label: '36-Guna & Bi-Wheel' },
+              {
+                id: 'EPHEMERIS_SEARCH',
+                label: 'Ephemeris Aspect Finder',
+                count: ephemerisHits.length,
+              },
+            ]}
+          />
+        }
+      />
 
       {/* ==================== SUB-VIEW 1: SYNASTRY & 36-GUNA MILAN ==================== */}
       {subView === 'SYNASTRY_MILAN' && (

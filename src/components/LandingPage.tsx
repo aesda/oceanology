@@ -9,7 +9,6 @@ import {
   Sparkles,
   Sun,
   Moon,
-  Calendar,
   Activity,
   Download,
   FileText,
@@ -21,7 +20,7 @@ import { NatalChartResult } from '../engines/astronomyEngine';
 import { VedicReport } from '../engines/vedicEngine';
 import { PanchangReport } from '../engines/panchangEngine';
 import { NumerologyReport } from '../engines/numerologyEngine';
-import { NEPAL_AND_GLOBAL_CITIES } from '../engines/locationAtlas';
+import { cleanCityName, NEPAL_AND_GLOBAL_CITIES } from '../engines/locationAtlas';
 import { evaluateActionConsequence, scanUpcomingBestWindows } from '../data/karmaAndMuhurtaCodex';
 import { HOUSE_PLAIN_GUIDE } from '../data/plainEnglishGuide';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
@@ -163,6 +162,11 @@ export const LandingPage: React.FC<Props> = ({
     return [...vedicReport.sarvashtakavarga].sort((a, b) => b.bindus - a.bindus)[0];
   }, [vedicReport.sarvashtakavarga]);
 
+  const cityDisplay = useMemo(
+    () => cleanCityName(profile.location.name),
+    [profile.location.name]
+  );
+
   const handleQuickPdf = async () => {
     if (!onDownloadPdf) {
       onNavigate('FULL_REPORT');
@@ -178,90 +182,88 @@ export const LandingPage: React.FC<Props> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent text-[var(--text)] relative z-10">
-      {/* ==================== CLEAN PRODUCT NAVBAR ==================== */}
-      <header className="sticky top-0 z-40 bg-[var(--surface)]/92 backdrop-blur-md border-b border-[var(--border)]">
+      {/* ==================== UNIFIED PRODUCT NAVBAR ==================== */}
+      <header className="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)]">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-7">
+          <div className="flex items-center gap-6 min-w-0">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2.5 text-left group"
+              className="flex items-center gap-2.5 text-left shrink-0"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shadow-sm shrink-0">
                 <SacredFlowerIcon
                   variety="lotus"
                   primaryHex="#FDE68A"
                   secondaryHex="#FFFFFF"
-                  size={24}
+                  size={21}
+                  animated={floralMotion}
                 />
               </div>
-              <span className="font-display font-bold text-lg tracking-tight text-[var(--text)]">
+              <span className="font-display font-bold text-lg tracking-tight text-[var(--text)] whitespace-nowrap">
                 Oceanology
               </span>
             </button>
 
-            <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-[var(--text-secondary)]">
+            <nav
+              aria-label="Primary sections"
+              className="hidden xl:flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)]"
+            >
               <button
                 type="button"
                 onClick={() => onNavigate('FULL_REPORT')}
-                className="text-[var(--accent)] hover:underline inline-flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                <FileText className="w-4 h-4" />
-                <span>Easy Report &amp; PDF</span>
+                Personal Report
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('HORAI')}
-                className="hover:text-[var(--text)] transition inline-flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                <Clock className="w-4 h-4 text-pink-500" />
-                <span>Live Horai Time</span>
+                Horai Clock
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('WHAT_HAPPENS_IF')}
-                className="hover:text-[var(--text)] transition"
+                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                Best Dates &amp; Timing
+                Best Dates
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' })}
-                className="hover:text-[var(--text)] transition"
+                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
                 Kundali &amp; Charts
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('NAKSHATRAS')}
-                className="hover:text-[var(--text)] transition"
+                className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
                 28 Birth Stars
               </button>
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {onToggleFloralMotion && (
               <button
                 type="button"
                 onClick={onToggleFloralMotion}
-                aria-label="Toggle floating flower petals"
+                aria-label="Toggle sacred flower animations"
                 title="Toggle ambient sacred flower animations"
-                className={`px-2.5 py-2 rounded-lg border text-xs sm:text-sm font-semibold transition inline-flex items-center gap-1.5 ${
-                  floralMotion
-                    ? 'border-pink-400/50 bg-pink-500/10 text-pink-700 dark:text-pink-300'
-                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)]'
-                }`}
+                className={`ui-toolbar-btn ${floralMotion ? 'ui-toolbar-btn-active' : ''}`}
               >
                 <SacredFlowerIcon
                   variety="lotus"
                   primaryHex="#EC4899"
                   secondaryHex="#FBCFE8"
-                  size={17}
+                  size={16}
                   animated={floralMotion}
                 />
-                <span className="hidden md:inline">{floralMotion ? 'Bloom On' : 'Bloom Off'}</span>
+                <span className="hidden md:inline">Bloom</span>
               </button>
             )}
 
@@ -271,14 +273,10 @@ export const LandingPage: React.FC<Props> = ({
                 onClick={onToggleLargeText}
                 aria-label="Toggle larger reading text"
                 title="Switch between Standard and Large comfortable reading text"
-                className={`px-3 py-2 rounded-lg border text-sm font-semibold transition inline-flex items-center gap-1.5 ${
-                  largeText
-                    ? 'border-[var(--accent)] bg-[var(--accent-bg)] text-[var(--accent)]'
-                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-                }`}
+                className={`ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
               >
                 <Type className="w-4 h-4" />
-                <span className="hidden sm:inline">{largeText ? 'Large Text On' : 'Aa Size'}</span>
+                <span className="hidden sm:inline">{largeText ? 'Large' : 'Aa'}</span>
               </button>
             )}
 
@@ -286,7 +284,8 @@ export const LandingPage: React.FC<Props> = ({
               type="button"
               onClick={onToggleDarkMode}
               aria-label="Toggle color theme"
-              className="p-2.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text)] transition"
+              title="Switch light and dark theme"
+              className="ui-toolbar-icon-btn"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
@@ -294,28 +293,33 @@ export const LandingPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => onNavigate('FULL_REPORT')}
-              className="btn-editorial-primary inline-flex items-center gap-2 text-sm"
+              className="ui-toolbar-cta"
             >
-              <span>Read My Report</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Read Report</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
         {/* LIVE HORAI & SACRED TIME TICKER RIBBON */}
         <div className="border-t border-[var(--border)] floral-banner-glow">
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-8 py-2 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm tabular-nums">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 font-bold text-[var(--text)]">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--text)]">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
                 <SacredFlowerIcon
                   variety={panchangReport.activeHorai.sacredFlower.variety}
                   primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
                   secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
-                  size={18}
+                  size={17}
+                  animated={floralMotion}
                 />
                 <span>
-                  Live in {profile.location.name}: {panchangReport.activeHorai.horaiName} (
+                  Live in {cityDisplay}:{' '}
+                  <strong className="font-bold">{panchangReport.activeHorai.horaiName}</strong> (
                   {panchangReport.activeHorai.lord})
                 </span>
               </span>
@@ -323,9 +327,10 @@ export const LandingPage: React.FC<Props> = ({
                 tone={panchangReport.activeHorai.tone}
                 label={`${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`}
               />
-              <span className="hidden md:inline text-[var(--text-secondary)]">
-                • Gowri: <strong>{panchangReport.activeGowri.name}</strong> • Nalla Neram:{' '}
-                <strong className="font-mono">
+              <span className="hidden lg:inline text-[var(--text-secondary)]">
+                • Gowri: <strong className="text-[var(--text)]">{panchangReport.activeGowri.name}</strong> •
+                Nalla Neram:{' '}
+                <strong className="text-[var(--text)] tabular-nums">
                   {panchangReport.nallaNeram[0].startTime}–{panchangReport.nallaNeram[0].endTime}
                 </strong>
               </span>
@@ -334,7 +339,7 @@ export const LandingPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => onNavigate('HORAI')}
-              className="font-bold text-[var(--accent)] hover:underline inline-flex items-center gap-1"
+              className="font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1 whitespace-nowrap"
             >
               <span>Open 24-Petal Horai Clock</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -345,31 +350,27 @@ export const LandingPage: React.FC<Props> = ({
 
       <main className="flex-1">
         {/* ==================== 5-SECOND TEST SPLIT HERO ==================== */}
-        <section className="max-w-[1280px] mx-auto px-4 sm:px-8 pt-10 pb-16 lg:pt-14 lg:pb-20 relative">
-          {/* Sacred Blooming Lotus Mandala Backdrop */}
-          <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 opacity-40 dark:opacity-50 -z-10">
-            <BloomingLotusMandala size={440} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start animate-bloom-in">
+        <section className="max-w-[1280px] mx-auto px-4 sm:px-8 pt-10 pb-16 lg:pt-12 lg:pb-18 relative">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start animate-bloom-in">
             {/* Left (5 cols): Clear Value Prop + Instant Birth Profile & PDF Launcher */}
             <div className="lg:col-span-5 space-y-6">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--accent-bg)] text-[var(--accent)] text-sm font-semibold border border-[var(--accent)]/20">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-bg)] text-[var(--accent)] text-xs sm:text-sm font-semibold border border-[var(--accent)]/20">
                   <SacredFlowerIcon
                     variety="marigold"
                     primaryHex="#F59E0B"
                     secondaryHex="#FDE68A"
-                    size={18}
+                    size={17}
+                    animated={floralMotion}
                   />
                   <span>Plain-English Readings • Live Horai Clock • Full PDF Report</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-[var(--text)] leading-[1.15] tracking-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-[var(--text)] leading-[1.16] tracking-tight">
                   Understand your birth chart clearly—and know your best hours &amp; days to act.
                 </h1>
 
-                <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed">
+                <p className="text-base text-[var(--text-secondary)] leading-relaxed">
                   Enter your birth details below to read a clear, plain-English personal horoscope,
                   track live <strong className="text-[var(--text)]">Horai &amp; Gowri</strong>{' '}
                   planetary hours, or download your detailed multi-page{' '}
@@ -442,7 +443,7 @@ export const LandingPage: React.FC<Props> = ({
                             year: parseInt(e.target.value, 10) || 1996,
                           })
                         }
-                        className="obs-input font-mono px-2"
+                        className="obs-input tabular-nums font-medium px-2.5"
                       />
                       <input
                         type="number"
@@ -456,7 +457,7 @@ export const LandingPage: React.FC<Props> = ({
                             month: Math.min(12, Math.max(1, parseInt(e.target.value, 10) || 1)),
                           })
                         }
-                        className="obs-input font-mono px-2"
+                        className="obs-input tabular-nums font-medium px-2.5"
                       />
                       <input
                         type="number"
@@ -470,7 +471,7 @@ export const LandingPage: React.FC<Props> = ({
                             day: Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1)),
                           })
                         }
-                        className="obs-input font-mono px-2"
+                        className="obs-input tabular-nums font-medium px-2.5"
                       />
                     </div>
                   </div>
@@ -492,7 +493,7 @@ export const LandingPage: React.FC<Props> = ({
                             hour: Math.min(23, Math.max(0, parseInt(e.target.value, 10) || 0)),
                           })
                         }
-                        className="obs-input font-mono"
+                        className="obs-input tabular-nums font-medium"
                       />
                       <input
                         type="number"
@@ -506,7 +507,7 @@ export const LandingPage: React.FC<Props> = ({
                             minute: Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0)),
                           })
                         }
-                        className="obs-input font-mono"
+                        className="obs-input tabular-nums font-medium"
                       />
                     </div>
                   </div>
@@ -516,8 +517,10 @@ export const LandingPage: React.FC<Props> = ({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-[var(--text-secondary)] font-medium inline-flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4 text-[var(--accent)]" />
-                      {profile.location.name}, {profile.location.country}
+                      <MapPin className="w-4 h-4 text-[var(--accent)] shrink-0" />
+                      <span>
+                        {cityDisplay}, {profile.location.country}
+                      </span>
                     </span>
                     <button
                       type="button"
@@ -537,13 +540,9 @@ export const LandingPage: React.FC<Props> = ({
                             key={city.id}
                             type="button"
                             onClick={() => onProfileChange({ ...profile, location: city })}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                              active
-                                ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-semibold border border-[var(--accent)]/30'
-                                : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-                            }`}
+                            className={`ui-chip ${active ? 'ui-chip-active' : ''}`}
                           >
-                            {city.name.split(' ')[0]}
+                            {cleanCityName(city.name)}
                           </button>
                         );
                       })}
@@ -597,13 +596,13 @@ export const LandingPage: React.FC<Props> = ({
             </div>
 
             {/* Right (7 cols): Live Interactive Decision & Forecast Preview Window */}
-            <div className="lg:col-span-7 obs-card overflow-hidden shadow-sm">
+            <div className="lg:col-span-7 obs-card overflow-hidden">
               {/* Window Top Context Strip */}
-              <div className="px-5 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
+              <div className="px-5 py-3.5 bg-[var(--bg-elevated)] border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[var(--accent)]" />
+                  <Activity className="w-4 h-4 text-[var(--accent)] shrink-0" />
                   <span className="text-sm font-bold text-[var(--text)]">
-                    Should You Do It Today? — {profile.location.name}
+                    Should You Do It Today? — {cityDisplay}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -614,10 +613,8 @@ export const LandingPage: React.FC<Props> = ({
                         key={act.id}
                         type="button"
                         onClick={() => setPreviewActionId(act.id)}
-                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                          active
-                            ? 'bg-[var(--surface)] text-[var(--accent)] font-semibold shadow-sm border border-[var(--border)]'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                        className={`ui-chip ${
+                          active ? 'ui-chip-active bg-[var(--surface)] shadow-xs' : 'bg-[var(--surface)]/65'
                         }`}
                       >
                         {act.label}
@@ -749,9 +746,9 @@ export const LandingPage: React.FC<Props> = ({
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="space-y-1">
                 <h2 className="text-2xl font-bold text-[var(--text)]">
-                  Today’s Sky &amp; Horai in Plain English — {profile.location.name}
+                  Today’s Sky &amp; Horai in Plain English — {cityDisplay}
                 </h2>
-                <p className="text-base text-[var(--text-secondary)]">
+                <p className="text-base text-[var(--text-secondary)] tabular-nums">
                   Nepali Date: {panchangReport.bikramSambat.formatted} • {panchangReport.vara.name} •
                   Sunrise {panchangReport.sunriseTime} – Sunset {panchangReport.sunsetTime}
                 </p>
@@ -853,9 +850,12 @@ export const LandingPage: React.FC<Props> = ({
             onClick={() => onNavigate('HORAI')}
             className="obs-card floral-banner-glow p-6 sm:p-8 hover:border-[var(--accent)] transition cursor-pointer relative overflow-hidden group flex flex-col lg:flex-row lg:items-center justify-between gap-6"
           >
+            <div className="pointer-events-none absolute -right-16 -bottom-24 opacity-35 dark:opacity-45">
+              <BloomingLotusMandala size={290} />
+            </div>
             <CornerLotusDecor primaryHex="#F59E0B" secondaryHex="#FBCFE8" />
             <div className="space-y-2.5 max-w-2xl relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-xs font-bold text-[var(--accent)]">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--surface)] border border-[var(--border)] text-xs font-bold text-[var(--accent)]">
                 <SacredFlowerIcon
                   variety="lotus"
                   primaryHex="#EC4899"

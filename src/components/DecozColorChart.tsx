@@ -8,7 +8,7 @@ import {
 } from '../engines/numerologyEngine';
 import { NumerologySystem } from '../types/oceanology';
 import { CHEIRO_COMPOUND_MEANINGS } from '../data/classicalCompendium';
-import { KpiStatCard, SegmentedTabs, StatusBadge } from './ui/DashboardPrimitives';
+import { KpiStatCard, SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
 
 interface Props {
   report: NumerologyReport;
@@ -84,27 +84,26 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
   return (
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER & SYSTEM SWITCHER ==================== */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
-            Numerology &amp; 25-Year ColorChart
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)]">
+      <WorkspacePageHeader
+        title="Numerology & 25-Year ColorChart"
+        subtitle={
+          <>
             Birth Name: <strong>{report.fullNameUsed}</strong> • Active Name:{' '}
             <strong>{report.currentNameUsed}</strong>
-          </p>
-        </div>
-
-        <SegmentedTabs
-          ariaLabel="Numerology calculation system"
-          value={system}
-          onChange={onSystemChange}
-          items={[
-            { id: 'PYTHAGOREAN', label: 'Pythagorean (Decoz)' },
-            { id: 'CHALDEAN', label: 'Chaldean (Cheiro)' },
-          ]}
-        />
-      </div>
+          </>
+        }
+        actions={
+          <SegmentedTabs
+            ariaLabel="Numerology calculation system"
+            value={system}
+            onChange={onSystemChange}
+            items={[
+              { id: 'PYTHAGOREAN', label: 'Pythagorean (Decoz)' },
+              { id: 'CHALDEAN', label: 'Chaldean (Cheiro)' },
+            ]}
+          />
+        }
+      />
 
       {/* ==================== ROW 1: 4 CONTEXTUAL KPI STAT CARDS ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
