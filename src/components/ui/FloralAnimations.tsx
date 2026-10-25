@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { HoraiSacredFlower, HoraiSlot } from '../../engines/panchangEngine';
+import { trHoraiDisplay, useLanguage } from '../../i18n/i18n';
 
 /* ==================== 1. BESPOKE SACRED FLOWER SVG ICON ==================== */
 interface SacredFlowerIconProps {
@@ -452,19 +453,32 @@ export const HoraiLotusClockWheel: React.FC<HoraiLotusClockWheelProps> = ({
   onSelectSlot,
   useEqualHours = false,
 }) => {
+  const { lang, t } = useLanguage();
   const all = [...dayHorai, ...nightHorai];
   const activeSlot = all.find((s) => s.isActiveNow) || dayHorai[0];
   const inspectedSlot = all.find((s) => s.slotNumber === selectedSlotNumber) || activeSlot;
+  const inspectedDisp = trHoraiDisplay(inspectedSlot, lang);
 
-  const planetShort: Record<string, string> = {
-    Sun: 'Sun',
-    Venus: 'Ven',
-    Mercury: 'Mer',
-    Moon: 'Moo',
-    Saturn: 'Sat',
-    Jupiter: 'Jup',
-    Mars: 'Mar',
-  };
+  const planetShort: Record<string, string> =
+    lang === 'ne'
+      ? {
+          Sun: 'सूर्य',
+          Venus: 'शुक्र',
+          Mercury: 'बुध',
+          Moon: 'चन्द्र',
+          Saturn: 'शनि',
+          Jupiter: 'गुरु',
+          Mars: 'मङ्गल',
+        }
+      : {
+          Sun: 'Sun',
+          Venus: 'Ven',
+          Mercury: 'Mer',
+          Moon: 'Moo',
+          Saturn: 'Sat',
+          Jupiter: 'Jup',
+          Mars: 'Mar',
+        };
 
   return (
     <div className="relative flex flex-col items-center">
@@ -662,7 +676,7 @@ export const HoraiLotusClockWheel: React.FC<HoraiLotusClockWheelProps> = ({
           fontSize="12.5"
           fontWeight="800"
         >
-          {inspectedSlot.horaiName}
+          {inspectedDisp.horaiName}
         </text>
         <text
           x="0"
@@ -686,8 +700,11 @@ export const HoraiLotusClockWheel: React.FC<HoraiLotusClockWheelProps> = ({
           fontWeight="700"
         >
           {inspectedSlot.isActiveNow
-            ? `LIVE • ${inspectedSlot.minutesRemaining}m left`
-            : `${inspectedSlot.period} #${inspectedSlot.hourIndexInPeriod}`}
+            ? t(
+                `LIVE • ${inspectedSlot.minutesRemaining}m left`,
+                `प्रत्यक्ष • ${inspectedSlot.minutesRemaining} मि. बाँकी`
+              )
+            : `${inspectedSlot.period === 'DAY' ? t('DAY', 'दिन') : t('NIGHT', 'रात')} #${inspectedSlot.hourIndexInPeriod}`}
         </text>
       </svg>
 
@@ -695,23 +712,23 @@ export const HoraiLotusClockWheel: React.FC<HoraiLotusClockWheelProps> = ({
       <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-secondary)] mt-2">
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-          <span>Supreme Shubha (Sukra/Guru)</span>
+          <span>{t('Supreme Shubha (Sukra/Guru)', 'सर्वोत्तम शुभ (शुक्र/गुरु)')}</span>
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
-          <span>Shubha (Budha/Chandra)</span>
+          <span>{t('Shubha (Budha/Chandra)', 'शुभ (बुध/चन्द्र)')}</span>
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-          <span>Authority (Suriya)</span>
+          <span>{t('Authority (Suriya)', 'राजकीय (सूर्य)')}</span>
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-          <span>Ugra (Sevvai)</span>
+          <span>{t('Ugra (Sevvai)', 'उग्र (मङ्गल)')}</span>
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-slate-500" />
-          <span>Manda (Sani)</span>
+          <span>{t('Manda (Sani)', 'मन्द (शनि)')}</span>
         </span>
       </div>
     </div>

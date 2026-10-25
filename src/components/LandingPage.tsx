@@ -20,9 +20,23 @@ import { NatalChartResult } from '../engines/astronomyEngine';
 import { VedicReport } from '../engines/vedicEngine';
 import { PanchangReport } from '../engines/panchangEngine';
 import { NumerologyReport } from '../engines/numerologyEngine';
-import { cleanCityName, NEPAL_AND_GLOBAL_CITIES } from '../engines/locationAtlas';
+import { NEPAL_AND_GLOBAL_CITIES } from '../engines/locationAtlas';
 import { evaluateActionConsequence, scanUpcomingBestWindows } from '../data/karmaAndMuhurtaCodex';
-import { HOUSE_PLAIN_GUIDE } from '../data/plainEnglishGuide';
+import {
+  formatCityForLang,
+  formatCountryForLang,
+  LanguageSwitchButton,
+  trActionDynamicOutcome,
+  trActionShort,
+  trActionTitle,
+  trGowriName,
+  trHoraiDisplay,
+  trHouseGuide,
+  trNakshatra,
+  trSign,
+  trVara,
+  useLanguage,
+} from '../i18n/i18n';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
 import { KpiStatCard, ScoreTrendChart, StatusBadge } from './ui/DashboardPrimitives';
 import {
@@ -98,6 +112,7 @@ export const LandingPage: React.FC<Props> = ({
   onDownloadPdf,
   onNavigate,
 }) => {
+  const { lang, t } = useLanguage();
   const [previewActionId, setPreviewActionId] = useState<string>('SIGN_CONTRACT');
   const [showCitySearch, setShowCitySearch] = useState<boolean>(false);
   const [pdfDownloading, setPdfDownloading] = useState<boolean>(false);
@@ -129,14 +144,18 @@ export const LandingPage: React.FC<Props> = ({
         moonPlanet.signIndex
       );
       const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const nakLabel =
+        lang === 'ne'
+          ? trNakshatra(rep.panchang.nakshatra.name, 'ne')
+          : rep.panchang.nakshatra.name.slice(0, 6);
       return {
         id: d.toISOString().slice(0, 10),
-        label: idx === 0 ? 'Today' : dateStr,
-        sublabel: rep.panchang.nakshatra.name.slice(0, 6),
+        label: idx === 0 ? (lang === 'ne' ? 'आज' : 'Today') : dateStr,
+        sublabel: nakLabel,
         value: rep.score,
       };
     });
-  }, [previewActionId, profile.location, moonPlanet.nakshatraIndex, moonPlanet.signIndex]);
+  }, [previewActionId, profile.location, moonPlanet.nakshatraIndex, moonPlanet.signIndex, lang]);
 
   const bestUpcoming = useMemo(
     () =>
@@ -163,8 +182,28 @@ export const LandingPage: React.FC<Props> = ({
   }, [vedicReport.sarvashtakavarga]);
 
   const cityDisplay = useMemo(
-    () => cleanCityName(profile.location.name),
-    [profile.location.name]
+    () => formatCityForLang(profile.location.name, lang),
+    [profile.location.name, lang]
+  );
+  const countryDisplay = useMemo(
+    () => formatCountryForLang(profile.location.country, lang),
+    [profile.location.country, lang]
+  );
+  const activeHoraiDisp = useMemo(
+    () => trHoraiDisplay(panchangReport.activeHorai, lang),
+    [panchangReport.activeHorai, lang]
+  );
+  const liveOutcomeDisp = useMemo(
+    () =>
+      trActionDynamicOutcome(
+        liveEval.score,
+        liveEval.action,
+        liveEval.panchang.nakshatra.name,
+        liveEval.headlineVerdict,
+        liveEval.whatHappensIfDoneNow,
+        lang
+      ),
+    [liveEval, lang]
   );
 
   const handleQuickPdf = async () => {
@@ -214,40 +253,42 @@ export const LandingPage: React.FC<Props> = ({
                 onClick={() => onNavigate('FULL_REPORT')}
                 className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                Personal Report
+                {t('Personal Report', 'व्यक्तिगत रिपोर्ट')}
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('HORAI')}
                 className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                Horai Clock
+                {t('Horai Clock', 'होरा घडी')}
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('WHAT_HAPPENS_IF')}
                 className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                Best Dates
+                {t('Best Dates', 'शुभ साइत')}
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('OBSERVATORY', { studioTab: 'VEDIC_KP' })}
                 className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                Kundali &amp; Charts
+                {t('Kundali & Charts', 'कुण्डली र चार्ट')}
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('NAKSHATRAS')}
                 className="px-3 py-1.5 rounded-lg whitespace-nowrap hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] transition"
               >
-                28 Birth Stars
+                {t('28 Birth Stars', '२८ नक्षत्र')}
               </button>
             </nav>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <LanguageSwitchButton />
+
             {onToggleFloralMotion && (
               <button
                 type="button"
@@ -263,7 +304,7 @@ export const LandingPage: React.FC<Props> = ({
                   size={16}
                   animated={floralMotion}
                 />
-                <span className="hidden md:inline">Bloom</span>
+                <span className="hidden md:inline">{t('Bloom', 'पुष्प')}</span>
               </button>
             )}
 
@@ -276,7 +317,9 @@ export const LandingPage: React.FC<Props> = ({
                 className={`ui-toolbar-btn ${largeText ? 'ui-toolbar-btn-active' : ''}`}
               >
                 <Type className="w-4 h-4" />
-                <span className="hidden sm:inline">{largeText ? 'Large' : 'Aa'}</span>
+                <span className="hidden sm:inline">
+                  {largeText ? t('Large', 'ठूलो अक्षर') : 'Aa'}
+                </span>
               </button>
             )}
 
@@ -295,7 +338,7 @@ export const LandingPage: React.FC<Props> = ({
               onClick={() => onNavigate('FULL_REPORT')}
               className="ui-toolbar-cta"
             >
-              <span>Read Report</span>
+              <span>{t('Read Report', 'रिपोर्ट पढ्नुहोस्')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -318,18 +361,24 @@ export const LandingPage: React.FC<Props> = ({
                   animated={floralMotion}
                 />
                 <span>
-                  Live in {cityDisplay}:{' '}
-                  <strong className="font-bold">{panchangReport.activeHorai.horaiName}</strong> (
-                  {panchangReport.activeHorai.lord})
+                  {t(`Live in ${cityDisplay}:`, `${cityDisplay} मा प्रत्यक्ष समय:`)}{' '}
+                  <strong className="font-bold">{activeHoraiDisp.horaiName}</strong> (
+                  {activeHoraiDisp.lordLabel})
                 </span>
               </span>
               <StatusBadge
                 tone={panchangReport.activeHorai.tone}
-                label={`${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`}
+                label={t(
+                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`,
+                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining} मिनेट बाँकी)`
+                )}
               />
               <span className="hidden lg:inline text-[var(--text-secondary)]">
-                • Gowri: <strong className="text-[var(--text)]">{panchangReport.activeGowri.name}</strong> •
-                Nalla Neram:{' '}
+                • {t('Gowri:', 'गौरी पञ्चाङ्ग:')}{' '}
+                <strong className="text-[var(--text)]">
+                  {trGowriName(panchangReport.activeGowri.name, lang)}
+                </strong>{' '}
+                • {t('Nalla Neram:', 'शुभ वेला (नल्ल नेरम):')}{' '}
                 <strong className="text-[var(--text)] tabular-nums">
                   {panchangReport.nallaNeram[0].startTime}–{panchangReport.nallaNeram[0].endTime}
                 </strong>
@@ -341,7 +390,7 @@ export const LandingPage: React.FC<Props> = ({
               onClick={() => onNavigate('HORAI')}
               className="font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1 whitespace-nowrap"
             >
-              <span>Open 24-Petal Horai Clock</span>
+              <span>{t('Open 24-Petal Horai Clock', '२४-पत्रे होरा कमल घडी खोल्नुहोस्')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -363,18 +412,37 @@ export const LandingPage: React.FC<Props> = ({
                     size={17}
                     animated={floralMotion}
                   />
-                  <span>Plain-English Readings • Live Horai Clock • Full PDF Report</span>
+                  <span>
+                    {t(
+                      'Plain-English Readings • Live Horai Clock • Full PDF Report',
+                      'सरल नेपाली फलादेश • प्रत्यक्ष होरा घडी • पूर्ण PDF रिपोर्ट'
+                    )}
+                  </span>
                 </div>
 
                 <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold text-[var(--text)] leading-[1.16] tracking-tight">
-                  Understand your birth chart clearly—and know your best hours &amp; days to act.
+                  {t(
+                    'Understand your birth chart clearly—and know your best hours & days to act.',
+                    'आफ्नो जन्म कुण्डली सरल भाषामा बुझ्नुहोस् र हरेक कामको सर्वोत्तम शुभ समय थाहा पाउनुहोस्।'
+                  )}
                 </h1>
 
                 <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-                  Enter your birth details below to read a clear, plain-English personal horoscope,
-                  track live <strong className="text-[var(--text)]">Horai &amp; Gowri</strong>{' '}
-                  planetary hours, or download your detailed multi-page{' '}
-                  <strong className="text-[var(--text)]">PDF Kundali &amp; Life Report</strong>.
+                  {lang === 'ne' ? (
+                    <>
+                      तल आफ्नो जन्म विवरण भर्नुहोस् र सरल नेपाली भाषामा व्यक्तिगत कुण्डली फलादेश
+                      पढ्नुहोस्, प्रत्यक्ष <strong className="text-[var(--text)]">होरा र गौरी पञ्चाङ्ग</strong>{' '}
+                      हेर्नुहोस्, वा बहु-पृष्ठ{' '}
+                      <strong className="text-[var(--text)]">PDF कुण्डली र जीवन रिपोर्ट</strong> डाउनलोड गर्नुहोस्।
+                    </>
+                  ) : (
+                    <>
+                      Enter your birth details below to read a clear, plain-English personal horoscope,
+                      track live <strong className="text-[var(--text)]">Horai &amp; Gowri</strong>{' '}
+                      planetary hours, or download your detailed multi-page{' '}
+                      <strong className="text-[var(--text)]">PDF Kundali &amp; Life Report</strong>.
+                    </>
+                  )}
                 </p>
               </div>
 
@@ -383,17 +451,19 @@ export const LandingPage: React.FC<Props> = ({
                 <CornerLotusDecor primaryHex="#EC4899" secondaryHex="#FDE68A" />
                 <div className="flex flex-wrap items-center justify-between gap-2 relative z-10">
                   <span className="text-base font-bold text-[var(--text)]">
-                    Enter Birth Details
+                    {t('Enter Birth Details', 'जन्म विवरण प्रविष्ट गर्नुहोस्')}
                   </span>
                   <span className="text-sm text-[var(--accent)] font-semibold">
-                    {natalChart.ascendant.signName} Rising • {moonPlanet.nakshatraName} Star
+                    {lang === 'ne'
+                      ? `${trSign(natalChart.ascendant.signName, 'ne')} लग्न • ${trNakshatra(moonPlanet.nakshatraName, 'ne')} नक्षत्र`
+                      : `${natalChart.ascendant.signName} Rising • ${moonPlanet.nakshatraName} Star`}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                      First name
+                      {t('First name', 'पहिलो नाम')}
                     </label>
                     <input
                       type="text"
@@ -410,7 +480,7 @@ export const LandingPage: React.FC<Props> = ({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                      Last name
+                      {t('Last name', 'थर')}
                     </label>
                     <input
                       type="text"
@@ -430,7 +500,7 @@ export const LandingPage: React.FC<Props> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                      Birth date (YYYY / MM / DD)
+                      {t('Birth date (YYYY / MM / DD)', 'जन्म मिति (ई.सं. वर्ष / महिना / गते)')}
                     </label>
                     <div className="grid grid-cols-3 gap-1.5">
                       <input
@@ -478,7 +548,7 @@ export const LandingPage: React.FC<Props> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                      Birth time (24h HH : MM)
+                      {t('Birth time (24h HH : MM)', 'जन्म समय (२४ घण्टा HH : MM)')}
                     </label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <input
@@ -519,7 +589,7 @@ export const LandingPage: React.FC<Props> = ({
                     <span className="text-[var(--text-secondary)] font-medium inline-flex items-center gap-1.5">
                       <MapPin className="w-4 h-4 text-[var(--accent)] shrink-0" />
                       <span>
-                        {cityDisplay}, {profile.location.country}
+                        {cityDisplay}, {countryDisplay}
                       </span>
                     </span>
                     <button
@@ -527,7 +597,7 @@ export const LandingPage: React.FC<Props> = ({
                       onClick={() => setShowCitySearch(!showCitySearch)}
                       className="text-[var(--accent)] font-semibold hover:underline"
                     >
-                      {showCitySearch ? 'Done' : 'Change city'}
+                      {showCitySearch ? t('Done', 'बन्द गर्नुहोस्') : t('Change city', 'सहर बदल्नुहोस्')}
                     </button>
                   </div>
 
@@ -542,14 +612,14 @@ export const LandingPage: React.FC<Props> = ({
                             onClick={() => onProfileChange({ ...profile, location: city })}
                             className={`ui-chip ${active ? 'ui-chip-active' : ''}`}
                           >
-                            {cleanCityName(city.name)}
+                            {formatCityForLang(city.name, lang)}
                           </button>
                         );
                       })}
                     </div>
                   ) : (
                     <GlobalLocationPicker
-                      label="Search global & Nepal cities"
+                      label={t('Search global & Nepal cities', 'नेपाल र विश्वका सहर खोज्नुहोस्')}
                       value={profile.location}
                       onChange={(loc) => {
                         onProfileChange({ ...profile, location: loc });
@@ -567,7 +637,7 @@ export const LandingPage: React.FC<Props> = ({
                     className="w-full btn-editorial-primary flex items-center justify-center gap-2 text-base"
                   >
                     <FileText className="w-4 h-4" />
-                    <span>Read My Easy Personal Report</span>
+                    <span>{t('Read My Easy Personal Report', 'मेरो सरल व्यक्तिगत रिपोर्ट पढ्नुहोस्')}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
 
@@ -579,7 +649,11 @@ export const LandingPage: React.FC<Props> = ({
                       className="btn-editorial-secondary flex items-center justify-center gap-2 text-sm disabled:opacity-60"
                     >
                       <Download className="w-4 h-4 text-[var(--accent)]" />
-                      <span>{pdfDownloading ? 'Building PDF…' : 'Download Detailed PDF'}</span>
+                      <span>
+                        {pdfDownloading
+                          ? t('Building PDF…', 'PDF बन्दैछ…')
+                          : t('Download Detailed PDF', 'विस्तृत PDF डाउनलोड')}
+                      </span>
                     </button>
 
                     <button
@@ -588,7 +662,7 @@ export const LandingPage: React.FC<Props> = ({
                       className="btn-editorial-secondary flex items-center justify-center gap-2 text-sm"
                     >
                       <Compass className="w-4 h-4 text-[var(--accent)]" />
-                      <span>Interactive Dashboard</span>
+                      <span>{t('Interactive Dashboard', 'अन्तर्क्रियात्मक ड्यासबोर्ड')}</span>
                     </button>
                   </div>
                 </div>
@@ -602,7 +676,10 @@ export const LandingPage: React.FC<Props> = ({
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 text-[var(--accent)] shrink-0" />
                   <span className="text-sm font-bold text-[var(--text)]">
-                    Should You Do It Today? — {cityDisplay}
+                    {t(
+                      `Should You Do It Today? — ${cityDisplay}`,
+                      `के आज यो काम गर्नु शुभ छ? — ${cityDisplay}`
+                    )}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -617,7 +694,7 @@ export const LandingPage: React.FC<Props> = ({
                           active ? 'ui-chip-active bg-[var(--surface)] shadow-xs' : 'bg-[var(--surface)]/65'
                         }`}
                       >
-                        {act.label}
+                        {trActionShort(act.id, act.label, lang)}
                       </button>
                     );
                   })}
@@ -629,7 +706,7 @@ export const LandingPage: React.FC<Props> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="obs-panel p-4 space-y-1.5">
                     <div className="text-sm font-medium text-[var(--text-secondary)]">
-                      Today’s Score
+                      {t('Today’s Score', 'आजको मुहूर्त अंक')}
                     </div>
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="text-2xl font-bold tabular-nums text-[var(--text)]">
@@ -646,39 +723,43 @@ export const LandingPage: React.FC<Props> = ({
                         }
                         label={
                           liveEval.score >= 70
-                            ? 'Good Day'
+                            ? t('Good Day', 'उत्तम शुभ')
                             : liveEval.score >= 48
-                            ? 'Mixed'
-                            : 'Wait'
+                            ? t('Mixed', 'मिश्रित')
+                            : t('Wait', 'प्रतीक्षा')
                         }
                       />
                     </div>
                     <div className="text-xs sm:text-sm text-[var(--text-muted)]">
-                      70+ is an ideal green-light day
+                      {t('70+ is an ideal green-light day', '७०+ अंक सर्वोत्तम शुभ मानिन्छ')}
                     </div>
                   </div>
 
                   <div className="obs-panel p-4 space-y-1.5">
                     <div className="text-sm font-medium text-[var(--text-secondary)]">
-                      Best Day in Next 10 Days
+                      {t('Best Day in Next 10 Days', 'आगामी १० दिनको सर्वोत्तम दिन')}
                     </div>
                     <div className="text-xl font-bold text-[var(--text)] tabular-nums">
                       {bestUpcoming?.dateStr || panchangReport.dateStr}
                     </div>
                     <div className="text-xs sm:text-sm text-[var(--sage)] font-semibold tabular-nums">
-                      Score {bestUpcoming?.score ?? liveEval.score}/100 ({bestUpcoming?.nakshatraName})
+                      {t('Score', 'अंक')} {bestUpcoming?.score ?? liveEval.score}/100 (
+                      {trNakshatra(bestUpcoming?.nakshatraName || panchangReport.nakshatra.name, lang)})
                     </div>
                   </div>
 
                   <div className="obs-panel p-4 space-y-1.5">
                     <div className="text-sm font-medium text-[var(--text-secondary)]">
-                      Your Strongest Life Area
+                      {t('Your Strongest Life Area', 'तपाईंको सबैभन्दा बलियो जीवन-क्षेत्र')}
                     </div>
                     <div className="text-lg font-bold text-[var(--text)] leading-snug">
-                      {HOUSE_PLAIN_GUIDE[topSavHouse.house]?.shortTitle || `House ${topSavHouse.house}`}
+                      {trHouseGuide(topSavHouse.house, lang).shortTitle}
                     </div>
                     <div className="text-xs sm:text-sm text-[var(--text-muted)] tabular-nums">
-                      House {topSavHouse.house} ({topSavHouse.bindus} pts vs 28 avg)
+                      {t(
+                        `House ${topSavHouse.house} (${topSavHouse.bindus} pts vs 28 avg)`,
+                        `भाव ${topSavHouse.house} (${topSavHouse.bindus} बिन्दु, औसत २८)`
+                      )}
                     </div>
                   </div>
                 </div>
@@ -688,10 +769,14 @@ export const LandingPage: React.FC<Props> = ({
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <h2 className="text-base font-bold text-[var(--text)]">
-                        10-Day Timing Forecast — {liveEval.action.title}
+                        {t('10-Day Timing Forecast', '१०-दिने शुभ समय पूर्वानुमान')} —{' '}
+                        {trActionTitle(liveEval.action.id, liveEval.action.title, lang)}
                       </h2>
                       <p className="text-sm text-[var(--text-muted)]">
-                        Green dots (70+) show the easiest, most supportive days to act
+                        {t(
+                          'Green dots (70+) show the easiest, most supportive days to act',
+                          'हरियो थोप्ला (७०+) ले काम सुरु गर्न सबैभन्दा सहज र शुभ दिनहरू देखाउँछ'
+                        )}
                       </p>
                     </div>
                     <button
@@ -699,14 +784,14 @@ export const LandingPage: React.FC<Props> = ({
                       onClick={() => onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })}
                       className="text-sm font-semibold text-[var(--accent)] hover:underline whitespace-nowrap"
                     >
-                      Test all 20 life decisions →
+                      {t('Test all 20 life decisions →', 'सबै २० जीवन निर्णयहरू जाँच्नुहोस् →')}
                     </button>
                   </div>
 
                   <ScoreTrendChart
                     points={forecastPoints}
                     benchmarkValue={70}
-                    benchmarkLabel="70+ Best Days"
+                    benchmarkLabel={t('70+ Best Days', '७०+ उत्तम दिन')}
                     selectedId={forecastPoints[0]?.id}
                     onSelectPoint={() =>
                       onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })
@@ -715,14 +800,14 @@ export const LandingPage: React.FC<Props> = ({
                   />
                 </div>
 
-                {/* Plain-English Action Takeaway */}
+                {/* Plain-English / Nepali Action Takeaway */}
                 <div className="obs-panel p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1 max-w-xl">
                     <div className="text-sm font-bold text-[var(--text)]">
-                      {liveEval.headlineVerdict}
+                      {liveOutcomeDisp.headline}
                     </div>
                     <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                      {liveEval.whatHappensIfDoneNow}
+                      {liveOutcomeDisp.consequence}
                     </p>
                   </div>
                   <button
@@ -730,7 +815,7 @@ export const LandingPage: React.FC<Props> = ({
                     onClick={() => onNavigate('WHAT_HAPPENS_IF', { actionId: previewActionId })}
                     className="btn-editorial-secondary text-sm shrink-0"
                   >
-                    See Full Explanation
+                    {t('See Full Explanation', 'पूरा विवरण हेर्नुहोस्')}
                   </button>
                 </div>
               </div>
@@ -738,7 +823,12 @@ export const LandingPage: React.FC<Props> = ({
           </div>
         </section>
 
-        <LotusVineDivider label="Live Sky, Horai Planetary Hours & Sacred Time" />
+        <LotusVineDivider
+          label={t(
+            'Live Sky, Horai Planetary Hours & Sacred Time',
+            'आजको आकाश, प्रत्यक्ष ग्रह होरा र शुभ पञ्चाङ्ग समय'
+          )}
+        />
 
         {/* ==================== TODAY'S LOCAL SKY SNAPSHOT ==================== */}
         <section className="border-y border-[var(--border)] bg-[var(--surface)]/75 backdrop-blur-sm py-14">
@@ -746,11 +836,15 @@ export const LandingPage: React.FC<Props> = ({
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="space-y-1">
                 <h2 className="text-2xl font-bold text-[var(--text)]">
-                  Today’s Sky &amp; Horai in Plain English — {cityDisplay}
+                  {t(
+                    `Today’s Sky & Horai in Plain English — ${cityDisplay}`,
+                    `आजको पञ्चाङ्ग र प्रत्यक्ष होरा — ${cityDisplay}`
+                  )}
                 </h2>
                 <p className="text-base text-[var(--text-secondary)] tabular-nums">
-                  Nepali Date: {panchangReport.bikramSambat.formatted} • {panchangReport.vara.name} •
-                  Sunrise {panchangReport.sunriseTime} – Sunset {panchangReport.sunsetTime}
+                  {t('Nepali Date:', 'विक्रम संवत्:')} {panchangReport.bikramSambat.formatted} •{' '}
+                  {trVara(panchangReport.vara.name, lang)} • {t('Sunrise', 'सूर्योदय')}{' '}
+                  {panchangReport.sunriseTime} – {t('Sunset', 'सूर्यास्त')} {panchangReport.sunsetTime}
                 </p>
               </div>
               <button
@@ -758,21 +852,32 @@ export const LandingPage: React.FC<Props> = ({
                 onClick={() => onNavigate('HORAI')}
                 className="text-base font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1.5"
               >
-                <span>Open 24-Petal Horai Flower Clock &amp; Gowri</span>
+                <span>
+                  {t(
+                    'Open 24-Petal Horai Flower Clock & Gowri',
+                    '२४-पत्रे होरा कमल घडी र गौरी पञ्चाङ्ग खोल्नुहोस्'
+                  )}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiStatCard
-                label="Active Horai Right Now"
-                value={panchangReport.activeHorai.horaiName}
-                subvalue={panchangReport.activeHorai.lord}
-                plainHint={`Gowri: ${panchangReport.activeGowri.name} • Nalla Neram ${panchangReport.nallaNeram[0].startTime}–${panchangReport.nallaNeram[0].endTime}`}
-                benchmarkText={`${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`}
+                label={t('Active Horai Right Now', 'अहिले चलिरहेको ग्रह होरा')}
+                value={activeHoraiDisp.horaiName}
+                subvalue={activeHoraiDisp.lordLabel}
+                plainHint={t(
+                  `Gowri: ${panchangReport.activeGowri.name} • Nalla Neram ${panchangReport.nallaNeram[0].startTime}–${panchangReport.nallaNeram[0].endTime}`,
+                  `गौरी: ${trGowriName(panchangReport.activeGowri.name, 'ne')} • शुभ वेला ${panchangReport.nallaNeram[0].startTime}–${panchangReport.nallaNeram[0].endTime}`
+                )}
+                benchmarkText={t(
+                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining}m left)`,
+                  `${panchangReport.activeHorai.startTime}–${panchangReport.activeHorai.endTime} (${panchangReport.activeHorai.minutesRemaining} मि. बाँकी)`
+                )}
                 status={{
                   tone: panchangReport.activeHorai.tone,
-                  label: panchangReport.activeHorai.quality,
+                  label: activeHoraiDisp.quality,
                 }}
                 icon={
                   <SacredFlowerIcon
@@ -782,51 +887,77 @@ export const LandingPage: React.FC<Props> = ({
                     size={18}
                   />
                 }
-                actionLabel="Open 24h Horai Clock"
+                actionLabel={t('Open 24h Horai Clock', '२४-घण्टा होरा घडी')}
                 onAction={() => onNavigate('HORAI')}
               />
 
               <KpiStatCard
-                label="Today’s Moon Star (Nakshatra)"
-                value={panchangReport.nakshatra.name}
-                subvalue={`Pada ${panchangReport.nakshatra.pada}`}
-                plainHint={`Sets today’s overall mood: ${panchangReport.nakshatra.natureGroup}`}
-                benchmarkText={`${panchangReport.nakshatra.hoursRemaining} left`}
+                label={t('Today’s Moon Star (Nakshatra)', 'आजको चन्द्र नक्षत्र')}
+                value={trNakshatra(panchangReport.nakshatra.name, lang)}
+                subvalue={t(
+                  `Pada ${panchangReport.nakshatra.pada}`,
+                  `चरण ${panchangReport.nakshatra.pada}`
+                )}
+                plainHint={t(
+                  `Sets today’s overall mood: ${panchangReport.nakshatra.natureGroup}`,
+                  `आजको प्रकृति समूह: ${panchangReport.nakshatra.natureGroup}`
+                )}
+                benchmarkText={t(
+                  `${panchangReport.nakshatra.hoursRemaining} left`,
+                  `बाँकी समय: ${panchangReport.nakshatra.hoursRemaining}`
+                )}
                 status={{
                   tone: 'info',
                   label: panchangReport.nakshatra.natureGroup.split(' ')[0],
                 }}
                 icon={<Sparkles className="w-4 h-4" />}
-                actionLabel="Read about this star"
+                actionLabel={t('Read about this star', 'यस नक्षत्रबारे पढ्नुहोस्')}
                 onAction={() =>
                   onNavigate('NAKSHATRAS', { nakIdx: panchangReport.nakshatra.zeroIndex })
                 }
               />
 
               <KpiStatCard
-                label="Personal Star Harmony (Tarabala)"
+                label={t('Personal Star Harmony (Tarabala)', 'तपाईंको व्यक्तिगत ताराबल')}
                 value={
-                  panchangReport.personalTarabala.isAuspicious ? 'Supportive' : 'Pace Carefully'
+                  panchangReport.personalTarabala.isAuspicious
+                    ? t('Supportive', 'सकारात्मक र शुभ')
+                    : t('Pace Carefully', 'धैर्यपूर्वक चल्ने')
                 }
-                plainHint={`How today’s Moon aligns with your Birth Star (${moonPlanet.nakshatraName})`}
-                benchmarkText={`Moon in House ${panchangReport.personalTarabala.chandrabalaHouse}`}
+                plainHint={t(
+                  `How today’s Moon aligns with your Birth Star (${moonPlanet.nakshatraName})`,
+                  `तपाईंको जन्म नक्षत्र (${trNakshatra(moonPlanet.nakshatraName, 'ne')}) सँग आजको चन्द्रमाको तालमेल`
+                )}
+                benchmarkText={t(
+                  `Moon in House ${panchangReport.personalTarabala.chandrabalaHouse}`,
+                  `चन्द्रबल: राशिबाट ${panchangReport.personalTarabala.chandrabalaHouse}औँ भाव`
+                )}
                 status={{
                   tone: panchangReport.personalTarabala.isAuspicious ? 'optimal' : 'mixed',
                   label: panchangReport.personalTarabala.taraName.split(' ')[0],
                 }}
                 icon={<Compass className="w-4 h-4" />}
-                actionLabel="Check a decision today"
+                actionLabel={t('Check a decision today', 'आजको शुभ साइत जाँच्नुहोस्')}
                 onAction={() => onNavigate('WHAT_HAPPENS_IF')}
               />
 
               <KpiStatCard
-                label="Your Personal Year & Life Path"
-                value={`Year ${numerologyReport.personalYear.final}`}
-                subvalue={`Life Path #${numerologyReport.lifePath.final}`}
+                label={t('Your Personal Year & Life Path', 'व्यक्तिगत अंक वर्ष र मूलांक')}
+                value={t(
+                  `Year ${numerologyReport.personalYear.final}`,
+                  `वर्ष अंक ${numerologyReport.personalYear.final}`
+                )}
+                subvalue={t(
+                  `Life Path #${numerologyReport.lifePath.final}`,
+                  `जीवन मार्ग #${numerologyReport.lifePath.final}`
+                )}
                 plainHint={numerologyReport.personalYear.meaning.split('.')[0]}
-                benchmarkText={`Month ${numerologyReport.personalMonth.singleDigit} • Day ${numerologyReport.personalDay.singleDigit}`}
+                benchmarkText={t(
+                  `Month ${numerologyReport.personalMonth.singleDigit} • Day ${numerologyReport.personalDay.singleDigit}`,
+                  `महिना ${numerologyReport.personalMonth.singleDigit} • दिन ${numerologyReport.personalDay.singleDigit}`
+                )}
                 status={{ tone: 'info', label: numerologyReport.system }}
-                actionLabel="Open 25-year forecast"
+                actionLabel={t('Open 25-year forecast', '२५-वर्षे अंक चक्र हेर्नुहोस्')}
                 onAction={() => onNavigate('OBSERVATORY', { studioTab: 'NUMEROLOGY' })}
               />
             </div>
@@ -837,11 +968,16 @@ export const LandingPage: React.FC<Props> = ({
         <section className="max-w-[1280px] mx-auto px-4 sm:px-8 py-16 space-y-8">
           <div className="max-w-2xl space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">
-              Easy to read, lively to explore—with full sacred timing depth
+              {t(
+                'Easy to read, lively to explore—with full sacred timing depth',
+                'पढ्न अत्यन्त सरल, हेर्न जीवन्त—र पूर्ण वैदिक ज्योतिषीय गहिराइयुक्त'
+              )}
             </h2>
             <p className="text-base text-[var(--text-secondary)]">
-              Start with your plain-English personal reading, live 24-petal Horai flower clock, and
-              downloadable PDF report, or dive into any specialized chart below.
+              {t(
+                'Start with your plain-English personal reading, live 24-petal Horai flower clock, and downloadable PDF report, or dive into any specialized chart below.',
+                'आफ्नो सरल व्यक्तिगत फलादेश, २४-पत्रे होरा कमल घडी र PDF रिपोर्टबाट सुरु गर्नुहोस् वा तलका विशेष कुण्डली र मुहूर्त उपकरणहरू खोल्नुहोस्।'
+              )}
             </p>
           </div>
 
@@ -862,23 +998,43 @@ export const LandingPage: React.FC<Props> = ({
                   secondaryHex="#FDE68A"
                   size={16}
                 />
-                <span>NEW • 24-HOUR GRAHA HORAI, GOWRI PANCHANGAM &amp; NALLA NERAM</span>
+                <span>
+                  {t(
+                    'NEW • 24-HOUR GRAHA HORAI, GOWRI PANCHANGAM & NALLA NERAM',
+                    'नयाँ • २४-घण्टा ग्रह होरा, गौरी पञ्चाङ्ग र शुभ नल्ल नेरम'
+                  )}
+                </span>
               </div>
               <h3 className="text-2xl font-extrabold text-[var(--text)] group-hover:text-[var(--accent)] transition">
-                Interactive 24-Petal Horai Sacred Flower Clock
+                {t(
+                  'Interactive 24-Petal Horai Sacred Flower Clock',
+                  'अन्तर्क्रियात्मक २४-पत्रे ग्रह होरा पवित्र कमल घडी'
+                )}
               </h3>
               <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-                Track every planetary hour from Sunrise to Sunrise—<strong>Sukra</strong>,{' '}
-                <strong>Guru</strong>, <strong>Budha</strong>, <strong>Chandra</strong>,{' '}
-                <strong>Suriya</strong>, <strong>Sevvai</strong> &amp; <strong>Sani Horai</strong>—plus
-                8-fold Day &amp; Night <strong>Gowri Panchangam</strong>, Morning/Evening{' '}
-                <strong>Nalla Neram</strong>, <strong>Rahu Kalam</strong>, and sacred planetary flowers.
+                {lang === 'ne' ? (
+                  <>
+                    सूर्योदयदेखि भोलिपल्ट सूर्योदयसम्मका प्रत्येक ग्रह होरा—<strong>शुक्र</strong>,{' '}
+                    <strong>गुरु</strong>, <strong>बुध</strong>, <strong>चन्द्र</strong>,{' '}
+                    <strong>सूर्य</strong>, <strong>मङ्गल</strong> र <strong>शनि होरा</strong>—साथै दिन/रातको
+                    ८-भाग <strong>गौरी पञ्चाङ्ग</strong>, बिहान/बेलुकाको <strong>शुभ वेला (नल्ल नेरम)</strong>,{' '}
+                    <strong>राहुकाल</strong> र सात ग्रहका पवित्र पुष्पहरू प्रत्यक्ष हेर्नुहोस्।
+                  </>
+                ) : (
+                  <>
+                    Track every planetary hour from Sunrise to Sunrise—<strong>Sukra</strong>,{' '}
+                    <strong>Guru</strong>, <strong>Budha</strong>, <strong>Chandra</strong>,{' '}
+                    <strong>Suriya</strong>, <strong>Sevvai</strong> &amp; <strong>Sani Horai</strong>—plus
+                    8-fold Day &amp; Night <strong>Gowri Panchangam</strong>, Morning/Evening{' '}
+                    <strong>Nalla Neram</strong>, <strong>Rahu Kalam</strong>, and sacred planetary flowers.
+                  </>
+                )}
               </p>
             </div>
             <div className="shrink-0 relative z-10">
               <span className="btn-editorial-primary inline-flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4" />
-                <span>Explore Live Horai Clock</span>
+                <span>{t('Explore Live Horai Clock', 'प्रत्यक्ष होरा घडी खोल्नुहोस्')}</span>
                 <ArrowRight className="w-4 h-4" />
               </span>
             </div>
@@ -889,37 +1045,61 @@ export const LandingPage: React.FC<Props> = ({
               {
                 icon: <FileText className="w-5 h-5 text-[var(--accent)]" />,
                 flowerHex: '#EC4899',
-                badge: 'Plain-English + PDF',
-                title: 'Full Personal Reading & Printable PDF Report',
-                desc: 'Read your complete horoscope in clear, everyday language—covering personality, current life chapter, 12 life areas, D1/D9 Kundali charts, Horai windows, and best upcoming dates—and save it as a multi-page PDF.',
-                cta: 'Open Easy Report & PDF',
+                badge: t('Plain-English + PDF', 'सरल भाषा + PDF'),
+                title: t(
+                  'Full Personal Reading & Printable PDF Report',
+                  'पूर्ण व्यक्तिगत फलादेश र प्रिन्टयोग्य PDF रिपोर्ट'
+                ),
+                desc: t(
+                  'Read your complete horoscope in clear, everyday language—covering personality, current life chapter, 12 life areas, D1/D9 Kundali charts, Horai windows, and best upcoming dates—and save it as a multi-page PDF.',
+                  'तपाईंको व्यक्तित्व, हालको महादशा अध्याय, १२ जीवन-क्षेत्र, लग्न र नवांश (D1/D9) कुण्डली, शुभ होरा र आगामी उत्तम मितिहरू सरल भाषामा पढ्नुहोस् र PDF मा सुरक्षित गर्नुहोस्।'
+                ),
+                cta: t('Open Easy Report & PDF', 'सरल रिपोर्ट र PDF खोल्नुहोस्'),
                 onClick: () => onNavigate('FULL_REPORT'),
               },
               {
                 icon: <Scale className="w-5 h-5 text-[var(--accent)]" />,
                 flowerHex: '#F59E0B',
-                badge: '20 Life Decisions + Horai',
-                title: 'Best Days & Horai Hours to Sign, Invest, Marry or Travel',
-                desc: 'Check whether today is favorable for contracts, loans, debt repayment, marriage, property, or medical care—paired with exact daily Horai planetary hours and 12-day forecasts.',
-                cta: 'Check Best Dates & Horais',
+                badge: t('20 Life Decisions + Horai', '२० जीवन निर्णय + होरा'),
+                title: t(
+                  'Best Days & Horai Hours to Sign, Invest, Marry or Travel',
+                  'सम्झौता, लगानी, विवाह वा यात्राका लागि सर्वोत्तम दिन र होरा'
+                ),
+                desc: t(
+                  'Check whether today is favorable for contracts, loans, debt repayment, marriage, property, or medical care—paired with exact daily Horai planetary hours and 12-day forecasts.',
+                  'सम्झौता हस्ताक्षर, ऋण लेनदेन, विवाह, घर-जग्गा वा औषधोपचारका लागि आजको दिन कत्तिको अनुकूल छ भन्ने कुरा दैनिक होरा र १२-दिने पूर्वानुमानसहित जाँच्नुहोस्।'
+                ),
+                cta: t('Check Best Dates & Horais', 'शुभ मिति र होरा जाँच्नुहोस्'),
                 onClick: () => onNavigate('WHAT_HAPPENS_IF'),
               },
               {
                 icon: <Globe className="w-5 h-5 text-[var(--accent)]" />,
                 flowerHex: '#10B981',
-                badge: 'World Map + Matchmaking',
-                title: 'Best Cities for You & Relationship Compatibility',
-                desc: 'Discover which cities worldwide support your career, peace of mind, and relationships, plus check 36-point Vedic marriage compatibility with a partner.',
-                cta: 'Explore World Map & Compatibility',
+                badge: t('World Map + Matchmaking', 'विश्व नक्सा + गुण मिलान'),
+                title: t(
+                  'Best Cities for You & Relationship Compatibility',
+                  'तपाईंका लागि फाप्ने विश्वका सहर र ३६-गुण विवाह मिलान'
+                ),
+                desc: t(
+                  'Discover which cities worldwide support your career, peace of mind, and relationships, plus check 36-point Vedic marriage compatibility with a partner.',
+                  'विश्वका कुन सहरहरू तपाईंको करियर, धन र मानसिक शान्तिका लागि उत्तम छन् पत्ता लगाउनुहोस् र जीवनसाथीसँग ३६-गुण अष्टकूट मिलान जाँच्नुहोस्।'
+                ),
+                cta: t('Explore World Map & Compatibility', 'विश्व नक्सा र गुण मिलान हेर्नुहोस्'),
                 onClick: () => onNavigate('OBSERVATORY', { studioTab: 'ASTROCARTOGRAPHY' }),
               },
               {
                 icon: <BookOpen className="w-5 h-5 text-[var(--accent)]" />,
                 flowerHex: '#6366F1',
-                badge: '28 Stars & 9 Classics',
-                title: '28 Birth Stars (Nakshatras) & Classical Library',
-                desc: 'Explore readable guides to all 28 Vedic birth stars, 108 quarters (Padas), and personalized readings from 9 foundational astrology texts.',
-                cta: 'Browse Birth Stars & Books',
+                badge: t('28 Stars & 9 Classics', '२८ नक्षत्र र ९ शास्त्रीय ग्रन्थ'),
+                title: t(
+                  '28 Birth Stars (Nakshatras) & Classical Library',
+                  '२८ जन्म नक्षत्र विश्वकोश र शास्त्रीय ज्योतिष पुस्तकालय'
+                ),
+                desc: t(
+                  'Explore readable guides to all 28 Vedic birth stars, 108 quarters (Padas), and personalized readings from 9 foundational astrology texts.',
+                  'सबै २८ वैदिक नक्षत्र, १०८ चरण (पाद) र बृहत् पाराशर होरा शास्त्र लगायत ९ प्राचीन ग्रन्थहरूको व्यक्तिगत व्याख्या अध्ययन गर्नुहोस्।'
+                ),
+                cta: t('Browse Birth Stars & Books', 'नक्षत्र र ग्रन्थहरू पढ्नुहोस्'),
                 onClick: () => onNavigate('NAKSHATRAS'),
               },
             ].map((card) => (
@@ -963,7 +1143,12 @@ export const LandingPage: React.FC<Props> = ({
             <SacredFlowerIcon variety="lotus" primaryHex="#EC4899" secondaryHex="#FDE68A" size={18} />
             <span className="font-bold text-[var(--text)]">Oceanology</span>
             <span>•</span>
-            <span>Easy-to-Read Horoscope, Live Horai Clock &amp; Printable PDF Reports</span>
+            <span>
+              {t(
+                'Easy-to-Read Horoscope, Live Horai Clock & Printable PDF Reports',
+                'सरल कुण्डली फलादेश, प्रत्यक्ष होरा घडी र प्रिन्टयोग्य PDF रिपोर्ट'
+              )}
+            </span>
           </div>
           <div className="flex flex-wrap items-center gap-5 font-medium">
             <button
@@ -971,35 +1156,35 @@ export const LandingPage: React.FC<Props> = ({
               onClick={() => onNavigate('FULL_REPORT')}
               className="text-[var(--accent)] hover:underline"
             >
-              Full Report &amp; PDF
+              {t('Full Report & PDF', 'पूर्ण रिपोर्ट र PDF')}
             </button>
             <button
               type="button"
               onClick={() => onNavigate('HORAI')}
               className="hover:text-[var(--text)]"
             >
-              Live Horai Clock
+              {t('Live Horai Clock', 'प्रत्यक्ष होरा घडी')}
             </button>
             <button
               type="button"
               onClick={() => onNavigate('OBSERVATORY')}
               className="hover:text-[var(--text)]"
             >
-              Dashboard
+              {t('Dashboard', 'ड्यासबोर्ड')}
             </button>
             <button
               type="button"
               onClick={() => onNavigate('WHAT_HAPPENS_IF')}
               className="hover:text-[var(--text)]"
             >
-              Best Dates
+              {t('Best Dates', 'शुभ साइत')}
             </button>
             <button
               type="button"
               onClick={() => onNavigate('NAKSHATRAS')}
               className="hover:text-[var(--text)]"
             >
-              28 Birth Stars
+              {t('28 Birth Stars', '२८ नक्षत्र')}
             </button>
           </div>
         </div>

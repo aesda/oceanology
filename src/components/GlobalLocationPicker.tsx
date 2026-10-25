@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { MapPin, Search, Navigation, Sliders } from 'lucide-react';
 import { CityLocation } from '../types/oceanology';
-import { NEPAL_AND_GLOBAL_CITIES, getOffsetFromIanaOrLon, searchGlobalLocations } from '../engines/locationAtlas';
+import {
+  NEPAL_AND_GLOBAL_CITIES,
+  getOffsetFromIanaOrLon,
+  searchGlobalLocations,
+} from '../engines/locationAtlas';
+import { formatCityForLang, formatCountryForLang, useLanguage } from '../i18n/i18n';
 
 interface Props {
   value: CityLocation;
@@ -9,15 +14,19 @@ interface Props {
   label?: string;
 }
 
-export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label = 'Location & Observatory Coordinates' }) => {
+export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label }) => {
+  const { lang, t } = useLanguage();
+  const effectiveLabel =
+    label ?? t('Location & Observatory Coordinates', 'स्थान र खगोलीय अक्षांश/देशान्तर');
+
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CityLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCustomCoords, setShowCustomCoords] = useState(false);
 
-  const nepalQuickCities = NEPAL_AND_GLOBAL_CITIES.filter(c => c.country === 'Nepal').slice(0, 7);
-  const globalQuickCities = NEPAL_AND_GLOBAL_CITIES.filter(c => c.country !== 'Nepal').slice(0, 8);
+  const nepalQuickCities = NEPAL_AND_GLOBAL_CITIES.filter((c) => c.country === 'Nepal').slice(0, 7);
+  const globalQuickCities = NEPAL_AND_GLOBAL_CITIES.filter((c) => c.country !== 'Nepal').slice(0, 8);
 
   useEffect(() => {
     let active = true;
@@ -41,7 +50,7 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
 
   const handleUseMyGps = () => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(pos => {
+    navigator.geolocation.getCurrentPosition((pos) => {
       const lat = Math.round(pos.coords.latitude * 10000) / 10000;
       const lon = Math.round(pos.coords.longitude * 10000) / 10000;
       const alt = Math.round(pos.coords.altitude || 150);
@@ -74,7 +83,7 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-[var(--brass)]" />
-          <span>{label}</span>
+          <span>{effectiveLabel}</span>
         </label>
 
         <div className="flex items-center gap-2">
@@ -84,7 +93,7 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium obs-panel hover:border-[var(--brass)] transition"
           >
             <Navigation className="w-3 h-3 text-[var(--brass)]" />
-            <span>Detect My GPS</span>
+            <span>{t('Detect My GPS', 'मेरो GPS पत्ता लगाउनुहोस्')}</span>
           </button>
           <button
             type="button"
@@ -92,7 +101,11 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium obs-panel hover:border-[var(--brass)] transition"
           >
             <Sliders className="w-3 h-3 text-[var(--brass)]" />
-            <span>{showCustomCoords ? 'Hide Coordinates' : 'Exact Lat/Lon/UTC'}</span>
+            <span>
+              {showCustomCoords
+                ? t('Hide Coordinates', 'अक्षांश लुकाउनुहोस्')
+                : t('Exact Lat/Lon/UTC', 'सटीक अक्षांश/देशान्तर')}
+            </span>
           </button>
         </div>
       </div>
@@ -103,14 +116,18 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
         <div className="md:col-span-5 obs-panel px-3 py-2 flex items-center justify-between">
           <div>
             <div className="font-semibold text-sm text-[var(--text)]">
-              {value.name}, <span className="text-[var(--text-secondary)]">{value.country}</span>
+              {formatCityForLang(value.name, lang)},{' '}
+              <span className="text-[var(--text-secondary)]">
+                {formatCountryForLang(value.country, lang)}
+              </span>
             </div>
             <div className="font-mono text-xs text-[var(--text-muted)]">
-              {value.latitude.toFixed(2)}°N, {value.longitude.toFixed(2)}°E • {value.elevationMeters}m • {formatUtcOffset(value.timezoneOffsetHours)}
+              {value.latitude.toFixed(2)}°N, {value.longitude.toFixed(2)}°E • {value.elevationMeters}m •{' '}
+              {formatUtcOffset(value.timezoneOffsetHours)}
             </div>
           </div>
           <span className="px-2 py-0.5 rounded text-xs font-mono obs-badge-brass">
-            {value.country === 'Nepal' ? '🇳🇵 NPT' : formatUtcOffset(value.timezoneOffsetHours)}
+            {value.country === 'Nepal' ? 'NPT' : formatUtcOffset(value.timezoneOffsetHours)}
           </span>
         </div>
 
@@ -122,11 +139,14 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
               type="text"
               value={query}
               onFocus={() => setShowDropdown(true)}
-              onChange={e => {
+              onChange={(e) => {
                 setQuery(e.target.value);
                 setShowDropdown(true);
               }}
-              placeholder="Search any city, town, or village worldwide (e.g. Kathmandu, Pokhara, Dharan, London, Tokyo, Austin)..."
+              placeholder={t(
+                'Search any city, town, or village worldwide (e.g. Kathmandu, Pokhara, London, Tokyo)...',
+                'विश्वको कुनै पनि सहर वा गाउँ खोज्नुहोस् (जस्तै: Kathmandu, Pokhara, London, Tokyo)...'
+              )}
               className="w-full obs-input pl-9 pr-3 py-2.5 text-sm"
             />
           </div>
@@ -135,15 +155,18 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
             <div className="absolute z-50 mt-1 w-full obs-card shadow-xl max-h-64 overflow-y-auto divide-y divide-[var(--border)]">
               {isSearching && (
                 <div className="px-3.5 py-2.5 text-xs text-[var(--text-muted)]">
-                  Searching worldwide astronomical gazetteer...
+                  {t('Searching worldwide astronomical gazetteer...', 'विश्वव्यापी स्थान खोजिँदैछ...')}
                 </div>
               )}
               {!isSearching && results.length === 0 && (
                 <div className="px-3.5 py-2.5 text-xs text-[var(--text-muted)]">
-                  No direct city match — use &ldquo;Exact Lat/Lon/UTC&rdquo; to enter custom coordinates.
+                  {t(
+                    'No direct city match — use "Exact Lat/Lon/UTC" to enter custom coordinates.',
+                    'सीधा सहर भेटिएन — कस्टम अक्षांश/देशान्तर प्रविष्ट गर्नुहोस्।'
+                  )}
                 </div>
               )}
-              {results.map(city => (
+              {results.map((city) => (
                 <button
                   key={city.id}
                   type="button"
@@ -155,13 +178,18 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
                   className="w-full px-3.5 py-2 text-left hover:bg-[var(--surface-muted)] flex items-center justify-between text-xs transition"
                 >
                   <div>
-                    <span className="font-semibold text-[var(--text)]">{city.name}</span>
+                    <span className="font-semibold text-[var(--text)]">
+                      {formatCityForLang(city.name, lang)}
+                    </span>
                     <span className="text-[var(--text-secondary)]">
-                      {' '}— {city.state ? `${city.state}, ` : ''}{city.country}
+                      {' '}
+                      — {city.state ? `${city.state}, ` : ''}
+                      {formatCountryForLang(city.country, lang)}
                     </span>
                   </div>
                   <span className="font-mono text-[var(--text-muted)]">
-                    {city.latitude.toFixed(2)}°, {city.longitude.toFixed(2)}° • {city.elevationMeters}m ({formatUtcOffset(city.timezoneOffsetHours)})
+                    {city.latitude.toFixed(2)}°, {city.longitude.toFixed(2)}° • {city.elevationMeters}m (
+                    {formatUtcOffset(city.timezoneOffsetHours)})
                   </span>
                 </button>
               ))}
@@ -172,8 +200,10 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
 
       {/* Quick-Select Observatory Presets: Nepal (All 7 Provinces) + Global Hubs */}
       <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-        <span className="text-xs font-semibold text-[var(--brass)] mr-1">Nepal (UTC+05:45):</span>
-        {nepalQuickCities.map(city => (
+        <span className="text-xs font-semibold text-[var(--brass)] mr-1">
+          {t('Nepal (UTC+05:45):', 'नेपाल (UTC+05:45):')}
+        </span>
+        {nepalQuickCities.map((city) => (
           <button
             key={city.id}
             type="button"
@@ -184,12 +214,14 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
                 : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
             }`}
           >
-            {city.name.split(' ')[0]}
+            {formatCityForLang(city.name, lang)}
           </button>
         ))}
 
-        <span className="text-xs font-semibold text-[var(--text-muted)] ml-2 mr-1">Global:</span>
-        {globalQuickCities.map(city => (
+        <span className="text-xs font-semibold text-[var(--text-muted)] ml-2 mr-1">
+          {t('Global:', 'विश्व:')}
+        </span>
+        {globalQuickCities.map((city) => (
           <button
             key={city.id}
             type="button"
@@ -200,7 +232,7 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
                 : 'obs-panel text-[var(--text-secondary)] hover:text-[var(--text)]'
             }`}
           >
-            {city.name.split(' ')[0]}
+            {formatCityForLang(city.name, lang)}
           </button>
         ))}
       </div>
@@ -209,31 +241,39 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
       {showCustomCoords && (
         <div className="obs-panel p-3 grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
           <div>
-            <label className="text-[var(--text-muted)] block mb-1">Custom Place Name</label>
+            <label className="text-[var(--text-muted)] block mb-1">
+              {t('Custom Place Name', 'स्थानको नाम')}
+            </label>
             <input
               type="text"
-              value={value.name}
-              onChange={e => onChange({ ...value, id: 'custom-loc', name: e.target.value })}
+              value={formatCityForLang(value.name, lang)}
+              onChange={(e) => onChange({ ...value, id: 'custom-loc', name: e.target.value })}
               className="w-full obs-input"
             />
           </div>
           <div>
-            <label className="text-[var(--text-muted)] block mb-1">Latitude (-90 to +90)</label>
+            <label className="text-[var(--text-muted)] block mb-1">
+              {t('Latitude (-90 to +90)', 'अक्षांश (-90 देखि +90)')}
+            </label>
             <input
               type="number"
               step="0.0001"
               value={value.latitude}
-              onChange={e => onChange({ ...value, id: 'custom-loc', latitude: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                onChange({ ...value, id: 'custom-loc', latitude: parseFloat(e.target.value) || 0 })
+              }
               className="w-full obs-input font-mono"
             />
           </div>
           <div>
-            <label className="text-[var(--text-muted)] block mb-1">Longitude (-180 to +180)</label>
+            <label className="text-[var(--text-muted)] block mb-1">
+              {t('Longitude (-180 to +180)', 'देशान्तर (-180 देखि +180)')}
+            </label>
             <input
               type="number"
               step="0.0001"
               value={value.longitude}
-              onChange={e => {
+              onChange={(e) => {
                 const lon = parseFloat(e.target.value) || 0;
                 onChange({
                   ...value,
@@ -246,21 +286,37 @@ export const GlobalLocationPicker: React.FC<Props> = ({ value, onChange, label =
             />
           </div>
           <div>
-            <label className="text-[var(--text-muted)] block mb-1">Elevation (Meters)</label>
+            <label className="text-[var(--text-muted)] block mb-1">
+              {t('Elevation (Meters)', 'उचाइ (मिटर)')}
+            </label>
             <input
               type="number"
               value={value.elevationMeters}
-              onChange={e => onChange({ ...value, id: 'custom-loc', elevationMeters: parseInt(e.target.value, 10) || 0 })}
+              onChange={(e) =>
+                onChange({
+                  ...value,
+                  id: 'custom-loc',
+                  elevationMeters: parseInt(e.target.value, 10) || 0,
+                })
+              }
               className="w-full obs-input font-mono"
             />
           </div>
           <div>
-            <label className="text-[var(--text-muted)] block mb-1">UTC Offset (e.g. 5.75 = +5:45)</label>
+            <label className="text-[var(--text-muted)] block mb-1">
+              {t('UTC Offset (e.g. 5.75)', 'समय अन्तर (जस्तै: 5.75)')}
+            </label>
             <input
               type="number"
               step="0.25"
               value={value.timezoneOffsetHours}
-              onChange={e => onChange({ ...value, id: 'custom-loc', timezoneOffsetHours: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                onChange({
+                  ...value,
+                  id: 'custom-loc',
+                  timezoneOffsetHours: parseFloat(e.target.value) || 0,
+                })
+              }
               className="w-full obs-input font-mono"
             />
           </div>

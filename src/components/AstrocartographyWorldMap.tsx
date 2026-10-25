@@ -6,9 +6,14 @@ import { Globe, Heart, Home, Sparkles, Briefcase, MapPin, Info } from 'lucide-re
 import { AstrocartographyLine, NatalChartResult } from '../engines/astronomyEngine';
 import { BirthProfile, CityLocation, WORLD_CITIES } from '../types/oceanology';
 import { ACG_LINE_INTERPRETATIONS } from '../data/classicalCompendium';
-import { cleanCityName } from '../engines/locationAtlas';
 import { GlobalLocationPicker } from './GlobalLocationPicker';
 import { KpiStatCard, SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
+import {
+  formatCityForLang,
+  formatCountryForLang,
+  trPlanet,
+  useLanguage,
+} from '../i18n/i18n';
 
 interface Props {
   profile: BirthProfile;
@@ -206,6 +211,7 @@ export function evaluateLocationAstrocartography(
 }
 
 export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) => {
+  const { lang, t } = useLanguage();
   const [region, setRegion] = useState<MapRegionId>('WORLD');
   const [selectedPlanet, setSelectedPlanet] = useState<string>('ALL');
   const [recFilter, setRecFilter] = useState<RecommendationFilter>('ALL_BEST');
@@ -364,8 +370,11 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
     <div className="space-y-6">
       {/* ==================== PAGE HEADER & REGION LENS ==================== */}
       <WorkspacePageHeader
-        title="World Astrocartography & Relocation Atlas"
-        subtitle={`Planetary MC/IC/ASC/DSC lines for ${profile.firstName} ${profile.lastName}. Click any city or map coordinate to evaluate livability.`}
+        title={t('World Astrocartography & Relocation Atlas', 'विश्व एस्ट्रोकार्टोग्राफी र स्थान चयन नक्सा')}
+        subtitle={t(
+          `Planetary MC/IC/ASC/DSC lines for ${profile.firstName} ${profile.lastName}. Click any city or map coordinate to evaluate livability.`,
+          `${profile.firstName} ${profile.lastName} का ग्रह रेखाहरू (MC/IC/ASC/DSC)। कुनै पनि सहर वा नक्सामा क्लिक गरी बसोबास र करियर अनुकूलता हेर्नुहोस्।`
+        )}
         actions={
           <SegmentedTabs
             ariaLabel="Map region zoom"
@@ -373,7 +382,18 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
             onChange={setRegion}
             items={(Object.keys(MAP_REGIONS) as MapRegionId[]).map((rKey) => ({
               id: rKey,
-              label: MAP_REGIONS[rKey].label,
+              label:
+                lang === 'ne'
+                  ? rKey === 'WORLD'
+                    ? 'विश्व'
+                    : rKey === 'NEPAL_ASIA'
+                    ? 'नेपाल र दक्षिण एसिया'
+                    : rKey === 'EUROPE'
+                    ? 'युरोप'
+                    : rKey === 'AMERICAS'
+                    ? 'अमेरिका'
+                    : 'पूर्वी एसिया'
+                  : MAP_REGIONS[rKey].label,
             }))}
           />
         }
@@ -382,52 +402,52 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
       {/* ==================== ROW 1: 4 CONTEXTUAL RELOCATION KPIs ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiStatCard
-          label="Selected Location Score"
+          label={t('Selected Location Score', 'छानिएको स्थान अनुकूलता')}
           value={`${activeEvaluation.overallScore}%`}
-          subvalue={cleanCityName(activeCity.name)}
+          subvalue={formatCityForLang(activeCity.name, lang)}
           benchmarkText={activeEvaluation.primaryTag}
           status={{
             tone: activeEvaluation.overallScore >= 75 ? 'optimal' : 'favorable',
-            label: activeCity.country,
+            label: formatCountryForLang(activeCity.country, lang),
           }}
           icon={<Globe className="w-4 h-4" />}
         />
 
         {topCareerCity && (
           <KpiStatCard
-            label="Top Career Hub (MC)"
-            value={cleanCityName(topCareerCity.city.name)}
+            label={t('Top Career Hub (MC)', 'सर्वोत्तम करियर सहर (MC)')}
+            value={formatCityForLang(topCareerCity.city.name, lang)}
             subvalue={`${topCareerCity.careerScore}%`}
-            benchmarkText={topCareerCity.city.country}
-            status={{ tone: 'optimal', label: 'Career Peak' }}
+            benchmarkText={formatCountryForLang(topCareerCity.city.country, lang)}
+            status={{ tone: 'optimal', label: t('Career Peak', 'करियर शिखर') }}
             icon={<Briefcase className="w-4 h-4" />}
-            actionLabel="Inspect on map"
+            actionLabel={t('Inspect on map', 'नक्सामा हेर्नुहोस्')}
             onAction={() => setActiveCity(topCareerCity.city)}
           />
         )}
 
         {topSanctuaryCity && (
           <KpiStatCard
-            label="Top Sanctuary Hub (IC)"
-            value={cleanCityName(topSanctuaryCity.city.name)}
+            label={t('Top Sanctuary Hub (IC)', 'सर्वोत्तम शान्ति र आवास (IC)')}
+            value={formatCityForLang(topSanctuaryCity.city.name, lang)}
             subvalue={`${topSanctuaryCity.sanctuaryScore}%`}
-            benchmarkText={topSanctuaryCity.city.country}
-            status={{ tone: 'favorable', label: 'Home & Peace' }}
+            benchmarkText={formatCountryForLang(topSanctuaryCity.city.country, lang)}
+            status={{ tone: 'favorable', label: t('Home & Peace', 'सुख र शान्ति') }}
             icon={<Home className="w-4 h-4" />}
-            actionLabel="Inspect on map"
+            actionLabel={t('Inspect on map', 'नक्सामा हेर्नुहोस्')}
             onAction={() => setActiveCity(topSanctuaryCity.city)}
           />
         )}
 
         {topLoveCity && (
           <KpiStatCard
-            label="Top Partnership Hub (DSC)"
-            value={cleanCityName(topLoveCity.city.name)}
+            label={t('Top Partnership Hub (DSC)', 'सर्वोत्तम सम्बन्ध सहर (DSC)')}
+            value={formatCityForLang(topLoveCity.city.name, lang)}
             subvalue={`${topLoveCity.loveScore}%`}
-            benchmarkText={topLoveCity.city.country}
-            status={{ tone: 'info', label: 'Love & Union' }}
+            benchmarkText={formatCountryForLang(topLoveCity.city.country, lang)}
+            status={{ tone: 'info', label: t('Love & Union', 'प्रेम र सहकार्य') }}
             icon={<Heart className="w-4 h-4" />}
-            actionLabel="Inspect on map"
+            actionLabel={t('Inspect on map', 'नक्सामा हेर्नुहोस्')}
             onAction={() => setActiveCity(topLoveCity.city)}
           />
         )}
@@ -443,7 +463,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
               onClick={() => setSelectedPlanet('ALL')}
               className={`ui-chip ${selectedPlanet === 'ALL' ? 'ui-chip-active' : ''}`}
             >
-              All 10 Planets
+              {t('All 10 Planets', 'सबै १० ग्रह')}
             </button>
             {chart.astrocartography.map((line) => (
               <button
@@ -453,7 +473,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                 className={`ui-chip ${selectedPlanet === line.planet ? 'ui-chip-active' : ''}`}
               >
                 <span style={{ color: line.color }}>{line.symbol}</span>
-                <span>{line.planet}</span>
+                <span>{trPlanet(line.planet, lang)}</span>
               </button>
             ))}
           </div>
@@ -712,7 +732,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                               strokeLinejoin: 'round',
                             }}
                           >
-                            {city.name.split(' ')[0]}
+                            {formatCityForLang(city.name, lang)}
                           </text>
                         )}
                       </g>
@@ -724,7 +744,12 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
               <div className="px-3.5 py-2 bg-[var(--surface)] border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-secondary)]">
                 <div className="flex items-center gap-2">
                   <Info className="w-3.5 h-3.5 text-[var(--accent)]" />
-                  <span>Click any city pin or map coordinate to inspect exact line distances.</span>
+                  <span>
+                    {t(
+                      'Click any city pin or map coordinate to inspect exact line distances.',
+                      'ग्रह रेखाको सटीक दूरी हेर्न कुनै पनि सहर वा नक्सामा क्लिक गर्नुहोस्।'
+                    )}
+                  </span>
                 </div>
                 <span className="font-mono text-[var(--text-muted)]">
                   Pin: {activeCity.latitude.toFixed(2)}°N, {activeCity.longitude.toFixed(2)}°E
@@ -738,13 +763,15 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
             <div className="flex items-start justify-between gap-2 border-b border-[var(--border)] pb-3">
               <div>
                 <StatusBadge tone="info" label={activeEvaluation.primaryTag} />
-                <h2 className="text-lg font-bold text-[var(--text)] mt-1.5">{activeCity.name}</h2>
+                <h2 className="text-lg font-bold text-[var(--text)] mt-1.5">
+                  {formatCityForLang(activeCity.name, lang)}
+                </h2>
                 <p className="text-xs text-[var(--text-muted)] font-mono">
-                  {activeCity.country} • {activeCity.elevationMeters}m
+                  {formatCountryForLang(activeCity.country, lang)} • {activeCity.elevationMeters}m
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-xs text-[var(--text-muted)]">Overall</div>
+                <div className="text-xs text-[var(--text-muted)]">{t('Overall', 'कुल अंक')}</div>
                 <div className="text-2xl font-bold text-[var(--accent)] tabular-nums">
                   {activeEvaluation.overallScore}%
                 </div>
@@ -753,19 +780,19 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
 
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div className="obs-card p-2.5">
-                <div className="text-[var(--text-muted)]">Career</div>
+                <div className="text-[var(--text-muted)]">{t('Career', 'करियर')}</div>
                 <div className="font-mono font-bold text-sm text-[var(--accent)] mt-0.5 tabular-nums">
                   {activeEvaluation.careerScore}%
                 </div>
               </div>
               <div className="obs-card p-2.5">
-                <div className="text-[var(--text-muted)]">Home</div>
+                <div className="text-[var(--text-muted)]">{t('Home', 'आवास')}</div>
                 <div className="font-mono font-bold text-sm text-[var(--sage)] mt-0.5 tabular-nums">
                   {activeEvaluation.sanctuaryScore}%
                 </div>
               </div>
               <div className="obs-card p-2.5">
-                <div className="text-[var(--text-muted)]">Love</div>
+                <div className="text-[var(--text-muted)]">{t('Love', 'प्रेम')}</div>
                 <div className="font-mono font-bold text-sm text-[var(--crimson)] mt-0.5 tabular-nums">
                   {activeEvaluation.loveScore}%
                 </div>
@@ -774,13 +801,15 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
 
             <div className="space-y-2">
               <div className="text-xs font-bold text-[var(--text)]">
-                Nearest Planetary Lines (±9.5° Orb)
+                {t('Nearest Planetary Lines (±9.5° Orb)', 'नजिकैका ग्रह रेखाहरू (±9.5°)')}
               </div>
 
               {activeEvaluation.influences.length === 0 ? (
                 <div className="obs-card p-3 text-xs text-[var(--text-secondary)] leading-relaxed">
-                  No major angular lines cross within 850 km of {activeCity.name}. Clear-sky zones
-                  support steady autonomy without acute angular pressure.
+                  {t(
+                    `No major angular lines cross within 850 km of ${formatCityForLang(activeCity.name, 'en')}. Clear-sky zones support steady autonomy without acute angular pressure.`,
+                    `${formatCityForLang(activeCity.name, 'ne')} को ८५० कि.मि. भित्र कुनै तीव्र ग्रह रेखा परेको छैन—यो शान्त र सन्तुलित क्षेत्र हो।`
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
@@ -806,7 +835,7 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
 
             <div className="pt-2 border-t border-[var(--border)]">
               <GlobalLocationPicker
-                label="Search any city worldwide"
+                label={t('Search any city worldwide', 'विश्वको कुनै पनि सहर खोज्नुहोस्')}
                 value={activeCity}
                 onChange={(loc) => {
                   setCustomCity(loc);
@@ -823,10 +852,13 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
           <div>
             <h2 className="text-lg font-bold text-[var(--text)]">
-              Ranked Relocation Recommendations
+              {t('Ranked Relocation Recommendations', 'शीर्ष बसोबास तथा करियर सहर सिफारिस')}
             </h2>
             <p className="text-xs text-[var(--text-secondary)]">
-              Evaluated across global cities and all 7 provinces of Nepal from your natal angles
+              {t(
+                'Evaluated across global cities and all 7 provinces of Nepal from your natal angles',
+                'तपाईंको जन्म लग्न र ग्रह कोण अनुसार नेपालका ७ वटै प्रदेश तथा विश्वका प्रमुख सहरहरूको मूल्याङ्कन'
+              )}
             </p>
           </div>
 
@@ -835,11 +867,11 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
             value={recFilter}
             onChange={setRecFilter}
             items={[
-              { id: 'ALL_BEST', label: 'Top Overall' },
-              { id: 'CAREER', label: 'Career & Wealth' },
-              { id: 'SANCTUARY', label: 'Home & Peace' },
-              { id: 'LOVE', label: 'Love & Union' },
-              { id: 'NEPAL', label: 'Nepal Cities' },
+              { id: 'ALL_BEST', label: t('Top Overall', 'सर्वोत्कृष्ट') },
+              { id: 'CAREER', label: t('Career & Wealth', 'करियर र धन') },
+              { id: 'SANCTUARY', label: t('Home & Peace', 'शान्ति र घर') },
+              { id: 'LOVE', label: t('Love & Union', 'प्रेम र सम्बन्ध') },
+              { id: 'NEPAL', label: t('Nepal Cities', 'नेपालका सहर') },
             ]}
           />
         </div>
@@ -877,10 +909,10 @@ export const AstrocartographyWorldMap: React.FC<Props> = ({ profile, chart }) =>
                       </span>
                       <h3 className="text-base font-bold text-[var(--text)] mt-0.5 flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-[var(--accent)] shrink-0" />
-                        <span>{item.city.name}</span>
+                        <span>{formatCityForLang(item.city.name, lang)}</span>
                       </h3>
                       <p className="text-xs text-[var(--text-muted)]">
-                        {item.city.state}, {item.city.country}
+                        {item.city.state}, {formatCountryForLang(item.city.country, lang)}
                       </p>
                     </div>
                     <StatusBadge

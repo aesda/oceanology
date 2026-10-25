@@ -9,6 +9,7 @@ import {
 import { NumerologySystem } from '../types/oceanology';
 import { CHEIRO_COMPOUND_MEANINGS } from '../data/classicalCompendium';
 import { KpiStatCard, SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
+import { useLanguage } from '../i18n/i18n';
 
 interface Props {
   report: NumerologyReport;
@@ -19,6 +20,7 @@ interface Props {
 type NumSubView = 'CORE_CHEIRO' | 'COLORCHART' | 'PROPORTIONAL_TUNER';
 
 export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChange }) => {
+  const { t } = useLanguage();
   const [subView, setSubView] = useState<NumSubView>('CORE_CHEIRO');
   const [selectedCell, setSelectedCell] = useState<DecozYearCell>(
     report.colorChartYears.find((c) => c.calendarYear === new Date().getFullYear()) ||
@@ -73,23 +75,47 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
     CHEIRO_COMPOUND_MEANINGS[sandboxReduced.final];
 
   const coreCards = [
-    { label: 'Life Path Number', sub: 'Primary Evolutionary Trajectory', val: report.lifePath },
-    { label: 'Expression (Destiny)', sub: 'Full Birth Name Potential', val: report.expression },
-    { label: "Heart's Desire (Soul Urge)", sub: 'Inner Vowel Motivation', val: report.heartsDesire },
-    { label: 'Personality Vibration', sub: 'Outer Consonant Persona', val: report.personality },
-    { label: 'Maturity Number', sub: 'Second-Half Life Synthesis', val: report.maturity },
-    { label: 'Birth Day Number', sub: 'Innate Sub-Path Talent', val: report.birthDay },
+    {
+      label: t('Life Path Number', 'मूलांक / जीवन मार्ग अंक'),
+      sub: t('Primary Evolutionary Trajectory', 'मुख्य जीवन दिशा र कर्म पथ'),
+      val: report.lifePath,
+    },
+    {
+      label: t('Expression (Destiny)', 'भाग्यांक / अभिव्यक्ति अंक'),
+      sub: t('Full Birth Name Potential', 'पूरा नामबाट प्राप्त क्षमता'),
+      val: report.expression,
+    },
+    {
+      label: t("Heart's Desire (Soul Urge)", 'आत्म-इच्छा अंक (स्वर)'),
+      sub: t('Inner Vowel Motivation', 'भित्री प्रेरणा र भावना'),
+      val: report.heartsDesire,
+    },
+    {
+      label: t('Personality Vibration', 'व्यक्तित्व अंक (व्यञ्जन)'),
+      sub: t('Outer Consonant Persona', 'बाहिरी प्रभाव र छवि'),
+      val: report.personality,
+    },
+    {
+      label: t('Maturity Number', 'परिपक्वता अंक'),
+      sub: t('Second-Half Life Synthesis', 'उत्तरार्ध जीवनको लक्ष्य'),
+      val: report.maturity,
+    },
+    {
+      label: t('Birth Day Number', 'जन्म मिति अंक'),
+      sub: t('Innate Sub-Path Talent', 'जन्मजात विशेष प्रतिभा'),
+      val: report.birthDay,
+    },
   ];
 
   return (
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER & SYSTEM SWITCHER ==================== */}
       <WorkspacePageHeader
-        title="Numerology & 25-Year ColorChart"
+        title={t('Numerology & 25-Year ColorChart', 'अंक ज्योतिष र २५-वर्षे कलर-चार्ट')}
         subtitle={
           <>
-            Birth Name: <strong>{report.fullNameUsed}</strong> • Active Name:{' '}
-            <strong>{report.currentNameUsed}</strong>
+            {t('Birth Name:', 'जन्म नाम:')} <strong>{report.fullNameUsed}</strong> •{' '}
+            {t('Active Name:', 'प्रचलित नाम:')} <strong>{report.currentNameUsed}</strong>
           </>
         }
         actions={
@@ -98,8 +124,14 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
             value={system}
             onChange={onSystemChange}
             items={[
-              { id: 'PYTHAGOREAN', label: 'Pythagorean (Decoz)' },
-              { id: 'CHALDEAN', label: 'Chaldean (Cheiro)' },
+              {
+                id: 'PYTHAGOREAN',
+                label: t('Pythagorean (Decoz)', 'पाइथागोरियन (डेकोज)'),
+              },
+              {
+                id: 'CHALDEAN',
+                label: t('Chaldean (Cheiro)', 'क्याल्डियन (चेइरो)'),
+              },
             ]}
           />
         }
@@ -108,44 +140,50 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
       {/* ==================== ROW 1: 4 CONTEXTUAL KPI STAT CARDS ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiStatCard
-          label="Life Path Number"
+          label={t('Life Path Number', 'जीवन मार्ग अंक')}
           value={report.lifePath.final}
           subvalue={`(${report.lifePath.trail})`}
-          benchmarkText="Core life direction"
+          benchmarkText={t('Core life direction', 'मुख्य जीवन मार्ग')}
           status={{ tone: 'info', label: system }}
           icon={<Hash className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Expression (Destiny)"
+          label={t('Expression (Destiny)', 'भाग्यांक (अभिव्यक्ति)')}
           value={report.expression.final}
           subvalue={`(${report.expression.trail})`}
-          benchmarkText={`Soul Urge: ${report.heartsDesire.final}`}
-          status={{ tone: 'favorable', label: 'Full Name' }}
+          benchmarkText={`${t('Soul Urge:', 'आत्म-इच्छा:')} ${report.heartsDesire.final}`}
+          status={{ tone: 'favorable', label: t('Full Name', 'पूरा नाम') }}
           icon={<Sparkles className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Current Personal Year"
-          value={`Year ${report.personalYear.final}`}
+          label={t('Current Personal Year', 'हालको व्यक्तिगत वर्ष')}
+          value={t(`Year ${report.personalYear.final}`, `वर्ष ${report.personalYear.final}`)}
           benchmarkText={DECOZ_COLORS[report.personalYear.singleDigit]?.keyword || '9-Year Cycle'}
-          status={{ tone: 'optimal', label: `${new Date().getFullYear()} Cycle` }}
+          status={{
+            tone: 'optimal',
+            label: t(`${new Date().getFullYear()} Cycle`, `${new Date().getFullYear()} चक्र`),
+          }}
           icon={<Calendar className="w-4 h-4" />}
-          actionLabel="Open 25-year matrix"
+          actionLabel={t('Open 25-year matrix', '२५-वर्षे तालिका खोल्नुहोस्')}
           onAction={() => setSubView('COLORCHART')}
         />
 
         <KpiStatCard
-          label="Personal Month & Day"
+          label={t('Personal Month & Day', 'व्यक्तिगत महिना र दिन')}
           value={`M${report.personalMonth.singleDigit} • D${report.personalDay.singleDigit}`}
           benchmarkText={
             report.karmicLessons.length > 0
-              ? `Missing digits: ${report.karmicLessons.join(', ')}`
-              : 'All 9 digits present'
+              ? t(
+                  `Missing digits: ${report.karmicLessons.join(', ')}`,
+                  `छुटेका अंक: ${report.karmicLessons.join(', ')}`
+                )
+              : t('All 9 digits present', 'सबै ९ अंक उपस्थित')
           }
           status={{
             tone: report.karmicLessons.length === 0 ? 'optimal' : 'neutral',
-            label: `Maturity #${report.maturity.final}`,
+            label: t(`Maturity #${report.maturity.final}`, `परिपक्वता #${report.maturity.final}`),
           }}
           icon={<Activity className="w-4 h-4" />}
         />
@@ -159,13 +197,20 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
             value={subView}
             onChange={setSubView}
             items={[
-              { id: 'CORE_CHEIRO', label: 'Core Numbers & Compounds', count: 6 },
+              {
+                id: 'CORE_CHEIRO',
+                label: t('Core Numbers & Compounds', 'मुख्य अंक र चेइरो संयुक्त अंक'),
+                count: 6,
+              },
               {
                 id: 'COLORCHART',
-                label: '25-Year ColorChart Matrix',
+                label: t('25-Year ColorChart Matrix', '२५-वर्षे कलर-चार्ट तालिका'),
                 count: report.colorChartYears.length,
               },
-              { id: 'PROPORTIONAL_TUNER', label: '1–9 Dominance & Name Tuner' },
+              {
+                id: 'PROPORTIONAL_TUNER',
+                label: t('1–9 Dominance & Name Tuner', '१–९ आवृत्ति र नाम परीक्षक'),
+              },
             ]}
           />
         </div>

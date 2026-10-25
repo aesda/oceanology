@@ -12,6 +12,7 @@ import {
   StatusBadge,
   WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
+import { trNakshatra, trPlanet, trSign, useLanguage } from '../i18n/i18n';
 
 interface Props {
   primaryProfile: BirthProfile;
@@ -30,6 +31,7 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
   partnerChart,
   onPartnerChange,
 }) => {
+  const { lang, t } = useLanguage();
   const [subView, setSubView] = useState<SynastrySubView>('SYNASTRY_MILAN');
   const [searchYear, setSearchYear] = useState(new Date().getFullYear());
   const [filterPlanet, setFilterPlanet] = useState('ALL');
@@ -44,18 +46,24 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER & SUB-VIEW SWITCHER ==================== */}
       <WorkspacePageHeader
-        title="Compatibility & Ephemeris Aspect Finder"
-        subtitle="36-Guna Ashtakoota matchmaking, bi-wheel synastry aspects, and multi-century planetary aspect search."
+        title={t('Compatibility & Ephemeris Aspect Finder', 'कुण्डली मिलान (३६ गुण) र गोचर दृष्टि खोज')}
+        subtitle={t(
+          '36-Guna Ashtakoota matchmaking, bi-wheel synastry aspects, and multi-century planetary aspect search.',
+          'अष्टकूट ३६ गुण मिलान, माङ्गलिक परीक्षण, द्वि-चक्र तुलना र वार्षिक ग्रह दृष्टि खोजी।'
+        )}
         actions={
           <SegmentedTabs
             ariaLabel="Compatibility or ephemeris mode"
             value={subView}
             onChange={setSubView}
             items={[
-              { id: 'SYNASTRY_MILAN', label: '36-Guna & Bi-Wheel' },
+              {
+                id: 'SYNASTRY_MILAN',
+                label: t('36-Guna & Bi-Wheel', '३६ गुण र कुण्डली मिलान'),
+              },
               {
                 id: 'EPHEMERIS_SEARCH',
-                label: 'Ephemeris Aspect Finder',
+                label: t('Ephemeris Aspect Finder', 'ग्रह दृष्टि खोजी'),
                 count: ephemerisHits.length,
               },
             ]}
@@ -69,10 +77,10 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
           {/* Row 1: 4 Contextual KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <KpiStatCard
-              label="Ashtakoota Guna Score"
+              label={t('Ashtakoota Guna Score', 'अष्टकूट गुण मिलान अंक')}
               value={`${matchReport.totalPoints} / 36`}
               subvalue={`${matchReport.percentage}%`}
-              benchmarkText="18+ pts classical threshold"
+              benchmarkText={t('18+ pts classical threshold', '१८+ अंक शास्त्रीय न्यूनतम')}
               status={{
                 tone:
                   matchReport.totalPoints >= 25
@@ -82,53 +90,56 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
                     : 'mixed',
                 label:
                   matchReport.totalPoints >= 25
-                    ? 'Strong Match'
+                    ? t('Strong Match', 'उत्तम मिलान')
                     : matchReport.totalPoints >= 18
-                    ? 'Compatible'
-                    : 'Review Remedies',
+                    ? t('Compatible', 'शुभ मिलान')
+                    : t('Review Remedies', 'परिहार हेर्नुहोस्'),
               }}
               icon={<HeartHandshake className="w-4 h-4" />}
             />
 
             <KpiStatCard
-              label="Match Verdict"
+              label={t('Match Verdict', 'मिलान निष्कर्ष')}
               value={matchReport.verdict.split('(')[0].trim()}
               benchmarkText={`${primaryProfile.firstName} & ${partnerProfile.firstName}`}
-              status={{ tone: 'info', label: '8 Kootas' }}
+              status={{ tone: 'info', label: t('8 Kootas', '८ कूट') }}
               icon={<Sparkles className="w-4 h-4" />}
             />
 
             <KpiStatCard
-              label="Kuja / Manglik Balance"
+              label={t('Kuja / Manglik Balance', 'माङ्गलिक / कुज सन्तुलन')}
               value={matchReport.manglikStatus.split('(')[0].trim()}
-              benchmarkText="Mars 1/2/4/7/8/12 check"
+              benchmarkText={t('Mars 1/2/4/7/8/12 check', 'मङ्गल १/२/४/७/८/१२ जाँच')}
               status={{
                 tone: matchReport.manglikStatus.toLowerCase().includes('balanced')
                   ? 'optimal'
                   : 'mixed',
-                label: 'Dosha Check',
+                label: t('Dosha Check', 'दोष परीक्षण'),
               }}
               icon={<Compass className="w-4 h-4" />}
             />
 
             <KpiStatCard
-              label="Moon Nakshatra Pair"
-              value={moonA.nakshatraName}
-              subvalue={`↔ ${moonB.nakshatraName}`}
-              benchmarkText={`${moonA.signName} ↔ ${moonB.signName}`}
-              status={{ tone: 'neutral', label: 'Janma Stars' }}
+              label={t('Moon Nakshatra Pair', 'जन्म नक्षत्र जोडी')}
+              value={trNakshatra(moonA.nakshatraName, lang)}
+              subvalue={`↔ ${trNakshatra(moonB.nakshatraName, lang)}`}
+              benchmarkText={`${trSign(moonA.signName, lang)} ↔ ${trSign(moonB.signName, lang)}`}
+              status={{ tone: 'neutral', label: t('Janma Stars', 'जन्म तारा') }}
             />
           </div>
 
           {/* Partner Birth Profile Control Card */}
           <div className="obs-card p-5 space-y-4">
             <div className="text-xs font-bold text-[var(--text)]">
-              Partner Birth Profile ({partnerProfile.firstName})
+              {t(
+                `Partner Birth Profile (${partnerProfile.firstName})`,
+                `जोडी / साझेदारको जन्म विवरण (${partnerProfile.firstName})`
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
               <div>
                 <label className="text-[var(--text-secondary)] block mb-1 font-medium">
-                  Partner first name
+                  {t('Partner first name', 'जोडीको नाम')}
                 </label>
                 <input
                   type="text"
@@ -141,7 +152,7 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
               </div>
               <div>
                 <label className="text-[var(--text-secondary)] block mb-1 font-medium">
-                  Birth year
+                  {t('Birth year', 'जन्म वर्ष (इ.सं.)')}
                 </label>
                 <input
                   type="number"
@@ -157,7 +168,7 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
               </div>
               <div>
                 <label className="text-[var(--text-secondary)] block mb-1 font-medium">
-                  Birth month (1–12)
+                  {t('Birth month (1–12)', 'जन्म महिना (१–१२)')}
                 </label>
                 <input
                   type="number"
@@ -175,7 +186,7 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
               </div>
               <div>
                 <label className="text-[var(--text-secondary)] block mb-1 font-medium">
-                  Birth day (1–31)
+                  {t('Birth day (1–31)', 'जन्म गते/तारेख (१–३१)')}
                 </label>
                 <input
                   type="number"
@@ -194,7 +205,7 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
             </div>
 
             <GlobalLocationPicker
-              label="Partner birth city (Nepal & global)"
+              label={t('Partner birth city (Nepal & global)', 'जोडीको जन्म सहर (नेपाल तथा विश्व)')}
               value={partnerProfile.location}
               onChange={(loc) => onPartnerChange({ ...partnerProfile, location: loc })}
             />
@@ -205,17 +216,19 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
             <div className="lg:col-span-6 obs-card p-5 space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-[var(--text)]">
-                  Bi-Wheel Synastry ({primaryProfile.firstName} Outer • {partnerProfile.firstName}{' '}
-                  Inner)
+                  {t(
+                    `Bi-Wheel Synastry (${primaryProfile.firstName} Outer • ${partnerProfile.firstName} Inner)`,
+                    `द्वि-चक्र तुलना (${primaryProfile.firstName} बाह्य • ${partnerProfile.firstName} आन्तरिक)`
+                  )}
                 </span>
-                <StatusBadge tone="info" label="Ecliptic Overlay" />
+                <StatusBadge tone="info" label={t('Ecliptic Overlay', 'ग्रह तुलना')} />
               </div>
               <NatalWheelSvg chart={primaryChart} partnerChart={partnerChart} showBiWheel={true} />
             </div>
 
             <div className="lg:col-span-6 obs-card p-5 space-y-3">
               <h2 className="text-base font-bold text-[var(--text)]">
-                8-Koota Ashtakoota Breakdown
+                {t('8-Koota Ashtakoota Breakdown', 'अष्टकूट ८-कूट विस्तृत तालिका')}
               </h2>
               <div className="space-y-2.5">
                 {matchReport.kootas.map((k) => {
@@ -256,17 +269,20 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
               <Search className="w-4 h-4 text-[var(--accent)]" />
               <div>
                 <h2 className="text-base font-bold text-[var(--text)]">
-                  Planetary Aspect &amp; Ingress Finder
+                  {t('Planetary Aspect & Ingress Finder', 'वार्षिक ग्रह दृष्टि र राशि परिवर्तन खोजी')}
                 </h2>
                 <p className="text-xs text-[var(--text-muted)]">
-                  Scan exact geocentric planetary aspects across any calendar year
+                  {t(
+                    'Scan exact geocentric planetary aspects across any calendar year',
+                    'कुनै पनि वर्षका सटीक भू-केन्द्रित ग्रह दृष्टिहरू खोज्नुहोस्'
+                  )}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <label htmlFor="eph-year-input" className="text-[var(--text-secondary)] font-medium">
-                Year:
+                {t('Year:', 'वर्ष:')}
               </label>
               <input
                 id="eph-year-input"
@@ -281,21 +297,24 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
                 onChange={(e) => setFilterPlanet(e.target.value)}
                 className="obs-input"
               >
-                <option value="ALL">All Major Planets</option>
-                <option value="Sun">Sun Aspects</option>
-                <option value="Venus">Venus Aspects</option>
-                <option value="Mars">Mars Aspects</option>
-                <option value="Jupiter">Jupiter Aspects</option>
-                <option value="Saturn">Saturn Aspects</option>
+                <option value="ALL">{t('All Major Planets', 'सबै प्रमुख ग्रह')}</option>
+                <option value="Sun">{t('Sun Aspects', 'सूर्य दृष्टि')}</option>
+                <option value="Venus">{t('Venus Aspects', 'शुक्र दृष्टि')}</option>
+                <option value="Mars">{t('Mars Aspects', 'मङ्गल दृष्टि')}</option>
+                <option value="Jupiter">{t('Jupiter Aspects', 'बृहस्पति दृष्टि')}</option>
+                <option value="Saturn">{t('Saturn Aspects', 'शनि दृष्टि')}</option>
               </select>
             </div>
           </div>
 
           {ephemerisHits.length === 0 ? (
             <EmptyStateCard
-              title="No aspects matched this filter"
-              description="Try selecting All Major Planets or testing a nearby calendar year."
-              actionLabel="Reset filter"
+              title={t('No aspects matched this filter', 'कुनै दृष्टि भेटिएन')}
+              description={t(
+                'Try selecting All Major Planets or testing a nearby calendar year.',
+                'सबै प्रमुख ग्रह वा अर्को वर्ष छान्नुहोस्।'
+              )}
+              actionLabel={t('Reset filter', 'रिसेट')}
               onAction={() => {
                 setFilterPlanet('ALL');
                 setSearchYear(new Date().getFullYear());
@@ -310,12 +329,12 @@ export const ResearchAndSynastryLab: React.FC<Props> = ({
                 >
                   <div>
                     <div className="font-bold text-[var(--text)]">
-                      {hit.planetA}{' '}
+                      {trPlanet(hit.planetA, lang)}{' '}
                       <span className="text-[var(--accent)]">{hit.aspectSymbol}</span>{' '}
-                      {hit.planetB}
+                      {trPlanet(hit.planetB, lang)}
                     </div>
                     <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-                      {hit.aspectName} in {hit.signName} ({hit.exactDegree})
+                      {hit.aspectName} • {trSign(hit.signName, lang)} ({hit.exactDegree})
                     </div>
                   </div>
                   <span className="font-mono text-xs bg-[var(--surface)] border border-[var(--border)] px-2 py-1 rounded text-[var(--text)]">

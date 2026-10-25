@@ -15,6 +15,14 @@ import { HOUSE_TREATISES, PLANET_TREATISES } from '../data/classicalCompendium';
 import { CLASSICAL_CANON_BOOKS, PLANET_IN_BHAVA_RULINGS } from '../data/canonAnthology';
 import { STANDARD_27_NAKSHATRAS } from '../data/nakshatraCodex';
 import { SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
+import {
+  trDignity,
+  trHouseGuide,
+  trNakshatra,
+  trPlanet,
+  trSign,
+  useLanguage,
+} from '../i18n/i18n';
 
 interface Props {
   chart: NatalChartResult;
@@ -31,6 +39,7 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
   initialBookId,
   onInspectNakshatra,
 }) => {
+  const { lang, t } = useLanguage();
   const [readingMode, setReadingMode] = useState<ReadingMode>(
     initialBookId ? 'CANON_BOOKS' : 'PLANETS'
   );
@@ -69,18 +78,33 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
     <div className="space-y-6">
       {/* ==================== CLEAN HEADER & SEGMENTED SWITCHER ==================== */}
       <WorkspacePageHeader
-        title="Classical Source Library & Natal Readings"
-        subtitle="108 Planet-in-House rulings, detected Parashari Yogas, 12 Bhava domains, and 9 primary source texts."
+        title={t('Classical Source Library & Natal Readings', 'शास्त्रीय ग्रन्थ र जन्म फलित पुस्तकालय')}
+        subtitle={t(
+          '108 Planet-in-House rulings, detected Parashari Yogas, 12 Bhava domains, and 9 primary source texts.',
+          '१०८ ग्रह-भाव फल, पाराशरी योग, १२ भाव विश्लेषण र ९ मूल ज्योतिष ग्रन्थ।'
+        )}
         actions={
           <SegmentedTabs
             ariaLabel="Library reading sections"
             value={readingMode}
             onChange={setReadingMode}
             items={[
-              { id: 'PLANETS', label: 'Planet Readings', count: chart.planets.length },
-              { id: 'YOGAS_REMEDIES', label: 'Yogas & Remedies', count: vedic.yogas.length },
-              { id: 'HOUSES', label: '12 Houses', count: 12 },
-              { id: 'CANON_BOOKS', label: 'Source Books', count: CLASSICAL_CANON_BOOKS.length },
+              {
+                id: 'PLANETS',
+                label: t('Planet Readings', 'ग्रह फलित'),
+                count: chart.planets.length,
+              },
+              {
+                id: 'YOGAS_REMEDIES',
+                label: t('Yogas & Remedies', 'योग र उपाय'),
+                count: vedic.yogas.length,
+              },
+              { id: 'HOUSES', label: t('12 Houses', '१२ भाव'), count: 12 },
+              {
+                id: 'CANON_BOOKS',
+                label: t('Source Books', 'मूल ग्रन्थ'),
+                count: CLASSICAL_CANON_BOOKS.length,
+              },
             ]}
           />
         }
@@ -108,13 +132,16 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                     </span>
                     <div>
                       <div className="text-[var(--text)] font-semibold">
-                        {p.name}{' '}
-                        <span className="text-[var(--text-muted)] font-normal">
-                          ({p.sanskritName})
-                        </span>
+                        {trPlanet(p.id, lang)}{' '}
+                        {lang === 'en' && (
+                          <span className="text-[var(--text-muted)] font-normal">
+                            ({p.sanskritName})
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] font-mono text-[var(--text-muted)]">
-                        {p.signSymbol} {p.signName} {p.formattedDMS} • House {p.house}
+                        {p.signSymbol} {trSign(p.signName, lang)} {p.formattedDMS} •{' '}
+                        {t('House', 'भाव')} {p.house}
                       </div>
                     </div>
                   </div>
@@ -126,7 +153,7 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                         ? 'avoid'
                         : 'neutral'
                     }
-                    label={p.dignity}
+                    label={trDignity(p.dignity, lang)}
                   />
                 </button>
               );
@@ -141,15 +168,21 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                   {treatise.sanskritName} • {treatise.greekName}
                 </div>
                 <h2 className="text-2xl font-bold text-[var(--text)] mt-1">
-                  {activePlanet.symbol} {activePlanet.name} in {activePlanet.signName} — House{' '}
-                  {activePlanet.house}
+                  {activePlanet.symbol}{' '}
+                  {t(
+                    `${activePlanet.name} in ${activePlanet.signName} — House ${activePlanet.house}`,
+                    `${trSign(activePlanet.signName, 'ne')} राशिमा ${trPlanet(activePlanet.id, 'ne')} — भाव ${activePlanet.house} (${trHouseGuide(activePlanet.house, 'ne').shortTitle})`
+                  )}
                 </h2>
                 <p className="text-xs font-mono text-[var(--text-secondary)] mt-1">
-                  {activePlanet.formattedDMS} • {activePlanet.nakshatraName} Pada{' '}
-                  {activePlanet.nakshatraPada} (Lord: {activePlanet.nakshatraLord})
+                  {activePlanet.formattedDMS} • {trNakshatra(activePlanet.nakshatraName, lang)}{' '}
+                  {t('Pada', 'चरण')} {activePlanet.nakshatraPada} ({t('Lord:', 'स्वामी:')}{' '}
+                  {trPlanet(activePlanet.nakshatraLord, lang)})
                 </p>
               </div>
-              {activePlanet.isRetrograde && <StatusBadge tone="mixed" label="Retrograde (Vakri)" />}
+              {activePlanet.isRetrograde && (
+                <StatusBadge tone="mixed" label={t('Retrograde (Vakri)', 'वक्री')} />
+              )}
             </div>
 
             {/* Specific 1-of-108 Planet-in-House Ruling */}

@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
 import { ZODIAC_SIGNS } from '../engines/astronomyEngine';
 import { DivisionalChartEntry } from '../engines/vedicEngine';
+import { toNepaliDigits, trPlanet, trSign, useLanguage } from '../i18n/i18n';
+
+const GRAHA_SHORT_NE: Record<string, string> = {
+  Sun: 'सू',
+  Moon: 'च',
+  Mars: 'मं',
+  Mercury: 'बु',
+  Jupiter: 'गु',
+  Venus: 'शु',
+  Saturn: 'श',
+  Rahu: 'रा',
+  Ketu: 'के',
+};
 
 interface Props {
   divisionalTable: DivisionalChartEntry[];
@@ -72,12 +85,13 @@ export const VedicKundliSvg: React.FC<Props> = ({
   divisionalTable,
   defaultStyle = 'NORTH_INDIAN',
 }) => {
+  const { lang, t } = useLanguage();
   const [varga, setVarga] = useState<VargaKey>('d1Sign');
   const [style, setStyle] = useState<'NORTH_INDIAN' | 'SOUTH_INDIAN'>(defaultStyle);
 
   const ascEntry = divisionalTable.find((e) => e.planetId === 'Asc') || divisionalTable[0];
   const ascSignIdx = ascEntry[varga];
-  const activeVargaMeta = VARGA_TABS.find((t) => t.key === varga)!;
+  const activeVargaMeta = VARGA_TABS.find((tab) => tab.key === varga)!;
   const vargottamaPlanets = divisionalTable.filter(
     (p) => p.planetId !== 'Asc' && p.isVargottama
   );
@@ -87,19 +101,19 @@ export const VedicKundliSvg: React.FC<Props> = ({
       {/* 10-Varga Selector + North/South Toggle */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1">
-          {VARGA_TABS.map((t) => (
+          {VARGA_TABS.map((tab) => (
             <button
-              key={t.code}
+              key={tab.code}
               type="button"
-              onClick={() => setVarga(t.key)}
-              title={`${t.title} — ${t.subtitle}`}
+              onClick={() => setVarga(tab.key)}
+              title={`${tab.title} — ${tab.subtitle}`}
               className={`px-2 py-1 rounded text-[11px] font-mono transition ${
-                varga === t.key
+                varga === tab.key
                   ? 'bg-[var(--accent-bg)] text-[var(--accent)] font-bold border border-[var(--accent)]/30'
                   : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text)]'
               }`}
             >
-              {t.code}
+              {tab.code}
             </button>
           ))}
         </div>
@@ -114,7 +128,7 @@ export const VedicKundliSvg: React.FC<Props> = ({
                 : 'text-[var(--text-muted)]'
             }`}
           >
-            North / Nepal
+            {t('North / Nepal', 'नेपाली चिना (उत्तर)')}
           </button>
           <button
             type="button"
@@ -125,7 +139,7 @@ export const VedicKundliSvg: React.FC<Props> = ({
                 : 'text-[var(--text-muted)]'
             }`}
           >
-            South Chakra
+            {t('South Chakra', 'दक्षिण चक्र')}
           </button>
         </div>
       </div>
@@ -137,7 +151,10 @@ export const VedicKundliSvg: React.FC<Props> = ({
             {activeVargaMeta.code}: {activeVargaMeta.title} ({activeVargaMeta.subtitle})
           </span>
           <span className="font-mono text-[var(--accent)] font-semibold">
-            Lagna: {ZODIAC_SIGNS[ascSignIdx].sanskrit} ({ZODIAC_SIGNS[ascSignIdx].name})
+            {t('Lagna:', 'लग्न:')}{' '}
+            {lang === 'ne'
+              ? trSign(ZODIAC_SIGNS[ascSignIdx].name, 'ne')
+              : `${ZODIAC_SIGNS[ascSignIdx].sanskrit} (${ZODIAC_SIGNS[ascSignIdx].name})`}
           </span>
         </div>
 
@@ -200,7 +217,7 @@ export const VedicKundliSvg: React.FC<Props> = ({
                     fontFamily="JetBrains Mono, monospace"
                     fontWeight="700"
                   >
-                    {signIdx + 1}
+                    {lang === 'ne' ? toNepaliDigits(signIdx + 1) : signIdx + 1}
                   </text>
 
                   {occupants.map((p, idx) => {
@@ -220,7 +237,9 @@ export const VedicKundliSvg: React.FC<Props> = ({
                         fontWeight="700"
                       >
                         {p.symbol}
-                        {p.planetId.slice(0, 2)}
+                        {lang === 'ne'
+                          ? GRAHA_SHORT_NE[p.planetId] || p.planetId.slice(0, 2)
+                          : p.planetId.slice(0, 2)}
                       </text>
                     );
                   })}
@@ -265,10 +284,13 @@ export const VedicKundliSvg: React.FC<Props> = ({
               {activeVargaMeta.code} • {activeVargaMeta.title}
             </text>
             <text x="200" y="205" textAnchor="middle" fill="var(--accent)" fontSize="11.5">
-              South Indian Rashi Chakra
+              {t('South Indian Rashi Chakra', 'दक्षिण भारतीय राशि चक्र')}
             </text>
             <text x="200" y="225" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">
-              Lagna: {ZODIAC_SIGNS[ascSignIdx].sanskrit}
+              {t('Lagna:', 'लग्न:')}{' '}
+              {lang === 'ne'
+                ? trSign(ZODIAC_SIGNS[ascSignIdx].name, 'ne')
+                : ZODIAC_SIGNS[ascSignIdx].sanskrit}
             </text>
 
             {SOUTH_SIGN_BOXES.map((box) => {
@@ -296,7 +318,8 @@ export const VedicKundliSvg: React.FC<Props> = ({
                     fontSize="10"
                     fontFamily="JetBrains Mono, monospace"
                   >
-                    {sign.symbol} {sign.sanskrit}
+                    {sign.symbol}{' '}
+                    {lang === 'ne' ? trSign(sign.name, 'ne') : sign.sanskrit}
                   </text>
                   {isAsc && (
                     <text
@@ -307,7 +330,7 @@ export const VedicKundliSvg: React.FC<Props> = ({
                       fontSize="10"
                       fontWeight="700"
                     >
-                      ASC
+                      {t('ASC', 'लग्न')}
                     </text>
                   )}
                   {occupants.map((p, idx) => {
@@ -324,7 +347,9 @@ export const VedicKundliSvg: React.FC<Props> = ({
                         fontWeight="700"
                       >
                         {p.symbol}
-                        {p.planetId.slice(0, 2)}
+                        {lang === 'ne'
+                          ? GRAHA_SHORT_NE[p.planetId] || p.planetId.slice(0, 2)
+                          : p.planetId.slice(0, 2)}
                       </text>
                     );
                   })}
@@ -336,9 +361,16 @@ export const VedicKundliSvg: React.FC<Props> = ({
 
         {vargottamaPlanets.length > 0 && (
           <div className="w-full mt-3 pt-2 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
-            <span className="text-[var(--text-muted)]">Vargottama (Same Rashi in D1 &amp; D9):</span>
+            <span className="text-[var(--text-muted)]">
+              {t(
+                'Vargottama (Same Rashi in D1 & D9):',
+                'वर्गोत्तम ग्रह (D1 र D9 मा एउटै राशि):'
+              )}
+            </span>
             <span className="text-[var(--sage)] font-semibold">
-              {vargottamaPlanets.map((vp) => `${vp.symbol} ${vp.planetName}`).join(' • ')}
+              {vargottamaPlanets
+                .map((vp) => `${vp.symbol} ${trPlanet(vp.planetId, lang)}`)
+                .join(' • ')}
             </span>
           </div>
         )}

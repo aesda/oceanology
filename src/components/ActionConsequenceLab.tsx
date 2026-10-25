@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { CityLocation } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
-import { cleanCityName } from '../engines/locationAtlas';
 import { getRecommendedHoraisForAction } from '../engines/panchangEngine';
 import {
   ActionCategory,
@@ -31,6 +30,19 @@ import {
   WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 import { SacredFlowerIcon } from './ui/FloralAnimations';
+import {
+  formatCityForLang,
+  trActionCategory,
+  trActionDynamicOutcome,
+  trActionTitle,
+  trDignity,
+  trHoraiDisplay,
+  trNakshatra,
+  trPlanet,
+  trSign,
+  trVara,
+  useLanguage,
+} from '../i18n/i18n';
 
 interface Props {
   chart: NatalChartResult;
@@ -55,6 +67,8 @@ export const ActionConsequenceLab: React.FC<Props> = ({
   initialActionId,
   onInspectNakshatra,
 }) => {
+  const { lang, t } = useLanguage();
+  const cityLabel = formatCityForLang(location.name, lang);
   const [labTab, setLabTab] = useState<'MUHURTA_ORACLE' | 'BEHAVIORAL_KARMA'>('MUHURTA_ORACLE');
   const [selectedCategory, setSelectedCategory] = useState<'All' | ActionCategory>('All');
   const [selectedActionId, setSelectedActionId] = useState<string>(initialActionId || 'SIGN_CONTRACT');
@@ -158,32 +172,53 @@ export const ActionConsequenceLab: React.FC<Props> = ({
 
   const readinessStatus: { tone: SemanticTone; label: string } =
     report.score >= 70
-      ? { tone: 'optimal', label: 'Optimal Window' }
+      ? { tone: 'optimal', label: t('Optimal Window', 'सर्वोत्तम साइत') }
       : report.score >= 48
-      ? { tone: 'mixed', label: 'Mixed / Caution' }
-      : { tone: 'avoid', label: 'Postpone' };
+      ? { tone: 'mixed', label: t('Mixed / Caution', 'मिश्रित / सावधानी') }
+      : { tone: 'avoid', label: t('Postpone', 'प्रतीक्षा उत्तम') };
 
   const factorTone = (status: string): { tone: SemanticTone; label: string } => {
-    if (status === 'Positive') return { tone: 'optimal', label: 'Supportive' };
-    if (status === 'Caution') return { tone: 'mixed', label: 'Caution' };
-    if (status === 'Critical') return { tone: 'avoid', label: 'Avoid' };
-    return { tone: 'neutral', label: 'Neutral' };
+    if (status === 'Positive') return { tone: 'optimal', label: t('Supportive', 'सहयोगी') };
+    if (status === 'Caution') return { tone: 'mixed', label: t('Caution', 'सावधानी') };
+    if (status === 'Critical') return { tone: 'avoid', label: t('Avoid', 'त्याज्य') };
+    return { tone: 'neutral', label: t('Neutral', 'मध्यम') };
   };
+
+  const localizedActionTitle = trActionTitle(report.action.id, report.action.title, lang);
+  const localizedOutcome = trActionDynamicOutcome(
+    report.score,
+    report.action,
+    report.panchang.nakshatra.name,
+    report.action.shortPrompt,
+    report.whatHappensIfDoneNow,
+    lang
+  );
 
   return (
     <div className="space-y-6">
       {/* ==================== PAGE HEADER & MODE SWITCHER ==================== */}
       <WorkspacePageHeader
-        title="Action Timing & Consequence Planner"
-        subtitle="Evaluate 20 major life decisions against Muhurta electional rules, personal Tarabala, Horai planetary hours, and planetary conduct."
+        title={t('Action Timing & Consequence Planner', 'शुभ साइत र कर्म-फल विश्लेषक')}
+        subtitle={t(
+          'Evaluate 20 major life decisions against Muhurta electional rules, personal Tarabala, Horai planetary hours, and planetary conduct.',
+          '२० प्रमुख जीवन निर्णयहरूको शास्त्रीय मुहूर्त, व्यक्तिगत ताराबल, ग्रह होरा र नवग्रह कर्म-विपाक मूल्याङ्कन।'
+        )}
         actions={
           <SegmentedTabs
             ariaLabel="Action planner mode"
             value={labTab}
             onChange={setLabTab}
             items={[
-              { id: 'MUHURTA_ORACLE', label: 'Action Timing', count: 20 },
-              { id: 'BEHAVIORAL_KARMA', label: 'Planetary Karma-Vipaka', count: 9 },
+              {
+                id: 'MUHURTA_ORACLE',
+                label: t('Action Timing', 'शुभ मुहूर्त जाँच'),
+                count: 20,
+              },
+              {
+                id: 'BEHAVIORAL_KARMA',
+                label: t('Planetary Karma-Vipaka', 'नवग्रह कर्म-विपाक'),
+                count: 9,
+              },
             ]}
           />
         }
@@ -214,14 +249,14 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                       }}
                       className={`ui-chip ${active ? 'ui-chip-active' : ''}`}
                     >
-                      {cat}
+                      {trActionCategory(cat, lang)}
                     </button>
                   );
                 })}
               </div>
 
               <span className="text-xs font-medium text-[var(--text-muted)]">
-                Location: {cleanCityName(location.name)}
+                {t('Location:', 'स्थान:')} {cityLabel}
               </span>
             </div>
 
@@ -232,7 +267,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                   htmlFor="ocean-action-select"
                   className="text-xs font-semibold text-[var(--text-secondary)] whitespace-nowrap"
                 >
-                  Action:
+                  {t('Action:', 'कार्य:')}
                 </label>
                 <select
                   id="ocean-action-select"
@@ -242,7 +277,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 >
                   {filteredActions.map((act) => (
                     <option key={act.id} value={act.id}>
-                      {act.title} — ({act.category})
+                      {trActionTitle(act.id, act.title, lang)} — ({trActionCategory(act.category, lang)})
                     </option>
                   ))}
                 </select>
@@ -272,14 +307,14 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                     className="px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)] inline-flex items-center gap-1"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Prev</span>
+                    <span>{t('Prev', 'अघिल्लो')}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedDateStr(new Date().toISOString().slice(0, 10))}
                     className="px-2.5 py-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
                   >
-                    Today
+                    {t('Today', 'आज')}
                   </button>
                   <button
                     type="button"
@@ -287,7 +322,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                     aria-label="Next day"
                     className="px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text)] inline-flex items-center gap-1"
                   >
-                    <span>Next</span>
+                    <span>{t('Next', 'अर्को')}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -298,31 +333,37 @@ export const ActionConsequenceLab: React.FC<Props> = ({
           {/* ROW 1: 4 CONTEXTUAL KPI STAT CARDS (Inverted Pyramid Top) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <KpiStatCard
-              label="Action Readiness Score"
+              label={t('Action Readiness Score', 'कार्य अनुकूलता अंक')}
               value={`${report.score}/100`}
               benchmarkText={
                 report.score >= 70
-                  ? `+${report.score - 70} pts vs 70 safe benchmark`
-                  : `${70 - report.score} pts below 70 benchmark`
+                  ? t(
+                      `+${report.score - 70} pts vs 70 safe benchmark`,
+                      `७० सुरक्षित मानकभन्दा +${report.score - 70} अंक माथि`
+                    )
+                  : t(
+                      `${70 - report.score} pts below 70 benchmark`,
+                      `७० शुभ मानकभन्दा ${70 - report.score} अंक कम`
+                    )
               }
               status={readinessStatus}
               icon={<Activity className="w-4 h-4" />}
             />
 
             <KpiStatCard
-              label="Best Date (Next 12 Days)"
+              label={t('Best Date (Next 12 Days)', 'सर्वोत्तम मिति (आगामी १२ दिन)')}
               value={bestWindows[0]?.dateStr || selectedDateStr}
               subvalue={bestWindows[0] ? `${bestWindows[0].score}/100` : undefined}
               benchmarkText={
                 bestWindows[0]
-                  ? `${bestWindows[0].weekdayName} • ${bestWindows[0].nakshatraName}`
-                  : 'Current horizon'
+                  ? `${trVara(bestWindows[0].weekdayName, lang)} • ${trNakshatra(bestWindows[0].nakshatraName, lang)}`
+                  : t('Current horizon', 'हालको समयसीमा')
               }
-              status={{ tone: 'optimal', label: 'Peak Window' }}
+              status={{ tone: 'optimal', label: t('Peak Window', 'उत्कृष्ट दिन') }}
               icon={<Calendar className="w-4 h-4" />}
               actionLabel={
                 bestWindows[0] && bestWindows[0].dateStr !== selectedDateStr
-                  ? 'Select peak date'
+                  ? t('Select peak date', 'यो शुभ मिति छान्नुहोस्')
                   : undefined
               }
               onAction={
@@ -331,16 +372,23 @@ export const ActionConsequenceLab: React.FC<Props> = ({
             />
 
             <KpiStatCard
-              label="Transit Nakshatra"
-              value={report.panchang.nakshatra.name}
-              subvalue={`Pada ${report.panchang.nakshatra.pada}`}
-              benchmarkText={`${report.panchang.nakshatra.hoursRemaining} remaining`}
+              label={t('Transit Nakshatra', 'गोचर नक्षत्र')}
+              value={trNakshatra(report.panchang.nakshatra.name, lang)}
+              subvalue={`${t('Pada', 'चरण')} ${report.panchang.nakshatra.pada}`}
+              benchmarkText={t(
+                `${report.panchang.nakshatra.hoursRemaining} remaining`,
+                `${report.panchang.nakshatra.hoursRemaining} बाँकी`
+              )}
               status={{
                 tone: 'info',
                 label: report.panchang.nakshatra.natureGroup.split(' ')[0],
               }}
               icon={<Sparkles className="w-4 h-4" />}
-              actionLabel={onInspectNakshatra ? 'Inspect Nakshatra' : undefined}
+              actionLabel={
+                onInspectNakshatra
+                  ? t('Inspect Nakshatra', 'नक्षत्र विवरण')
+                  : undefined
+              }
               onAction={
                 onInspectNakshatra
                   ? () => onInspectNakshatra(report.panchang.nakshatra.zeroIndex)
@@ -349,15 +397,18 @@ export const ActionConsequenceLab: React.FC<Props> = ({
             />
 
             <KpiStatCard
-              label="Personal Tarabala"
-              value={`Tara #${report.panchang.personalTarabala.taraNumber}`}
+              label={t('Personal Tarabala', 'व्यक्तिगत ताराबल')}
+              value={`${t('Tara', 'तारा')} #${report.panchang.personalTarabala.taraNumber}`}
               subvalue={report.panchang.personalTarabala.taraName.split(' ')[0]}
-              benchmarkText={`Moon in House ${report.panchang.personalTarabala.chandrabalaHouse}`}
+              benchmarkText={t(
+                `Moon in House ${report.panchang.personalTarabala.chandrabalaHouse}`,
+                `चन्द्रबल भाव ${report.panchang.personalTarabala.chandrabalaHouse}`
+              )}
               status={{
                 tone: report.panchang.personalTarabala.isAuspicious ? 'optimal' : 'mixed',
                 label: report.panchang.personalTarabala.isAuspicious
-                  ? 'Supportive'
-                  : 'Needs Parihara',
+                  ? t('Supportive', 'सहयोगी')
+                  : t('Needs Parihara', 'परिहार आवश्यक'),
               }}
               icon={<Compass className="w-4 h-4" />}
             />
@@ -370,10 +421,16 @@ export const ActionConsequenceLab: React.FC<Props> = ({
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <h2 className="text-base font-bold text-[var(--text)]">
-                    12-Day Electional Score Horizon — {report.action.title}
+                    {t(
+                      `12-Day Electional Score Horizon — ${localizedActionTitle}`,
+                      `१२-दिने शुभ मुहूर्त ग्राफ — ${localizedActionTitle}`
+                    )}
                   </h2>
                   <p className="text-xs text-[var(--text-muted)]">
-                    Click any date point to inspect its exact Panchang, Tithi, and Tarabala factors
+                    {t(
+                      'Click any date point to inspect its exact Panchang, Tithi, and Tarabala factors',
+                      'कुनै पनि मितिको बिन्दुमा क्लिक गरी त्यस दिनको पञ्चाङ्ग, तिथि र ताराबल हेर्नुहोस्'
+                    )}
                   </p>
                 </div>
                 <span className="text-xs font-mono text-[var(--text-secondary)]">
@@ -384,10 +441,10 @@ export const ActionConsequenceLab: React.FC<Props> = ({
               <ScoreTrendChart
                 points={horizonTrendPoints}
                 benchmarkValue={70}
-                benchmarkLabel="70+ Optimal window"
+                benchmarkLabel={t('70+ Optimal window', '७०+ सर्वोत्तम रेखा')}
                 selectedId={selectedDateStr}
                 onSelectPoint={(dateIso) => setSelectedDateStr(dateIso)}
-                ariaLabel={`12-day timing favorability trend for ${report.action.title}`}
+                ariaLabel={`12-day timing favorability trend for ${localizedActionTitle}`}
               />
             </div>
 
@@ -395,38 +452,46 @@ export const ActionConsequenceLab: React.FC<Props> = ({
             <div className="lg:col-span-5 obs-card p-5 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <StatusBadge tone={readinessStatus.tone} label={report.verdictTier} size="md" />
+                  <StatusBadge
+                    tone={readinessStatus.tone}
+                    label={lang === 'ne' ? readinessStatus.label : report.verdictTier}
+                    size="md"
+                  />
                   <span className="text-xs font-mono text-[var(--text-muted)]">
                     {report.action.sanskritTitle}
                   </span>
                 </div>
 
                 <h3 className="text-lg font-bold text-[var(--text)] leading-snug">
-                  {report.action.shortPrompt}
+                  {localizedOutcome.headline}
                 </h3>
 
                 <div className="obs-panel p-4 space-y-1.5">
                   <div className="text-sm font-bold text-[var(--text)]">
-                    What Happens If You Do This Today
+                    {t('What Happens If You Do This Today', 'आज यो कार्य गर्दा हुने परिणाम')}
                   </div>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {report.whatHappensIfDoneNow}
+                    {localizedOutcome.consequence}
                   </p>
                 </div>
 
                 <div className="obs-panel p-4 space-y-1.5">
                   <div className="text-sm font-bold text-[var(--sage)]">
-                    Practical Timing Advice
+                    {t('Practical Timing Advice', 'व्यावहारिक समय सल्लाह')}
                   </div>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {report.whatHappensIfDelayed}
+                    {lang === 'ne' && bestWindows[0]
+                      ? `आगामी १२ दिनमा सर्वोच्च शुभ मिति ${bestWindows[0].dateStr} (${trVara(bestWindows[0].weekdayName, 'ne')}, ${trNakshatra(bestWindows[0].nakshatraName, 'ne')} नक्षत्र — अंक ${bestWindows[0].score}/100) रहेको छ।`
+                      : report.whatHappensIfDelayed}
                   </p>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
-                <span>Source: {report.action.classicalSource}</span>
-                <span>{report.panchang.vara.name}</span>
+                <span>
+                  {t('Source:', 'शास्त्रीय स्रोत:')} {report.action.classicalSource}
+                </span>
+                <span>{trVara(report.panchang.vara.name, lang)}</span>
               </div>
             </div>
           </div>
@@ -447,46 +512,55 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h3 className="text-base font-bold text-[var(--text)]">
-                      Best Horai Planetary Hours on {selectedDateStr} for {report.action.title}
+                      {t(
+                        `Best Horai Planetary Hours on ${selectedDateStr} for ${localizedActionTitle}`,
+                        `${selectedDateStr} मा '${localizedActionTitle}' का लागि सर्वोत्तम ग्रह होरा`
+                      )}
                     </h3>
                     <p className="text-sm text-[var(--text-secondary)]">{rec.rationale}</p>
                   </div>
                   <span className="text-xs font-mono text-[var(--accent)] font-semibold">
-                    Click a Horai to set exact clock time
+                    {t('Click a Horai to set exact clock time', 'घडी समय सेट गर्न होरा छान्नुहोस्')}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {slotsToShow.slice(0, 4).map((slot) => (
-                    <button
-                      key={slot.slotNumber}
-                      type="button"
-                      onClick={() => setSelectedTimeStr(slot.startTime)}
-                      className={`text-left p-3.5 rounded-xl border transition flex items-center justify-between gap-2.5 bg-[var(--surface)] ${
-                        selectedTimeStr === slot.startTime
-                          ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]'
-                          : 'border-[var(--border)] hover:border-[var(--accent)]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <SacredFlowerIcon
-                          variety={slot.sacredFlower.variety}
-                          primaryHex={slot.sacredFlower.primaryHex}
-                          secondaryHex={slot.sacredFlower.secondaryHex}
-                          size={26}
-                        />
-                        <div>
-                          <div className="text-sm font-bold text-[var(--text)]">
-                            {slot.horaiName}
-                          </div>
-                          <div className="text-xs font-mono text-[var(--accent)] font-semibold">
-                            {slot.startTime} – {slot.endTime}
+                  {slotsToShow.slice(0, 4).map((slot) => {
+                    const sLoc = trHoraiDisplay(slot, lang);
+                    return (
+                      <button
+                        key={slot.slotNumber}
+                        type="button"
+                        onClick={() => setSelectedTimeStr(slot.startTime)}
+                        className={`text-left p-3.5 rounded-xl border transition flex items-center justify-between gap-2.5 bg-[var(--surface)] ${
+                          selectedTimeStr === slot.startTime
+                            ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]'
+                            : 'border-[var(--border)] hover:border-[var(--accent)]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <SacredFlowerIcon
+                            variety={slot.sacredFlower.variety}
+                            primaryHex={slot.sacredFlower.primaryHex}
+                            secondaryHex={slot.sacredFlower.secondaryHex}
+                            size={26}
+                          />
+                          <div>
+                            <div className="text-sm font-bold text-[var(--text)]">
+                              {sLoc.horaiName}
+                            </div>
+                            <div className="text-xs font-mono text-[var(--accent)] font-semibold">
+                              {slot.startTime} – {slot.endTime}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <StatusBadge tone={slot.tone} label={slot.isActiveNow ? 'LIVE' : 'Pick'} />
-                    </button>
-                  ))}
+                        <StatusBadge
+                          tone={slot.tone}
+                          label={slot.isActiveNow ? t('LIVE', 'प्रत्यक्ष') : t('Pick', 'छान्ने')}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -502,24 +576,27 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 items={[
                   {
                     id: 'FACTORS',
-                    label: 'Rule-by-Rule Breakdown',
+                    label: t('Rule-by-Rule Breakdown', 'नियमगत विस्तृत परीक्षण'),
                     count: report.factors.length,
                   },
                   {
                     id: 'WINDOWS',
-                    label: 'Top Upcoming Dates',
+                    label: t('Top Upcoming Dates', 'आगामी शुभ मितिहरू'),
                     count: bestWindows.length,
                   },
                   {
                     id: 'PARIHARA',
-                    label: 'Classical Principle & Remedies',
+                    label: t('Classical Principle & Remedies', 'शास्त्रीय सिद्धान्त र परिहार उपाय'),
                     count: report.pariharaRemedies.length,
                   },
                 ]}
               />
 
               <span className="text-xs text-[var(--text-muted)] tabular-nums">
-                Evaluated at {selectedDateStr} {selectedTimeStr} ({cleanCityName(location.name)})
+                {t(
+                  `Evaluated at ${selectedDateStr} ${selectedTimeStr} (${cityLabel})`,
+                  `मूल्याङ्कन समय: ${selectedDateStr} ${selectedTimeStr} (${cityLabel})`
+                )}
               </span>
             </div>
 
@@ -573,13 +650,13 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                         />
                       </div>
                       <div className="text-sm font-bold text-[var(--text)] mt-2">
-                        {win.weekdayName} • {win.nakshatraName}
+                        {trVara(win.weekdayName, lang)} • {trNakshatra(win.nakshatraName, lang)}
                       </div>
                       <div className="text-xs text-[var(--text-secondary)] mt-0.5">
                         {win.tithiName}
                       </div>
                       <div className="text-[11px] font-mono text-[var(--accent)] mt-2.5 pt-2 border-t border-[var(--border)]">
-                        Best window: {win.bestWindowTime}
+                        {t('Best window:', 'उत्तम समय:')} {win.bestWindowTime}
                       </div>
                     </button>
                   );
@@ -592,7 +669,12 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 <div className="obs-panel p-4 space-y-2">
                   <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
                     <Scale className="w-4 h-4 text-[var(--accent)]" />
-                    <span>Classical Electional Rule ({report.action.classicalSource})</span>
+                    <span>
+                      {t(
+                        `Classical Electional Rule (${report.action.classicalSource})`,
+                        `शास्त्रीय मुहूर्त नियम (${report.action.classicalSource})`
+                      )}
+                    </span>
                   </div>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                     {report.action.baseRuleSummary}
@@ -602,7 +684,12 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 <div className="obs-panel p-4 space-y-2.5">
                   <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-[var(--sage)]" />
-                    <span>Parihara Protocol (If Action Cannot Be Delayed)</span>
+                    <span>
+                      {t(
+                        'Parihara Protocol (If Action Cannot Be Delayed)',
+                        'परिहार विधि (कार्य सार्न नमिल्ने अवस्थामा)'
+                      )}
+                    </span>
                   </div>
                   <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
                     {report.pariharaRemedies.map((rem, i) => (
@@ -625,7 +712,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
           {/* 9-Graha Clean Selector Bar */}
           <div className="obs-card p-4 space-y-3">
             <div className="text-xs font-semibold text-[var(--text-secondary)]">
-              Select Planetary Force (Navagraha)
+              {t('Select Planetary Force (Navagraha)', 'नवग्रह चयन गर्नुहोस्')}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-2">
               {BEHAVIORAL_KARMA_VIPAKA.map((item) => {
@@ -643,11 +730,13 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                     }`}
                   >
                     <div className="text-xs font-bold text-[var(--text)] truncate">
-                      {pChart?.symbol} {item.planetName.split(' ')[0]}
+                      {pChart?.symbol} {trPlanet(item.planetId, lang)}
                     </div>
                     {pChart && (
                       <div className="text-[11px] font-mono text-[var(--text-muted)] mt-0.5">
-                        H{pChart.house} • {pChart.signName.slice(0, 3)}
+                        {t('H', 'भाव ')}
+                        {pChart.house} •{' '}
+                        {lang === 'ne' ? trSign(pChart.signName, 'ne') : pChart.signName.slice(0, 3)}
                       </div>
                     )}
                   </button>
@@ -660,32 +749,38 @@ export const ActionConsequenceLab: React.FC<Props> = ({
           {natalKarmaPlanet && (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               <KpiStatCard
-                label="Natal Sign & Longitude"
-                value={`${natalKarmaPlanet.signSymbol} ${natalKarmaPlanet.signName}`}
+                label={t('Natal Sign & Longitude', 'जन्म राशि र अंश')}
+                value={`${natalKarmaPlanet.signSymbol} ${trSign(natalKarmaPlanet.signName, lang)}`}
                 benchmarkText={natalKarmaPlanet.formattedDMS}
                 status={{ tone: 'info', label: activeKarmaEntry.sanskritTitle }}
               />
               <KpiStatCard
-                label="Natal Bhava (House)"
-                value={`House ${natalKarmaPlanet.house}`}
-                benchmarkText={natalKarmaPlanet.isRetrograde ? 'Retrograde (Vakri)' : 'Direct motion'}
+                label={t('Natal Bhava (House)', 'जन्म भाव')}
+                value={t(`House ${natalKarmaPlanet.house}`, `भाव ${natalKarmaPlanet.house}`)}
+                benchmarkText={
+                  natalKarmaPlanet.isRetrograde
+                    ? t('Retrograde (Vakri)', 'वक्री गति')
+                    : t('Direct motion', 'मार्गी गति')
+                }
                 status={{
                   tone: [1, 4, 5, 7, 9, 10, 11].includes(natalKarmaPlanet.house)
                     ? 'favorable'
                     : 'neutral',
                   label: [1, 4, 7, 10].includes(natalKarmaPlanet.house)
-                    ? 'Kendra'
+                    ? t('Kendra', 'केन्द्र')
                     : [5, 9].includes(natalKarmaPlanet.house)
-                    ? 'Trikona'
-                    : 'Bhava',
+                    ? t('Trikona', 'त्रिकोण')
+                    : t('Bhava', 'भाव'),
                 }}
               />
               <KpiStatCard
-                label="Natal Nakshatra"
-                value={natalKarmaPlanet.nakshatraName}
-                subvalue={`Pada ${natalKarmaPlanet.nakshatraPada}`}
-                benchmarkText={`Lord: ${natalKarmaPlanet.nakshatraLord}`}
-                actionLabel={onInspectNakshatra ? 'View Nakshatra' : undefined}
+                label={t('Natal Nakshatra', 'जन्म नक्षत्र')}
+                value={trNakshatra(natalKarmaPlanet.nakshatraName, lang)}
+                subvalue={`${t('Pada', 'चरण')} ${natalKarmaPlanet.nakshatraPada}`}
+                benchmarkText={`${t('Lord:', 'स्वामी:')} ${trPlanet(natalKarmaPlanet.nakshatraLord, lang)}`}
+                actionLabel={
+                  onInspectNakshatra ? t('View Nakshatra', 'नक्षत्र हेर्नुहोस्') : undefined
+                }
                 onAction={
                   onInspectNakshatra
                     ? () => onInspectNakshatra(natalKarmaPlanet.nakshatraIndex)
@@ -693,9 +788,9 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 }
               />
               <KpiStatCard
-                label="Essential Dignity"
-                value={natalKarmaPlanet.dignity}
-                benchmarkText={`Speed: ${natalKarmaPlanet.speedDegPerDay.toFixed(2)}°/day`}
+                label={t('Essential Dignity', 'ग्रह अवस्था (बल)')}
+                value={trDignity(natalKarmaPlanet.dignity, lang)}
+                benchmarkText={`${t('Speed:', 'गति:')} ${natalKarmaPlanet.speedDegPerDay.toFixed(2)}°/day`}
                 status={{
                   tone:
                     natalKarmaPlanet.dignity === 'Exalted' || natalKarmaPlanet.dignity === 'Own Sign'
@@ -703,7 +798,7 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                       : natalKarmaPlanet.dignity === 'Debilitated'
                       ? 'avoid'
                       : 'neutral',
-                  label: natalKarmaPlanet.dignity,
+                  label: trDignity(natalKarmaPlanet.dignity, lang),
                 }}
               />
             </div>
@@ -713,10 +808,12 @@ export const ActionConsequenceLab: React.FC<Props> = ({
           <div className="obs-card p-6 space-y-5">
             <div className="border-b border-[var(--border)] pb-4 space-y-1">
               <h2 className="text-xl font-bold text-[var(--text)]">
-                {activeKarmaEntry.planetName} — Behavioral Cause &amp; Consequence
+                {trPlanet(activeKarmaEntry.planetId, lang)} —{' '}
+                {t('Behavioral Cause & Consequence', 'आचरण र कर्म-विपाक परिणाम')}
               </h2>
               <p className="text-xs text-[var(--text-secondary)]">
-                <strong>Governed Domains:</strong> {activeKarmaEntry.governedDomains}
+                <strong>{t('Governed Domains:', 'शासित क्षेत्रहरू:')}</strong>{' '}
+                {activeKarmaEntry.governedDomains}
               </p>
             </div>
 
@@ -725,16 +822,16 @@ export const ActionConsequenceLab: React.FC<Props> = ({
               <div className="obs-panel p-4 space-y-3 border-emerald-500/30">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[var(--sage)]">
-                    Conduct That Strengthens
+                    {t('Conduct That Strengthens', 'ग्रह बलियो बनाउने आचरण')}
                   </span>
-                  <StatusBadge tone="optimal" label="Sattvic Alignment" />
+                  <StatusBadge tone="optimal" label={t('Sattvic Alignment', 'सात्त्विक आचरण')} />
                 </div>
                 <p className="text-xs text-[var(--text)] leading-relaxed">
                   {activeKarmaEntry.ifAlignedBehavior}
                 </p>
                 <div className="pt-2 border-t border-[var(--border)] space-y-1.5">
                   <div className="text-[11px] font-semibold text-[var(--text-secondary)]">
-                    Expected Positive Outcomes
+                    {t('Expected Positive Outcomes', 'सकारात्मक शुभ फल')}
                   </div>
                   <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
                     {activeKarmaEntry.alignedFruits.map((f, i) => (
@@ -751,16 +848,16 @@ export const ActionConsequenceLab: React.FC<Props> = ({
               <div className="obs-panel p-4 space-y-3 border-rose-500/30">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[var(--crimson)]">
-                    Conduct That Afflicts
+                    {t('Conduct That Afflicts', 'ग्रह पीडित बनाउने व्यवहार')}
                   </span>
-                  <StatusBadge tone="avoid" label="Friction Pattern" />
+                  <StatusBadge tone="avoid" label={t('Friction Pattern', 'अवरोध कारक')} />
                 </div>
                 <p className="text-xs text-[var(--text)] leading-relaxed">
                   {activeKarmaEntry.ifDishonoredBehavior}
                 </p>
                 <div className="pt-2 border-t border-[var(--border)] space-y-1.5">
                   <div className="text-[11px] font-semibold text-[var(--text-secondary)]">
-                    Early Warning Signs
+                    {t('Early Warning Signs', 'प्रारम्भिक चेतावनी लक्षण')}
                   </div>
                   <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
                     {activeKarmaEntry.consequenceSymptoms.map((s, i) => (
@@ -778,9 +875,9 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[var(--accent)]">
-                      Practical Daily Habit (Upaya)
+                      {t('Practical Daily Habit (Upaya)', 'दैनिक व्यावहारिक उपाय')}
                     </span>
-                    <StatusBadge tone="info" label="Daily Practice" />
+                    <StatusBadge tone="info" label={t('Daily Practice', 'दैनिक अभ्यास')} />
                   </div>
                   <p className="text-sm text-[var(--text)] leading-relaxed">
                     {activeKarmaEntry.livingDharmaPractice}
@@ -788,7 +885,10 @@ export const ActionConsequenceLab: React.FC<Props> = ({
                 </div>
 
                 <div className="pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
-                  Grounded in Brihat Parashara Hora Shastra behavioral remediation principles.
+                  {t(
+                    'Grounded in Brihat Parashara Hora Shastra behavioral remediation principles.',
+                    'बृहत् पाराशर होरा शास्त्रको कर्म-परिहार सिद्धान्तमा आधारित।'
+                  )}
                 </div>
               </div>
             </div>

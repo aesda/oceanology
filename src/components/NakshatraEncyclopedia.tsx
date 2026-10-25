@@ -26,6 +26,7 @@ import {
   SemanticTone,
   WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
+import { trNakshatra, trPlanet, trSign, useLanguage } from '../i18n/i18n';
 
 interface Props {
   chart: NatalChartResult;
@@ -51,6 +52,7 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
   initialNakshatraIndex,
   onOpenActionSimulator,
 }) => {
+  const { lang, t } = useLanguage();
   const moonPlanet = chart.planets.find((p) => p.id === 'Moon') || chart.planets[0];
   const [selectedIdx, setSelectedIdx] = useState<number>(
     initialNakshatraIndex !== undefined ? initialNakshatraIndex : moonPlanet.nakshatraIndex
@@ -139,8 +141,11 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
     <div className="space-y-6">
       {/* ==================== PAGE HEADER ==================== */}
       <WorkspacePageHeader
-        title="28 Nakshatras & 108 Navamsha Padas"
-        subtitle="Complete reference across all 27 sidereal mansions plus intercalary Abhijit, Padas, electional rules, and Taittiriya Shaktis."
+        title={t('28 Nakshatras & 108 Navamsha Padas', '२८ नक्षत्र र १०८ नवांश चरण')}
+        subtitle={t(
+          'Complete reference across all 27 sidereal mansions plus intercalary Abhijit, Padas, electional rules, and Taittiriya Shaktis.',
+          '२७ नक्षत्र तथा अभिजित् नक्षत्रको चरण, देवता, मुहूर्त स्वभाव र तैत्तिरीय शक्ति विश्वकोश।'
+        )}
         actions={
           <>
             <button
@@ -150,7 +155,9 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
             >
               <Sparkles className="w-4 h-4 text-[var(--accent)]" />
               <span>
-                My Birth Star: {moonPlanet.nakshatraName} (P{moonPlanet.nakshatraPada})
+                {t('My Birth Star:', 'मेरो जन्म नक्षत्र:')}{' '}
+                {trNakshatra(moonPlanet.nakshatraName, lang)} ({t('P', 'चरण ')}
+                {moonPlanet.nakshatraPada})
               </span>
             </button>
             <button
@@ -158,7 +165,11 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
               onClick={() => setShowStarWheel(!showStarWheel)}
               className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
             >
-              <span>{showStarWheel ? 'Hide Ecliptic Ring' : 'Show Ecliptic Ring'}</span>
+              <span>
+                {showStarWheel
+                  ? t('Hide Ecliptic Ring', 'नक्षत्र चक्र लुकाउनुहोस्')
+                  : t('Show Ecliptic Ring', '२७ नक्षत्र चक्र हेर्नुहोस्')}
+              </span>
               {showStarWheel ? (
                 <ChevronUp className="w-4 h-4" />
               ) : (
@@ -331,7 +342,10 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
             <input
               type="text"
               aria-label="Search Nakshatras"
-              placeholder="Search name, deity, ruler, star..."
+              placeholder={t(
+                'Search name, deity, ruler, star...',
+                'नक्षत्र नाम, देवता वा स्वामी खोज्नुहोस्...'
+              )}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full obs-input pl-9 text-xs"
@@ -344,7 +358,7 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
               htmlFor="nak-nature-filter"
               className="text-xs font-medium text-[var(--text-secondary)] whitespace-nowrap"
             >
-              Filter:
+              {t('Filter:', 'समूह:')}
             </label>
             <select
               id="nak-nature-filter"
@@ -352,24 +366,27 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
               onChange={(e) => setNatureFilter(e.target.value as NatureFilter)}
               className="w-full obs-input text-xs"
             >
-              <option value="ALL">All 28 Mansions</option>
-              <option value="MY_NATAL">My Natal Stars Only</option>
-              <option value="Dhruva">Dhruva (Fixed / Permanent)</option>
-              <option value="Kshipra">Kshipra (Swift / Light)</option>
-              <option value="Mridu">Mridu (Soft / Tender)</option>
-              <option value="Chara">Chara (Movable / Ephemeral)</option>
-              <option value="Tikshna">Tikshna (Sharp / Cutting)</option>
-              <option value="Ugra">Ugra (Fierce / Severe)</option>
-              <option value="Mishra">Mishra (Mixed / Sharp-Soft)</option>
+              <option value="ALL">{t('All 28 Mansions', 'सबै २८ नक्षत्र')}</option>
+              <option value="MY_NATAL">{t('My Natal Stars Only', 'मेरो जन्म कुण्डलीका नक्षत्र')}</option>
+              <option value="Dhruva">{t('Dhruva (Fixed / Permanent)', 'ध्रुव (स्थिर)')}</option>
+              <option value="Kshipra">{t('Kshipra (Swift / Light)', 'क्षिप्र / लघु')}</option>
+              <option value="Mridu">{t('Mridu (Soft / Tender)', 'मृदु (कोमल)')}</option>
+              <option value="Chara">{t('Chara (Movable / Ephemeral)', 'चर (गतिशील)')}</option>
+              <option value="Tikshna">{t('Tikshna (Sharp / Cutting)', 'तीक्ष्ण (दारुण)')}</option>
+              <option value="Ugra">{t('Ugra (Fierce / Severe)', 'उग्र (क्रूर)')}</option>
+              <option value="Mishra">{t('Mishra (Mixed / Sharp-Soft)', 'मिश्र (साधारण)')}</option>
             </select>
           </div>
 
           {/* Directory List or Empty State */}
           {filteredNakshatras.length === 0 ? (
             <EmptyStateCard
-              title="No matching Nakshatras"
-              description="Try clearing your search query or switching the nature filter back to All 28 Mansions."
-              actionLabel="Reset filters"
+              title={t('No matching Nakshatras', 'कुनै नक्षत्र भेटिएन')}
+              description={t(
+                'Try clearing your search query or switching the nature filter back to All 28 Mansions.',
+                'खोजी शब्द हटाएर सबै २८ नक्षत्र समूह छान्नुहोस्।'
+              )}
+              actionLabel={t('Reset filters', 'फिल्टर रिसेट')}
               onAction={() => {
                 setSearchQuery('');
                 setNatureFilter('ALL');
@@ -397,14 +414,17 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                           {String(nak.number).padStart(2, '0')}
                         </span>
                         <span className="text-sm font-bold text-[var(--text)] truncate">
-                          {nak.name}
+                          {trNakshatra(nak.name, lang)}
                         </span>
-                        <span className="text-xs text-[var(--text-muted)] truncate">
-                          {nak.sanskrit}
-                        </span>
+                        {lang === 'en' && (
+                          <span className="text-xs text-[var(--text-muted)] truncate">
+                            {nak.sanskrit}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] font-mono text-[var(--text-muted)] truncate">
-                        {nak.ruler} • {nak.natureGroup.split(' ')[0]} • {nak.spanSign}
+                        {trPlanet(nak.ruler, lang)} • {nak.natureGroup.split(' ')[0]} •{' '}
+                        {trSign(nak.spanSign, lang)}
                       </div>
                     </div>
 
@@ -436,28 +456,34 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-mono font-semibold text-[var(--accent)]">
-                    Mansion #{String(activeTreatise.number).padStart(2, '0')} of 28
+                    {t(
+                      `Mansion #${String(activeTreatise.number).padStart(2, '0')} of 28`,
+                      `नक्षत्र #${String(activeTreatise.number).padStart(2, '0')} / २८`
+                    )}
                   </span>
                   <span className="text-xs text-[var(--text-muted)]">•</span>
                   <span className="text-xs font-mono text-[var(--text-secondary)]">
-                    {activeTreatise.spanSign} ({activeTreatise.spanDegrees})
+                    {trSign(activeTreatise.spanSign, lang)} ({activeTreatise.spanDegrees})
                   </span>
                   {activeTreatise.isGandanta && (
-                    <StatusBadge tone="avoid" label="Gandanta Junction" />
+                    <StatusBadge tone="avoid" label={t('Gandanta Junction', 'गण्डान्त सन्धि')} />
                   )}
                   {activeTreatise.isPanchaka && (
-                    <StatusBadge tone="mixed" label="Dhanishtha Panchaka" />
+                    <StatusBadge tone="mixed" label={t('Dhanishtha Panchaka', 'धनिष्ठा पञ्चक')} />
                   )}
                 </div>
 
                 <h2 className="text-3xl font-bold text-[var(--text)] tracking-tight">
-                  {activeTreatise.name}{' '}
-                  <span className="text-xl font-normal text-[var(--text-muted)] ml-1">
-                    {activeTreatise.sanskrit}
-                  </span>
+                  {trNakshatra(activeTreatise.name, lang)}{' '}
+                  {lang === 'en' && (
+                    <span className="text-xl font-normal text-[var(--text-muted)] ml-1">
+                      {activeTreatise.sanskrit}
+                    </span>
+                  )}
                 </h2>
                 <p className="text-xs font-mono text-[var(--text-muted)]">
-                  Symbol: {activeTreatise.symbol} • Yoga-Tara: {activeTreatise.astronomyStar}
+                  {t('Symbol:', 'प्रतीक:')} {activeTreatise.symbol} •{' '}
+                  {t('Yoga-Tara:', 'योग-तारा:')} {activeTreatise.astronomyStar}
                 </p>
               </div>
 
@@ -468,7 +494,7 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                   className="btn-editorial-secondary text-xs inline-flex items-center gap-1.5"
                 >
                   <Scale className="w-3.5 h-3.5 text-[var(--accent)]" />
-                  <span>Test Action Timing</span>
+                  <span>{t('Test Action Timing', 'मुहूर्त जाँच गर्नुहोस्')}</span>
                 </button>
               )}
             </div>
@@ -476,10 +502,13 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
             {activeOccupants.length > 0 && (
               <div className="obs-panel px-4 py-3 flex flex-wrap items-center justify-between gap-2 border-[var(--accent)]/30 bg-[var(--accent-bg)]/50">
                 <span className="text-xs font-semibold text-[var(--text)]">
-                  Active in Your Birth Chart:{' '}
+                  {t('Active in Your Birth Chart:', 'तपाईंको जन्म कुण्डलीमा स्थित ग्रह:')}{' '}
                   <span className="font-mono text-[var(--accent)]">
                     {activeOccupants
-                      .map((o) => `${o.symbol} ${o.label} (Pada ${o.pada})`)
+                      .map(
+                        (o) =>
+                          `${o.symbol} ${trPlanet(o.label, lang)} (${t('Pada', 'चरण')} ${o.pada})`
+                      )
                       .join(' • ')}
                   </span>
                 </span>
@@ -490,25 +519,25 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
           {/* 4 Contextual KPI Summary Tiles */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiStatCard
-              label="Vimshottari Lord"
-              value={activeTreatise.ruler}
+              label={t('Vimshottari Lord', 'विंशोत्तरी स्वामी')}
+              value={trPlanet(activeTreatise.ruler, lang)}
               benchmarkText={activeTreatise.purushartha}
               status={{ tone: 'info', label: activeTreatise.tattva }}
             />
             <KpiStatCard
-              label="Presiding Deity"
+              label={t('Presiding Deity', 'अधिष्ठाता देवता')}
               value={activeTreatise.deity.split('(')[0].trim()}
               benchmarkText={activeTreatise.deitySanskrit}
               status={{ tone: 'neutral', label: activeTreatise.gana }}
             />
             <KpiStatCard
-              label="Nature & Gaze"
+              label={t('Nature & Gaze', 'स्वभाव र दृष्टि')}
               value={activeTreatise.natureGroup.split(' ')[0]}
               benchmarkText={activeTreatise.mukhaGaze}
-              status={{ tone: 'favorable', label: 'Muhurta Class' }}
+              status={{ tone: 'favorable', label: t('Muhurta Class', 'मुहूर्त वर्ग') }}
             />
             <KpiStatCard
-              label="Lost-Object Oracle"
+              label={t('Lost-Object Oracle', 'हराएको वस्तु प्रश्न')}
               value={activeTreatise.lochanaEye.split('(')[0].trim()}
               benchmarkText={`Nadi: ${activeTreatise.nadi}`}
               status={{ tone: 'neutral', label: 'Lochana' }}
@@ -523,14 +552,24 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                 value={detailTab}
                 onChange={setDetailTab}
                 items={[
-                  { id: 'OVERVIEW', label: 'Natal Portraits & Kutas' },
-                  { id: 'PADAS', label: 'Navamsha Padas', count: activeTreatise.padas.length },
+                  {
+                    id: 'OVERVIEW',
+                    label: t('Natal Portraits & Kutas', 'जन्म प्रभाव र कूट'),
+                  },
+                  {
+                    id: 'PADAS',
+                    label: t('Navamsha Padas', '४ नवांश चरण'),
+                    count: activeTreatise.padas.length,
+                  },
                   {
                     id: 'ACTIONS',
-                    label: 'Action & Consequence',
+                    label: t('Action & Consequence', 'शुभ/अशुभ कार्य'),
                     count: activeTreatise.actionMatrix.length,
                   },
-                  { id: 'SHAKTI', label: 'Taittiriya Shakti & Remedies' },
+                  {
+                    id: 'SHAKTI',
+                    label: t('Taittiriya Shakti & Remedies', 'तैत्तिरीय शक्ति र उपाय'),
+                  },
                 ]}
               />
             </div>

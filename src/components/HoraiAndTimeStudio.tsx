@@ -21,7 +21,17 @@ import {
   HoraiLordId,
   HoraiSlot,
 } from '../engines/panchangEngine';
-import { cleanCityName, gregorianToBikramSambat } from '../engines/locationAtlas';
+import { gregorianToBikramSambat } from '../engines/locationAtlas';
+import {
+  formatCityForLang,
+  HORAI_NE_META,
+  trGowriName,
+  trHoraiDisplay,
+  trNakshatra,
+  trPlanet,
+  trVara,
+  useLanguage,
+} from '../i18n/i18n';
 import {
   DayTimelineBar,
   KpiStatCard,
@@ -55,6 +65,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
   onOpenActionSimulator,
   onInspectNakshatra,
 }) => {
+  const { lang, t } = useLanguage();
   const [nowTick, setNowTick] = useState<Date>(() => new Date());
   const [dateOffsetDays, setDateOffsetDays] = useState<number>(0);
   const [useEqualHours, setUseEqualHours] = useState<boolean>(false);
@@ -96,6 +107,9 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
   }, [nowTick, location.timezoneOffsetHours]);
 
   const activeHorai = livePanchang.activeHorai;
+  const activeHoraiDisp = trHoraiDisplay(activeHorai, lang);
+  const nextShubhaDisp = trHoraiDisplay(livePanchang.nextShubhaHorai, lang);
+  const cityDisplay = formatCityForLang(location.name, lang);
   const activeSecondsPart = 59 - (Math.floor(nowTick.getTime() / 1000) % 60);
   const displayMinsLeft = Math.max(0, activeHorai.minutesRemaining - 1);
 
@@ -108,6 +122,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
     }
     return activeHorai;
   }, [selectedSlotNum, livePanchang.allHorai, activeHorai]);
+  const inspectedDisp = trHoraiDisplay(inspectedSlot, lang);
 
   const [yr, mo, dy] = livePanchang.dateStr.split('-').map((n) => parseInt(n, 10));
   const bsDate = gregorianToBikramSambat(yr || 2026, mo || 10, dy || 25);
@@ -144,17 +159,24 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               secondaryHex={activeHorai.sacredFlower.secondaryHex}
               size={26}
             />
-            <span>Live Horai Time, Gowri &amp; Sacred Clock</span>
+            <span>
+              {t(
+                'Live Horai Time, Gowri & Sacred Clock',
+                'प्रत्यक्ष ग्रह होरा, गौरी पञ्चाङ्ग र २४-पत्रे घडी'
+              )}
+            </span>
             <StatusBadge
               tone="optimal"
-              label={`${cleanCityName(location.name)} • ${cityClockFormatted}`}
+              label={`${cityDisplay} • ${cityClockFormatted}`}
             />
           </span>
         }
         subtitle={
           <>
-            {livePanchang.vara.name} • Gregorian {livePanchang.dateStr} • Nepali{' '}
-            <strong>{bsDate.formattedEn}</strong> • Sunrise {livePanchang.sunriseTime} / Sunset{' '}
+            {trVara(livePanchang.vara.name, lang)} • {t('Gregorian', 'ई.सं.')}{' '}
+            {livePanchang.dateStr} • {t('Nepali', 'वि.सं.')}{' '}
+            <strong>{lang === 'ne' ? bsDate.formattedNp : bsDate.formattedEn}</strong> •{' '}
+            {t('Sunrise', 'सूर्योदय')} {livePanchang.sunriseTime} / {t('Sunset', 'सूर्यास्त')}{' '}
             {livePanchang.sunsetTime}
           </>
         }
@@ -185,7 +207,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                 }`}
               >
                 {dateOffsetDays === 0
-                  ? 'Live Today'
+                  ? t('Live Today', 'आज प्रत्यक्ष')
                   : dateOffsetDays > 0
                   ? `+${dateOffsetDays}d (${livePanchang.dateStr})`
                   : `${dateOffsetDays}d (${livePanchang.dateStr})`}
@@ -213,7 +235,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                     : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
                 }`}
               >
-                Solar Hora
+                {t('Solar Hora', 'सौर होरा')}
               </button>
               <button
                 type="button"
@@ -224,7 +246,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                     : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
                 }`}
               >
-                1-Hr Horai
+                {t('1-Hr Horai', '१-घण्टा होरा')}
               </button>
             </div>
           </>
@@ -245,9 +267,9 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
-                <span>ACTIVE HORAI RIGHT NOW</span>
+                <span>{t('ACTIVE HORAI RIGHT NOW', 'अहिले चलिरहेको प्रत्यक्ष होरा')}</span>
               </span>
-              <StatusBadge tone={activeHorai.tone} label={activeHorai.quality} />
+              <StatusBadge tone={activeHorai.tone} label={activeHoraiDisp.quality} />
               <span className="text-xs font-medium text-[var(--text-secondary)] bg-[var(--surface)]/85 px-2.5 py-1 rounded-md border border-[var(--border)]">
                 {activeHorai.devanagariName} • {activeHorai.tamilName}
               </span>
@@ -264,34 +286,43 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               </div>
               <div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--text)]">
-                  {activeHorai.horaiName}{' '}
+                  {activeHoraiDisp.horaiName}{' '}
                   <span className="text-lg font-semibold text-[var(--text-secondary)]">
-                    ({activeHorai.lord} Planetary Hour)
+                    ({t(`${activeHorai.lord} Planetary Hour`, `${activeHoraiDisp.lordLabel} ग्रह होरा`)})
                   </span>
                 </h2>
                 <p className="text-sm font-medium text-[var(--text-secondary)] mt-0.5 tabular-nums">
-                  Sacred Flower: <strong className="text-[var(--text)]">{activeHorai.sacredFlower.name}</strong> •
-                  Window: <strong className="text-[var(--text)]">{slotTimeStr(activeHorai)}</strong>
+                  {t('Sacred Flower:', 'पवित्र पुष्प:')}{' '}
+                  <strong className="text-[var(--text)]">{activeHoraiDisp.flowerName}</strong> •{' '}
+                  {t('Window:', 'समय सीमा:')}{' '}
+                  <strong className="text-[var(--text)]">{slotTimeStr(activeHorai)}</strong>
                 </p>
               </div>
             </div>
 
             <p className="text-base text-[var(--text)] leading-relaxed max-w-2xl">
-              {activeHorai.plainSummary}
+              {activeHoraiDisp.plainSummary}
             </p>
 
             {activeHorai.kalamConflictNote ? (
               <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[var(--amber-bg)] border border-amber-500/30 text-sm font-semibold text-[var(--amber)]">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>
-                  Heads-up: {activeHorai.kalamConflictNote} — pause brand-new launches until the
-                  overlap passes.
+                  {t(
+                    `Heads-up: ${activeHorai.kalamConflictNote} — pause brand-new launches until the overlap passes.`,
+                    `सावधानी: यस समयमा राहुकाल/यमगण्ड परेको छ (${activeHorai.kalamConflictNote}) — नयाँ शुभ कार्य केही बेर प्रतीक्षा गर्नुहोस्।`
+                  )}
                 </span>
               </div>
             ) : (
               <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[var(--sage-bg)] border border-emerald-500/30 text-sm font-semibold text-[var(--sage)]">
                 <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span>Clear of Rahu Kalam &amp; Yamagandam right now</span>
+                <span>
+                  {t(
+                    'Clear of Rahu Kalam & Yamagandam right now',
+                    'अहिले राहुकाल र यमगण्डबाट पूर्णतः मुक्त शुद्ध समय'
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -300,10 +331,13 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
           <div className="lg:col-span-5 bg-[var(--surface)]/95 backdrop-blur-md rounded-xl border border-[var(--border)] p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                Time Remaining in {activeHorai.horaiName}
+                {t(
+                  `Time Remaining in ${activeHorai.horaiName}`,
+                  `${activeHoraiDisp.horaiName} मा बाँकी समय`
+                )}
               </span>
               <span className="text-xs tabular-nums text-[var(--accent)] font-semibold">
-                Vedic {livePanchang.vedicClock.formatted}
+                {t('Vedic', 'वैदिक घटी:')} {livePanchang.vedicClock.formatted}
               </span>
             </div>
 
@@ -316,7 +350,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                   : `${activeHorai.durationMinutes} min`}
               </div>
               <span className="text-sm font-semibold text-[var(--text-secondary)] tabular-nums">
-                {activeHorai.progressPercent}% elapsed
+                {activeHorai.progressPercent}% {t('elapsed', 'पूरा')}
               </span>
             </div>
 
@@ -332,18 +366,22 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
 
             <div className="grid grid-cols-2 gap-2.5 pt-1 text-xs">
               <div className="obs-panel p-2.5">
-                <div className="text-[var(--text-muted)] font-medium">Next Pure Shubha Horai</div>
+                <div className="text-[var(--text-muted)] font-medium">
+                  {t('Next Pure Shubha Horai', 'अर्को शुद्ध शुभ होरा')}
+                </div>
                 <div className="font-bold text-[var(--text)] text-sm mt-0.5">
-                  {livePanchang.nextShubhaHorai.horaiName}
+                  {nextShubhaDisp.horaiName}
                 </div>
                 <div className="font-mono text-[var(--accent)]">
                   {slotTimeStr(livePanchang.nextShubhaHorai)}
                 </div>
               </div>
               <div className="obs-panel p-2.5">
-                <div className="text-[var(--text-muted)] font-medium">Active Gowri &amp; Choghadiya</div>
+                <div className="text-[var(--text-muted)] font-medium">
+                  {t('Active Gowri & Choghadiya', 'सक्रिय गौरी र चौघडिया')}
+                </div>
                 <div className="font-bold text-[var(--text)] text-sm mt-0.5">
-                  {livePanchang.activeGowri.name} • {activeChoghadiya.name}
+                  {trGowriName(livePanchang.activeGowri.name, lang)} • {activeChoghadiya.name}
                 </div>
                 <div className="text-[var(--text-secondary)]">
                   {livePanchang.activeGowri.nature}
@@ -357,49 +395,79 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
       {/* ==================== 4 LIVE SACRED TIME KPI CARDS ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiStatCard
-          label="Morning Nalla Neram"
+          label={t('Morning Nalla Neram', 'बिहानको शुभ वेला (नल्ल नेरम)')}
           value={`${livePanchang.nallaNeram[0].startTime} – ${livePanchang.nallaNeram[0].endTime}`}
-          plainHint={`Pure ${livePanchang.nallaNeram[0].gowriName} morning window (no Rahu/Yama)`}
-          benchmarkText={`Sunrise at ${livePanchang.sunriseTime}`}
-          status={{ tone: 'optimal', label: 'Best Morning Slot' }}
+          plainHint={t(
+            `Pure ${livePanchang.nallaNeram[0].gowriName} morning window (no Rahu/Yama)`,
+            `राहु/यमगण्ड रहित बिहानको शुद्ध ${trGowriName(livePanchang.nallaNeram[0].gowriName, 'ne')} वेला`
+          )}
+          benchmarkText={`${t('Sunrise at', 'सूर्योदय:')} ${livePanchang.sunriseTime}`}
+          status={{ tone: 'optimal', label: t('Best Morning Slot', 'उत्तम बिहानी समय') }}
           icon={<Sun className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Evening Nalla Neram"
+          label={t('Evening Nalla Neram', 'दिउँसो/बेलुकाको शुभ वेला')}
           value={`${livePanchang.nallaNeram[1].startTime} – ${livePanchang.nallaNeram[1].endTime}`}
-          plainHint={`Pure ${livePanchang.nallaNeram[1].gowriName} afternoon/evening window`}
-          benchmarkText={`Sunset at ${livePanchang.sunsetTime}`}
-          status={{ tone: 'favorable', label: 'Best Afternoon Slot' }}
+          plainHint={t(
+            `Pure ${livePanchang.nallaNeram[1].gowriName} afternoon/evening window`,
+            `दिउँसो/अपराह्नको शुद्ध ${trGowriName(livePanchang.nallaNeram[1].gowriName, 'ne')} वेला`
+          )}
+          benchmarkText={`${t('Sunset at', 'सूर्यास्त:')} ${livePanchang.sunsetTime}`}
+          status={{ tone: 'favorable', label: t('Best Afternoon Slot', 'उत्तम अपराह्न समय') }}
           icon={<Sparkles className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Rahu Kalam Today"
+          label={t('Rahu Kalam Today', 'आजको राहुकाल')}
           value={rahuSlot ? `${rahuSlot.startTime} – ${rahuSlot.endTime}` : '—'}
-          plainHint="Avoid starting fresh contracts, loans, or marriage talks in this span"
-          benchmarkText={rahuSlot?.isActiveNow ? 'Active right now — wait!' : 'Currently outside Rahu Kalam'}
+          plainHint={t(
+            'Avoid starting fresh contracts, loans, or marriage talks in this span',
+            'यस अवधिमा नयाँ सम्झौता, ऋण वा विवाह जस्ता शुभ कार्य सुरु नगर्नुहोस्'
+          )}
+          benchmarkText={
+            rahuSlot?.isActiveNow
+              ? t('Active right now — wait!', 'अहिले राहुकाल चलिरहेछ — पर्खनुहोस्!')
+              : t('Currently outside Rahu Kalam', 'हाल राहुकाल बाहिर')
+          }
           status={{
             tone: rahuSlot?.isActiveNow ? 'avoid' : 'info',
-            label: rahuSlot?.isActiveNow ? 'Active Now' : 'Window to Avoid',
+            label: rahuSlot?.isActiveNow
+              ? t('Active Now', 'सक्रिय')
+              : t('Window to Avoid', 'वर्जित समय'),
           }}
           icon={<Clock className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Today’s Moon Star & Harmony"
-          value={livePanchang.nakshatra.name}
-          subvalue={`Pada ${livePanchang.nakshatra.pada}`}
-          plainHint={`Personal Tarabala: ${
-            livePanchang.personalTarabala.isAuspicious ? 'Supportive' : 'Pace Carefully'
-          }`}
+          label={t('Today’s Moon Star & Harmony', 'आजको चन्द्र नक्षत्र र ताराबल')}
+          value={trNakshatra(livePanchang.nakshatra.name, lang)}
+          subvalue={t(
+            `Pada ${livePanchang.nakshatra.pada}`,
+            `चरण ${livePanchang.nakshatra.pada}`
+          )}
+          plainHint={t(
+            `Personal Tarabala: ${
+              livePanchang.personalTarabala.isAuspicious ? 'Supportive' : 'Pace Carefully'
+            }`,
+            `तपाईंको ताराबल: ${
+              livePanchang.personalTarabala.isAuspicious ? 'सकारात्मक र शुभ' : 'सोचविचार गरी चल्ने'
+            }`
+          )}
           benchmarkText={`${livePanchang.tithi.name} (${livePanchang.tithi.paksha.split(' ')[0]})`}
           status={{
             tone: livePanchang.personalTarabala.isAuspicious ? 'optimal' : 'mixed',
-            label: `Tara #${livePanchang.personalTarabala.taraNumber}`,
+            label: t(
+              `Tara #${livePanchang.personalTarabala.taraNumber}`,
+              `तारा #${livePanchang.personalTarabala.taraNumber}`
+            ),
           }}
           icon={<Compass className="w-4 h-4" />}
-          actionLabel={onInspectNakshatra ? 'Open Star Guide' : undefined}
+          actionLabel={
+            onInspectNakshatra
+              ? t('Open Star Guide', 'नक्षत्र विवरण हेर्नुहोस्')
+              : undefined
+          }
           onAction={
             onInspectNakshatra
               ? () => onInspectNakshatra(livePanchang.nakshatra.zeroIndex)
@@ -413,22 +481,27 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
           <div>
             <h2 className="text-lg font-bold text-[var(--text)]">
-              Interactive 24-Petal Horai Sacred Lotus Clock
+              {t(
+                'Interactive 24-Petal Horai Sacred Lotus Clock',
+                'अन्तर्क्रियात्मक २४-पत्रे ग्रह होरा पवित्र कमल घडी'
+              )}
             </h2>
             <p className="text-sm text-[var(--text-secondary)]">
-              Outer 12 petals = Daytime Horais ({livePanchang.sunriseTime}–{livePanchang.sunsetTime}
-              ) • Inner 12 petals = Nighttime Horais. Click any petal to inspect!
+              {t(
+                `Outer 12 petals = Daytime Horais (${livePanchang.sunriseTime}–${livePanchang.sunsetTime}) • Inner 12 petals = Nighttime Horais. Click any petal to inspect!`,
+                `बाहिरी १२ पत्र = दिनको होरा (${livePanchang.sunriseTime}–${livePanchang.sunsetTime}) • भित्री १२ पत्र = रात्रिको होरा। कुनै पनि पत्रमा क्लिक गरी विवरण हेर्नुहोस्!`
+              )}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
             {(
               [
-                { id: 'ALL', label: 'All 24 Hours' },
-                { id: 'WEALTH', label: 'Wealth & Gold' },
-                { id: 'CONTRACTS', label: 'Contracts & Study' },
-                { id: 'HEALING', label: 'Healing & Travel' },
-                { id: 'DEBT', label: 'Repay Debt' },
+                { id: 'ALL', label: t('All 24 Hours', 'सबै २४ होरा') },
+                { id: 'WEALTH', label: t('Wealth & Gold', 'धन र सुन खरिद') },
+                { id: 'CONTRACTS', label: t('Contracts & Study', 'सम्झौता र अध्ययन') },
+                { id: 'HEALING', label: t('Healing & Travel', 'स्वास्थ्य र यात्रा') },
+                { id: 'DEBT', label: t('Repay Debt', 'ऋण मोचन') },
               ] as { id: HoraiFilter; label: string }[]
             ).map((f) => (
               <button
@@ -465,11 +538,12 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-1 rounded-md bg-[var(--surface)] border border-[var(--border)] text-xs font-mono font-bold text-[var(--text)]">
-                  {inspectedSlot.period} HOUR #{inspectedSlot.hourIndexInPeriod} (Slot{' '}
+                  {inspectedSlot.period === 'DAY' ? t('DAY', 'दिन') : t('NIGHT', 'रात')}{' '}
+                  {t('HOUR', 'होरा')} #{inspectedSlot.hourIndexInPeriod} (
                   {inspectedSlot.slotNumber}/24)
                 </span>
                 {inspectedSlot.isActiveNow && (
-                  <StatusBadge tone="optimal" label="LIVE NOW" />
+                  <StatusBadge tone="optimal" label={t('LIVE NOW', 'अहिले प्रत्यक्ष')} />
                 )}
               </div>
               {selectedSlotNum !== null && selectedSlotNum !== activeHorai.slotNumber && (
@@ -478,7 +552,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                   onClick={() => setSelectedSlotNum(null)}
                   className="text-xs font-semibold text-[var(--accent)] hover:underline"
                 >
-                  Jump back to Live Hour
+                  {t('Jump back to Live Hour', 'प्रत्यक्ष होरामा फर्कनुहोस्')}
                 </button>
               )}
             </div>
@@ -492,23 +566,23 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               />
               <div>
                 <h3 className="text-xl font-extrabold text-[var(--text)]">
-                  {inspectedSlot.horaiName} — {slotTimeStr(inspectedSlot)}
+                  {inspectedDisp.horaiName} — {slotTimeStr(inspectedSlot)}
                 </h3>
                 <p className="text-sm text-[var(--text-secondary)]">
-                  {inspectedSlot.sanskritHora} • {inspectedSlot.tamilName} • Sacred Pushpa:{' '}
-                  <strong>{inspectedSlot.sacredFlower.name}</strong>
+                  {inspectedSlot.sanskritHora} • {inspectedSlot.tamilName} •{' '}
+                  {t('Sacred Pushpa:', 'पवित्र पुष्प:')}{' '}
+                  <strong>{inspectedDisp.flowerName}</strong>
                 </p>
               </div>
             </div>
 
             <p className="text-base text-[var(--text)] leading-relaxed">
-              {inspectedSlot.plainSummary}
+              {inspectedDisp.plainSummary}
             </p>
 
             {inspectedSlot.kalamConflictNote && (
               <div className="p-3 rounded-lg bg-[var(--amber-bg)] border border-amber-500/30 text-sm text-[var(--amber)] font-medium">
-                <strong>Note:</strong> {inspectedSlot.kalamConflictNote}. Wait until the overlap
-                clears before initiating major new commitments.
+                <strong>{t('Note:', 'सूचना:')}</strong> {inspectedSlot.kalamConflictNote}.
               </div>
             )}
 
@@ -516,10 +590,10 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               <div className="bg-[var(--surface)] p-3.5 rounded-xl border border-[var(--border)] space-y-2">
                 <div className="flex items-center gap-1.5 text-sm font-bold text-[var(--sage)]">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Best Actions in This Horai</span>
+                  <span>{t('Best Actions in This Horai', 'यस होरामा गर्न उत्तम कार्यहरू')}</span>
                 </div>
                 <ul className="space-y-1.5 text-sm text-[var(--text-secondary)]">
-                  {inspectedSlot.bestFor.map((item) => (
+                  {inspectedDisp.bestFor.map((item) => (
                     <li key={item} className="flex items-start gap-1.5">
                       <span className="text-[var(--sage)] font-bold">•</span>
                       <span>{item}</span>
@@ -531,10 +605,10 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               <div className="bg-[var(--surface)] p-3.5 rounded-xl border border-[var(--border)] space-y-2">
                 <div className="flex items-center gap-1.5 text-sm font-bold text-[var(--crimson)]">
                   <XCircle className="w-4 h-4" />
-                  <span>Avoid During This Horai</span>
+                  <span>{t('Avoid During This Horai', 'यस होरामा नगर्नुपर्ने कार्यहरू')}</span>
                 </div>
                 <ul className="space-y-1.5 text-sm text-[var(--text-secondary)]">
-                  {inspectedSlot.avoidFor.map((item) => (
+                  {inspectedDisp.avoidFor.map((item) => (
                     <li key={item} className="flex items-start gap-1.5">
                       <span className="text-[var(--crimson)] font-bold">•</span>
                       <span>{item}</span>
@@ -555,7 +629,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                   className="btn-editorial-secondary text-xs inline-flex items-center gap-1.5"
                 >
                   <Scale className="w-3.5 h-3.5 text-[var(--accent)]" />
-                  <span>Test Action Score</span>
+                  <span>{t('Test Action Score', 'कार्य साइत जाँच्नुहोस्')}</span>
                 </button>
               )}
             </div>
@@ -563,7 +637,9 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
         </div>
       </div>
 
-      <LotusVineDivider label="Complete Daily Sacred Time Tables" />
+      <LotusVineDivider
+        label={t('Complete Daily Sacred Time Tables', 'दैनिक २४-घण्टा होरा, गौरी र मुहूर्त तालिकाहरू')}
+      />
 
       {/* ==================== COMPLETE HORAI, GOWRI, MUHURAT & LORDS TABS ==================== */}
       <div className="obs-card p-5 sm:p-6 space-y-6">
@@ -573,14 +649,26 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
             value={detailTab}
             onChange={setDetailTab}
             items={[
-              { id: 'HORAI_24', label: '24-Hour Horai Table', count: 24 },
-              { id: 'GOWRI_NALLA', label: 'Gowri Panchangam & Nalla Neram', count: 16 },
+              {
+                id: 'HORAI_24',
+                label: t('24-Hour Horai Table', '२४-घण्टा होरा तालिका'),
+                count: 24,
+              },
+              {
+                id: 'GOWRI_NALLA',
+                label: t('Gowri Panchangam & Nalla Neram', 'गौरी पञ्चाङ्ग र शुभ वेला'),
+                count: 16,
+              },
               {
                 id: 'MUHURAT_KALAM',
-                label: 'Muhurats, Kalam & Choghadiya',
+                label: t('Muhurats, Kalam & Choghadiya', 'मुहूर्त, काल र चौघडिया'),
                 count: livePanchang.muhurats.length,
               },
-              { id: 'SEVEN_LORDS', label: '7 Horai Flowers & Meaning', count: 7 },
+              {
+                id: 'SEVEN_LORDS',
+                label: t('7 Horai Flowers & Meaning', '७ होरा पुष्प र अर्थ'),
+                count: 7,
+              },
             ]}
           />
         </div>
@@ -594,55 +682,63 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                 <h3 className="text-base font-bold text-[var(--text)] inline-flex items-center gap-2">
                   <Sun className="w-4 h-4 text-amber-500" />
                   <span>
-                    Daytime Horai (12 Hours: {livePanchang.sunriseTime} – {livePanchang.sunsetTime})
+                    {t(
+                      `Daytime Horai (12 Hours: ${livePanchang.sunriseTime} – ${livePanchang.sunsetTime})`,
+                      `दिनको होरा तालिका (१२ घण्टा: ${livePanchang.sunriseTime} – ${livePanchang.sunsetTime})`
+                    )}
                   </span>
                 </h3>
               </div>
               <div className="space-y-2">
-                {livePanchang.dayHorai.filter(filterMatches).map((slot) => (
-                  <button
-                    key={slot.slotNumber}
-                    type="button"
-                    onClick={() => setSelectedSlotNum(slot.slotNumber)}
-                    className={`w-full text-left p-3.5 rounded-xl border transition flex items-start justify-between gap-3 ${
-                      slot.isActiveNow
-                        ? 'border-[var(--accent)] bg-[var(--accent-bg)] ring-1 ring-[var(--accent)]'
-                        : inspectedSlot.slotNumber === slot.slotNumber
-                        ? 'border-[var(--accent)] bg-[var(--surface-muted)]'
-                        : 'border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface)]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <SacredFlowerIcon
-                        variety={slot.sacredFlower.variety}
-                        primaryHex={slot.sacredFlower.primaryHex}
-                        secondaryHex={slot.sacredFlower.secondaryHex}
-                        size={28}
-                        animated={slot.isActiveNow}
-                      />
-                      <div className="space-y-0.5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-bold text-[var(--text)]">
-                            #{slot.hourIndexInPeriod} {slot.horaiName}
-                          </span>
-                          <StatusBadge tone={slot.tone} label={slot.quality} />
-                          {slot.isActiveNow && <StatusBadge tone="optimal" label="LIVE" />}
-                        </div>
-                        <p className="text-xs text-[var(--text-secondary)]">
-                          {slot.bestFor[0]} • {slot.tamilName}
-                        </p>
-                        {slot.kalamConflictNote && (
-                          <p className="text-xs font-semibold text-[var(--amber)]">
-                            ⚠ {slot.kalamConflictNote}
+                {livePanchang.dayHorai.filter(filterMatches).map((slot) => {
+                  const sDisp = trHoraiDisplay(slot, lang);
+                  return (
+                    <button
+                      key={slot.slotNumber}
+                      type="button"
+                      onClick={() => setSelectedSlotNum(slot.slotNumber)}
+                      className={`w-full text-left p-3.5 rounded-xl border transition flex items-start justify-between gap-3 ${
+                        slot.isActiveNow
+                          ? 'border-[var(--accent)] bg-[var(--accent-bg)] ring-1 ring-[var(--accent)]'
+                          : inspectedSlot.slotNumber === slot.slotNumber
+                          ? 'border-[var(--accent)] bg-[var(--surface-muted)]'
+                          : 'border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface)]'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <SacredFlowerIcon
+                          variety={slot.sacredFlower.variety}
+                          primaryHex={slot.sacredFlower.primaryHex}
+                          secondaryHex={slot.sacredFlower.secondaryHex}
+                          size={28}
+                          animated={slot.isActiveNow}
+                        />
+                        <div className="space-y-0.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-bold text-[var(--text)]">
+                              #{slot.hourIndexInPeriod} {sDisp.horaiName}
+                            </span>
+                            <StatusBadge tone={slot.tone} label={sDisp.quality} />
+                            {slot.isActiveNow && (
+                              <StatusBadge tone="optimal" label={t('LIVE', 'प्रत्यक्ष')} />
+                            )}
+                          </div>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {sDisp.bestFor[0]} • {slot.tamilName}
                           </p>
-                        )}
+                          {slot.kalamConflictNote && (
+                            <p className="text-xs font-semibold text-[var(--amber)]">
+                              ⚠ {slot.kalamConflictNote}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[var(--text)] whitespace-nowrap bg-[var(--surface)] px-2.5 py-1 rounded-md border border-[var(--border)]">
-                      {slotTimeStr(slot)}
-                    </span>
-                  </button>
-                ))}
+                      <span className="font-mono text-xs font-bold text-[var(--text)] whitespace-nowrap bg-[var(--surface)] px-2.5 py-1 rounded-md border border-[var(--border)]">
+                        {slotTimeStr(slot)}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -652,50 +748,58 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                 <h3 className="text-base font-bold text-[var(--text)] inline-flex items-center gap-2">
                   <Moon className="w-4 h-4 text-indigo-500" />
                   <span>
-                    Nighttime Horai (12 Hours: {livePanchang.sunsetTime} – Next Sunrise)
+                    {t(
+                      `Nighttime Horai (12 Hours: ${livePanchang.sunsetTime} – Next Sunrise)`,
+                      `रात्रिको होरा तालिका (१२ घण्टा: ${livePanchang.sunsetTime} – भोलि सूर्योदय)`
+                    )}
                   </span>
                 </h3>
               </div>
               <div className="space-y-2">
-                {livePanchang.nightHorai.filter(filterMatches).map((slot) => (
-                  <button
-                    key={slot.slotNumber}
-                    type="button"
-                    onClick={() => setSelectedSlotNum(slot.slotNumber)}
-                    className={`w-full text-left p-3.5 rounded-xl border transition flex items-start justify-between gap-3 ${
-                      slot.isActiveNow
-                        ? 'border-[var(--accent)] bg-[var(--accent-bg)] ring-1 ring-[var(--accent)]'
-                        : inspectedSlot.slotNumber === slot.slotNumber
-                        ? 'border-[var(--accent)] bg-[var(--surface-muted)]'
-                        : 'border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface)]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <SacredFlowerIcon
-                        variety={slot.sacredFlower.variety}
-                        primaryHex={slot.sacredFlower.primaryHex}
-                        secondaryHex={slot.sacredFlower.secondaryHex}
-                        size={28}
-                        animated={slot.isActiveNow}
-                      />
-                      <div className="space-y-0.5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-bold text-[var(--text)]">
-                            #{slot.hourIndexInPeriod} {slot.horaiName}
-                          </span>
-                          <StatusBadge tone={slot.tone} label={slot.quality} />
-                          {slot.isActiveNow && <StatusBadge tone="optimal" label="LIVE" />}
+                {livePanchang.nightHorai.filter(filterMatches).map((slot) => {
+                  const sDisp = trHoraiDisplay(slot, lang);
+                  return (
+                    <button
+                      key={slot.slotNumber}
+                      type="button"
+                      onClick={() => setSelectedSlotNum(slot.slotNumber)}
+                      className={`w-full text-left p-3.5 rounded-xl border transition flex items-start justify-between gap-3 ${
+                        slot.isActiveNow
+                          ? 'border-[var(--accent)] bg-[var(--accent-bg)] ring-1 ring-[var(--accent)]'
+                          : inspectedSlot.slotNumber === slot.slotNumber
+                          ? 'border-[var(--accent)] bg-[var(--surface-muted)]'
+                          : 'border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface)]'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <SacredFlowerIcon
+                          variety={slot.sacredFlower.variety}
+                          primaryHex={slot.sacredFlower.primaryHex}
+                          secondaryHex={slot.sacredFlower.secondaryHex}
+                          size={28}
+                          animated={slot.isActiveNow}
+                        />
+                        <div className="space-y-0.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-bold text-[var(--text)]">
+                              #{slot.hourIndexInPeriod} {sDisp.horaiName}
+                            </span>
+                            <StatusBadge tone={slot.tone} label={sDisp.quality} />
+                            {slot.isActiveNow && (
+                              <StatusBadge tone="optimal" label={t('LIVE', 'प्रत्यक्ष')} />
+                            )}
+                          </div>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {sDisp.bestFor[0]} • {slot.tamilName}
+                          </p>
                         </div>
-                        <p className="text-xs text-[var(--text-secondary)]">
-                          {slot.bestFor[0]} • {slot.tamilName}
-                        </p>
                       </div>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[var(--text)] whitespace-nowrap bg-[var(--surface)] px-2.5 py-1 rounded-md border border-[var(--border)]">
-                      {slotTimeStr(slot)}
-                    </span>
-                  </button>
-                ))}
+                      <span className="font-mono text-xs font-bold text-[var(--text)] whitespace-nowrap bg-[var(--surface)] px-2.5 py-1 rounded-md border border-[var(--border)]">
+                        {slotTimeStr(slot)}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -722,7 +826,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                       <span className="text-base font-bold text-[var(--text)]">
                         {nn.periodLabel}
                       </span>
-                      <StatusBadge tone="optimal" label={nn.gowriName} />
+                      <StatusBadge tone="optimal" label={trGowriName(nn.gowriName, lang)} />
                     </div>
                     <p className="text-sm text-[var(--text-secondary)]">{nn.note}</p>
                   </div>
@@ -737,7 +841,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2.5">
                 <h3 className="text-base font-bold text-[var(--text)]">
-                  Day Gowri Panchangam (8 Solar Octants)
+                  {t('Day Gowri Panchangam (8 Solar Octants)', 'दिनको गौरी पञ्चाङ्ग (८ भाग)')}
                 </h3>
                 {livePanchang.dayGowri.map((g) => (
                   <div
@@ -751,15 +855,20 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                     <div className="space-y-0.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-bold text-[var(--text)]">
-                          {g.name} ({g.tamilLabel})
+                          {trGowriName(g.name, lang)} ({g.tamilLabel})
                         </span>
                         <StatusBadge tone={g.tone} label={g.nature} />
-                        {g.isActiveNow && <StatusBadge tone="optimal" label="LIVE" />}
+                        {g.isActiveNow && (
+                          <StatusBadge tone="optimal" label={t('LIVE', 'प्रत्यक्ष')} />
+                        )}
                       </div>
                       <p className="text-xs text-[var(--text-secondary)]">{g.plainMeaning}</p>
                       {g.hasRahuOrYamaOverlap && (
                         <p className="text-xs font-semibold text-[var(--amber)]">
-                          Note: Overlaps Rahu Kalam or Yamagandam
+                          {t(
+                            'Note: Overlaps Rahu Kalam or Yamagandam',
+                            'सूचना: राहुकाल वा यमगण्डसँग खप्टिएको समय'
+                          )}
                         </p>
                       )}
                     </div>
@@ -772,7 +881,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
 
               <div className="space-y-2.5">
                 <h3 className="text-base font-bold text-[var(--text)]">
-                  Night Gowri Panchangam (8 Lunar Octants)
+                  {t('Night Gowri Panchangam (8 Lunar Octants)', 'रात्रिको गौरी पञ्चाङ्ग (८ भाग)')}
                 </h3>
                 {livePanchang.nightGowri.map((g) => (
                   <div
@@ -786,10 +895,12 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                     <div className="space-y-0.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-bold text-[var(--text)]">
-                          {g.name} ({g.tamilLabel})
+                          {trGowriName(g.name, lang)} ({g.tamilLabel})
                         </span>
                         <StatusBadge tone={g.tone} label={g.nature} />
-                        {g.isActiveNow && <StatusBadge tone="optimal" label="LIVE" />}
+                        {g.isActiveNow && (
+                          <StatusBadge tone="optimal" label={t('LIVE', 'प्रत्यक्ष')} />
+                        )}
                       </div>
                       <p className="text-xs text-[var(--text-secondary)]">{g.plainMeaning}</p>
                     </div>
@@ -815,7 +926,10 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-6 space-y-2.5">
                 <h3 className="text-base font-bold text-[var(--text)]">
-                  All Daily Sacred Muhurtas &amp; Caution Kalams
+                  {t(
+                    'All Daily Sacred Muhurtas & Caution Kalams',
+                    'दैनिक शुभ मुहूर्त र अशुभ कालहरू'
+                  )}
                 </h3>
                 {livePanchang.muhurats.map((m) => (
                   <div
@@ -837,9 +951,17 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                               ? 'avoid'
                               : 'info'
                           }
-                          label={m.category}
+                          label={
+                            m.category === 'Auspicious'
+                              ? t('Auspicious', 'शुभ')
+                              : m.category === 'Inauspicious'
+                              ? t('Inauspicious', 'अशुभ')
+                              : m.category
+                          }
                         />
-                        {m.isActiveNow && <StatusBadge tone="optimal" label="ACTIVE NOW" />}
+                        {m.isActiveNow && (
+                          <StatusBadge tone="optimal" label={t('ACTIVE NOW', 'सक्रिय')} />
+                        )}
                       </div>
                       <p className="text-sm text-[var(--text-secondary)]">{m.description}</p>
                     </div>
@@ -852,7 +974,9 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
 
               <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <h3 className="text-sm font-bold text-[var(--text)]">Day Choghadiya</h3>
+                  <h3 className="text-sm font-bold text-[var(--text)]">
+                    {t('Day Choghadiya', 'दिनको चौघडिया')}
+                  </h3>
                   {livePanchang.dayChoghadiya.map((c, i) => (
                     <div
                       key={`dc-${i}`}
@@ -863,7 +987,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                       }`}
                     >
                       <span>
-                        <strong>{c.name}</strong> ({c.ruler})
+                        <strong>{c.name}</strong> ({trPlanet(c.ruler, lang)})
                       </span>
                       <span className="font-mono">
                         {c.startTime}–{c.endTime}
@@ -872,7 +996,9 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                   ))}
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-sm font-bold text-[var(--text)]">Night Choghadiya</h3>
+                  <h3 className="text-sm font-bold text-[var(--text)]">
+                    {t('Night Choghadiya', 'रात्रिको चौघडिया')}
+                  </h3>
                   {livePanchang.nightChoghadiya.map((c, i) => (
                     <div
                       key={`nc-${i}`}
@@ -883,7 +1009,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                       }`}
                     >
                       <span>
-                        <strong>{c.name}</strong> ({c.ruler})
+                        <strong>{c.name}</strong> ({trPlanet(c.ruler, lang)})
                       </span>
                       <span className="font-mono">
                         {c.startTime}–{c.endTime}
@@ -903,6 +1029,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
               ['Venus', 'Jupiter', 'Mercury', 'Moon', 'Sun', 'Mars', 'Saturn'] as HoraiLordId[]
             ).map((lordId) => {
               const meta = HORAI_LORD_META[lordId];
+              const neMeta = HORAI_NE_META[lordId];
               return (
                 <div
                   key={lordId}
@@ -922,25 +1049,34 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-base font-extrabold text-[var(--text)]">
-                          {meta.horaiName} ({meta.id})
+                          {lang === 'ne'
+                            ? `${neMeta.horaiName} (${trPlanet(lordId, 'ne')})`
+                            : `${meta.horaiName} (${meta.id})`}
                         </h3>
-                        <StatusBadge tone={meta.tone} label={meta.quality} />
+                        <StatusBadge
+                          tone={meta.tone}
+                          label={lang === 'ne' ? neMeta.quality : meta.quality}
+                        />
                       </div>
                       <p className="text-xs text-[var(--text-secondary)]">
-                        {meta.devanagariName} • {meta.tamilName} • Flower:{' '}
-                        <strong>{meta.sacredFlower.name}</strong>
+                        {meta.devanagariName} • {meta.tamilName} • {t('Flower:', 'पवित्र पुष्प:')}{' '}
+                        <strong>
+                          {lang === 'ne' ? neMeta.flowerName : meta.sacredFlower.name}
+                        </strong>
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm text-[var(--text)] leading-relaxed">{meta.plainSummary}</p>
+                  <p className="text-sm text-[var(--text)] leading-relaxed">
+                    {lang === 'ne' ? neMeta.plainSummary : meta.plainSummary}
+                  </p>
                   <div className="text-xs text-[var(--text-secondary)] space-y-1">
                     <div>
-                      <strong className="text-[var(--sage)]">Do:</strong>{' '}
-                      {meta.bestFor.join(' • ')}
+                      <strong className="text-[var(--sage)]">{t('Do:', 'शुभ कार्य:')}</strong>{' '}
+                      {(lang === 'ne' ? neMeta.bestFor : meta.bestFor).join(' • ')}
                     </div>
                     <div>
-                      <strong className="text-[var(--crimson)]">Avoid:</strong>{' '}
-                      {meta.avoidFor.join(' • ')}
+                      <strong className="text-[var(--crimson)]">{t('Avoid:', 'वर्जित:')}</strong>{' '}
+                      {(lang === 'ne' ? neMeta.avoidFor : meta.avoidFor).join(' • ')}
                     </div>
                   </div>
                 </div>
@@ -950,12 +1086,15 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
         )}
       </div>
 
-      {/* Hidden quick-reference Calendar footer */}
+      {/* Quick-reference Calendar footer */}
       <div className="obs-panel p-4 flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--text-secondary)]">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-[var(--accent)]" />
           <span>
-            Want to find the single best day + Horai in the next 12 days for a specific decision?
+            {t(
+              'Want to find the single best day + Horai in the next 12 days for a specific decision?',
+              'कुनै विशेष कामका लागि आगामी १२ दिनभित्रको सर्वोत्तम दिन र होरा खोज्न चाहनुहुन्छ?'
+            )}
           </span>
         </div>
         {onOpenActionSimulator && (
@@ -964,7 +1103,7 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
             onClick={() => onOpenActionSimulator('SIGN_CONTRACT')}
             className="btn-editorial-primary text-xs py-2 px-4"
           >
-            Open Action &amp; Horai Timing Finder
+            {t('Open Action & Horai Timing Finder', 'शुभ साइत र होरा खोजकर्ता खोल्नुहोस्')}
           </button>
         )}
       </div>

@@ -9,7 +9,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { PanchangReport } from '../engines/panchangEngine';
-import { cleanCityName, gregorianToBikramSambat } from '../engines/locationAtlas';
+import { gregorianToBikramSambat } from '../engines/locationAtlas';
 import {
   DayTimelineBar,
   KpiStatCard,
@@ -19,6 +19,16 @@ import {
   WorkspacePageHeader,
 } from './ui/DashboardPrimitives';
 import { SacredFlowerIcon } from './ui/FloralAnimations';
+import {
+  formatCityForLang,
+  trGowriName,
+  trHoraiDisplay,
+  trNakshatra,
+  trPlanet,
+  trSign,
+  trVara,
+  useLanguage,
+} from '../i18n/i18n';
 
 interface Props {
   panchang: PanchangReport;
@@ -35,9 +45,12 @@ export const PanchangDashboard: React.FC<Props> = ({
   onOpenActionSimulator,
   onOpenHoraiStudio,
 }) => {
+  const { lang, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<PanchangTab>('HORAI_GOWRI');
   const [yr, mo, dy] = panchang.dateStr.split('-').map((n) => parseInt(n, 10));
   const bsDate = gregorianToBikramSambat(yr || 2026, mo || 10, dy || 25);
+  const cityLabel = formatCityForLang(panchang.location.name, lang);
+  const activeHoraiLoc = trHoraiDisplay(panchang.activeHorai, lang);
 
   const choghadiyaTone = (nature: string): SemanticTone => {
     if (nature.includes('Most Auspicious')) return 'optimal';
@@ -52,16 +65,30 @@ export const PanchangDashboard: React.FC<Props> = ({
       <WorkspacePageHeader
         title={
           <span className="inline-flex flex-wrap items-center gap-2.5">
-            <span>Daily Panchang &amp; Nepali Patro — {cleanCityName(panchang.location.name)}</span>
-            <StatusBadge tone="info" label={`${bsDate.formattedEn} (${bsDate.formattedNp})`} />
+            <span>
+              {t(
+                `Daily Panchang & Nepali Patro — ${cityLabel}`,
+                `दैनिक पञ्चाङ्ग र नेपाली पात्रो — ${cityLabel}`
+              )}
+            </span>
+            <StatusBadge
+              tone="info"
+              label={lang === 'ne' ? bsDate.formattedNp : bsDate.formattedEn}
+            />
           </span>
         }
-        subtitle={`${panchang.vara.name} • Gregorian ${panchang.dateStr} • Solar Month: ${panchang.bikramSambat.monthName} • Elevation ${panchang.location.elevationMeters}m`}
+        subtitle={
+          lang === 'ne'
+            ? `${trVara(panchang.vara.name, 'ne')} • इ.सं. ${panchang.dateStr} • सौर महिना: ${panchang.bikramSambat.monthName} • उचाइ ${panchang.location.elevationMeters}m`
+            : `${panchang.vara.name} • Gregorian ${panchang.dateStr} • Solar Month: ${panchang.bikramSambat.monthName} • Elevation ${panchang.location.elevationMeters}m`
+        }
         actions={
           <>
-            <div className="obs-panel h-10 px-3.5 text-xs font-medium tabular-nums inline-flex items-center gap-2">
+            <div className="obs-panel h-9 px-3.5 text-xs font-medium tabular-nums inline-flex items-center gap-2">
               <Clock className="w-3.5 h-3.5 text-[var(--accent)]" />
-              <span className="text-[var(--text-secondary)]">Vedic Clock:</span>
+              <span className="text-[var(--text-secondary)]">
+                {t('Vedic Clock:', 'वैदिक घडी:')}
+              </span>
               <span className="font-semibold text-[var(--text)]">
                 {panchang.vedicClock.formatted}
               </span>
@@ -73,7 +100,7 @@ export const PanchangDashboard: React.FC<Props> = ({
                 className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
               >
                 <Scale className="w-4 h-4 text-[var(--accent)]" />
-                <span>Test Action Today</span>
+                <span>{t('Test Action Today', 'आजको शुभ साइत जाँच')}</span>
               </button>
             )}
           </>
@@ -83,45 +110,76 @@ export const PanchangDashboard: React.FC<Props> = ({
       {/* ==================== ROW 1: 4 CONTEXTUAL KPI STAT CARDS ==================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiStatCard
-          label="Lunar Day (Tithi)"
+          label={t('Lunar Day (Tithi)', 'तिथि (चन्द्र दिन)')}
           value={panchang.tithi.name}
           subvalue={panchang.tithi.paksha.split(' ')[0]}
           plainHint={
             panchang.tithi.isRikta
-              ? 'Good for clearing debts/clutter; wait on major new starts'
-              : 'Supportive lunar phase for constructive daily work'
+              ? t(
+                  'Good for clearing debts/clutter; wait on major new starts',
+                  'पुरानो ऋण/सरसफाइका लागि उत्तम; नयाँ ठूलो कार्यमा प्रतीक्षा गर्नुहोस्'
+                )
+              : t(
+                  'Supportive lunar phase for constructive daily work',
+                  'नियमित र रचनात्मक कामका लागि सहयोगी तिथि'
+                )
           }
-          benchmarkText={`${panchang.tithi.hoursRemaining} remaining (${panchang.tithi.progressPercent}%)`}
+          benchmarkText={t(
+            `${panchang.tithi.hoursRemaining} remaining (${panchang.tithi.progressPercent}%)`,
+            `${panchang.tithi.hoursRemaining} बाँकी (${panchang.tithi.progressPercent}%)`
+          )}
           status={{
             tone: panchang.tithi.isRikta ? 'mixed' : 'favorable',
-            label: panchang.tithi.isRikta ? 'Rikta (Caution)' : panchang.tithi.group.split(' ')[0],
+            label: panchang.tithi.isRikta
+              ? t('Rikta (Caution)', 'रिक्ता (सावधानी)')
+              : panchang.tithi.group.split(' ')[0],
           }}
           icon={<Calendar className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Today’s Moon Star (Nakshatra)"
-          value={panchang.nakshatra.name}
-          subvalue={`Pada ${panchang.nakshatra.pada}`}
-          plainHint={`Overall day temperament: ${panchang.nakshatra.natureGroup}`}
-          benchmarkText={`${panchang.nakshatra.hoursRemaining} remaining`}
+          label={t('Today’s Moon Star (Nakshatra)', 'आजको चन्द्र नक्षत्र')}
+          value={trNakshatra(panchang.nakshatra.name, lang)}
+          subvalue={`${t('Pada', 'चरण')} ${panchang.nakshatra.pada}`}
+          plainHint={t(
+            `Overall day temperament: ${panchang.nakshatra.natureGroup}`,
+            `नक्षत्र स्वभाव: ${panchang.nakshatra.natureGroup}`
+          )}
+          benchmarkText={t(
+            `${panchang.nakshatra.hoursRemaining} remaining`,
+            `${panchang.nakshatra.hoursRemaining} बाँकी`
+          )}
           status={{
             tone: 'info',
             label: panchang.nakshatra.natureGroup.split(' ')[0],
           }}
           icon={<Sparkles className="w-4 h-4" />}
-          actionLabel={onInspectNakshatra ? 'Read about this star' : undefined}
+          actionLabel={
+            onInspectNakshatra
+              ? t('Read about this star', 'यस नक्षत्रको विवरण')
+              : undefined
+          }
           onAction={
             onInspectNakshatra ? () => onInspectNakshatra(panchang.nakshatra.zeroIndex) : undefined
           }
         />
 
         <KpiStatCard
-          label="Your Star Harmony (Tarabala)"
-          value={panchang.personalTarabala.isAuspicious ? 'Supportive' : 'Pace Carefully'}
-          subvalue={`Tara #${panchang.personalTarabala.taraNumber}`}
-          plainHint="How today’s Moon harmonizes with your Birth Star"
-          benchmarkText={`Moon in House ${panchang.personalTarabala.chandrabalaHouse}`}
+          label={t('Your Star Harmony (Tarabala)', 'व्यक्तिगत ताराबल')}
+          value={
+            panchang.personalTarabala.isAuspicious
+              ? t('Supportive', 'अनुकूल / शुभ')
+              : t('Pace Carefully', 'संयमित गति')
+          }
+          subvalue={`${t('Tara', 'तारा')} #${panchang.personalTarabala.taraNumber}`}
+          plainHint={t(
+            'How today’s Moon harmonizes with your Birth Star',
+            'तपाईंको जन्म नक्षत्रसँग आजको चन्द्रमाको तालमेल'
+          )}
+          benchmarkText={t(
+            `Moon in House ${panchang.personalTarabala.chandrabalaHouse}`,
+            `चन्द्रबल भाव ${panchang.personalTarabala.chandrabalaHouse}`
+          )}
           status={{
             tone: panchang.personalTarabala.isChandrashtama
               ? 'avoid'
@@ -129,22 +187,33 @@ export const PanchangDashboard: React.FC<Props> = ({
               ? 'optimal'
               : 'mixed',
             label: panchang.personalTarabala.isChandrashtama
-              ? 'Moon in 8th (Rest)'
+              ? t('Moon in 8th (Rest)', 'चन्द्राष्टम (विश्राम)')
               : panchang.personalTarabala.isAuspicious
-              ? 'Favorable'
-              : 'Use Best Hours',
+              ? t('Favorable', 'सहयोगी')
+              : t('Use Best Hours', 'शुभ होरा रोज्नुहोस्'),
           }}
           icon={<Compass className="w-4 h-4" />}
         />
 
         <KpiStatCard
-          label="Travel & Sky Caution"
-          value={`Avoid ${panchang.dishashoola.forbiddenDirection}`}
-          plainHint="Direction with extra travel friction today"
-          benchmarkText={`Daylight: ${panchang.dinamanaHours}`}
+          label={t('Travel & Sky Caution', 'यात्रा र दिशाशूल')}
+          value={t(
+            `Avoid ${panchang.dishashoola.forbiddenDirection}`,
+            `${panchang.dishashoola.forbiddenDirection} दिशा परहेज`
+          )}
+          plainHint={t(
+            'Direction with extra travel friction today',
+            'आज यात्रामा अतिरिक्त अवरोध हुन सक्ने दिशा'
+          )}
+          benchmarkText={t(
+            `Daylight: ${panchang.dinamanaHours}`,
+            `दिनमान: ${panchang.dinamanaHours}`
+          )}
           status={{
             tone: panchang.panchaka.isActive ? 'avoid' : 'favorable',
-            label: panchang.panchaka.isActive ? 'Panchaka Active' : 'Sky Clear',
+            label: panchang.panchaka.isActive
+              ? t('Panchaka Active', 'पञ्चक सक्रिय')
+              : t('Sky Clear', 'शुद्ध आकाश'),
           }}
           icon={<ShieldAlert className="w-4 h-4" />}
         />
@@ -164,21 +233,28 @@ export const PanchangDashboard: React.FC<Props> = ({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
-                Active Horai Right Now
+                {t('Active Horai Right Now', 'अहिले चलिरहेको प्रत्यक्ष होरा')}
               </span>
-              <StatusBadge tone={panchang.activeHorai.tone} label={panchang.activeHorai.quality} />
+              <StatusBadge tone={panchang.activeHorai.tone} label={activeHoraiLoc.quality} />
               <span className="text-xs font-semibold tabular-nums text-[var(--text-secondary)]">
                 {panchang.activeHorai.startTime}–{panchang.activeHorai.endTime} (
-                {panchang.activeHorai.minutesRemaining}m left)
+                {panchang.activeHorai.minutesRemaining}
+                {t('m left', ' मिनेट बाँकी')})
               </span>
             </div>
             <h2 className="text-lg font-extrabold text-[var(--text)] mt-0.5">
-              {panchang.activeHorai.horaiName} ({panchang.activeHorai.lord}) • Active Gowri:{' '}
-              {panchang.activeGowri.name}
+              {activeHoraiLoc.horaiName} ({activeHoraiLoc.lordLabel}) •{' '}
+              {t('Active Gowri:', 'सक्रिय गौरी:')} {trGowriName(panchang.activeGowri.name, lang)}
             </h2>
             <p className="text-sm text-[var(--text-secondary)] tabular-nums">
-              Nalla Neram Today: <strong>{panchang.nallaNeram[0].startTime}–{panchang.nallaNeram[0].endTime}</strong>{' '}
-              &amp; <strong>{panchang.nallaNeram[1].startTime}–{panchang.nallaNeram[1].endTime}</strong>
+              {t('Nalla Neram Today:', 'आजको शुभ अमृत समय (नल्ल नेरम):')}{' '}
+              <strong>
+                {panchang.nallaNeram[0].startTime}–{panchang.nallaNeram[0].endTime}
+              </strong>{' '}
+              &amp;{' '}
+              <strong>
+                {panchang.nallaNeram[1].startTime}–{panchang.nallaNeram[1].endTime}
+              </strong>
             </p>
           </div>
         </div>
@@ -190,7 +266,7 @@ export const PanchangDashboard: React.FC<Props> = ({
             className="btn-editorial-primary text-sm inline-flex items-center gap-2"
           >
             <Clock className="w-4 h-4" />
-            <span>Open 24-Petal Horai Flower Clock</span>
+            <span>{t('Open 24-Petal Horai Flower Clock', '२४-पत्र होरा कमल घडी खोल्नुहोस्')}</span>
           </button>
         )}
       </div>
@@ -200,15 +276,18 @@ export const PanchangDashboard: React.FC<Props> = ({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-bold text-[var(--text)]">
-              Daylight Auspicious &amp; Caution Windows
+              {t('Daylight Auspicious & Caution Windows', 'दिवाकालीन शुभ मुहूर्त र राहुकाल समयरेखा')}
             </h2>
             <p className="text-xs text-[var(--text-muted)] tabular-nums">
-              Proportional solar octants computed for {cleanCityName(panchang.location.name)} (
-              {panchang.location.latitude.toFixed(2)}°N, {panchang.location.longitude.toFixed(2)}°E)
+              {t(
+                `Proportional solar octants computed for ${cityLabel} (${panchang.location.latitude.toFixed(2)}°N, ${panchang.location.longitude.toFixed(2)}°E)`,
+                `${cityLabel} (${panchang.location.latitude.toFixed(2)}°N, ${panchang.location.longitude.toFixed(2)}°E) को सूर्योदय–सूर्यास्त अनुपात अनुसार गणना`
+              )}
             </p>
           </div>
           <span className="text-xs font-medium text-[var(--text-secondary)]">
-            Chandra: {panchang.moonSign} • Surya: {panchang.sunSign}
+            {t('Chandra:', 'चन्द्र राशि:')} {trSign(panchang.moonSign, lang)} •{' '}
+            {t('Surya:', 'सूर्य राशि:')} {trSign(panchang.sunSign, lang)}
           </span>
         </div>
 
@@ -229,22 +308,22 @@ export const PanchangDashboard: React.FC<Props> = ({
             items={[
               {
                 id: 'HORAI_GOWRI',
-                label: '24h Horai & Gowri Time',
+                label: t('24h Horai & Gowri Time', 'होरा र गौरी पञ्चाङ्गम्'),
                 count: 24,
               },
               {
                 id: 'CHOGHADIYA',
-                label: 'Muhurats & 16 Choghadiyas',
+                label: t('Muhurats & 16 Choghadiyas', 'मुहूर्त र १६ चौघडिया'),
                 count: panchang.muhurats.length,
               },
               {
                 id: 'FIVE_ANGAS',
-                label: 'Five Angas Breakdown',
+                label: t('Five Angas Breakdown', 'पञ्चाङ्गका ५ अङ्ग'),
                 count: 5,
               },
               {
                 id: 'ALERTS',
-                label: 'Special Yogas, Panchaka & Remedies',
+                label: t('Special Yogas, Panchaka & Remedies', 'विशेष योग, पञ्चक र उपाय'),
                 count: panchang.specialYogas.length + 2,
               },
             ]}
@@ -257,7 +336,10 @@ export const PanchangDashboard: React.FC<Props> = ({
             <div className="lg:col-span-7 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-[var(--text)]">
-                  Daytime 12 Horai Planetary Hours ({panchang.sunriseTime} – {panchang.sunsetTime})
+                  {t(
+                    `Daytime 12 Horai Planetary Hours (${panchang.sunriseTime} – ${panchang.sunsetTime})`,
+                    `दिवाकालीन १२ ग्रह होरा (${panchang.sunriseTime} – ${panchang.sunsetTime})`
+                  )}
                 </h3>
                 {onOpenHoraiStudio && (
                   <button
@@ -265,48 +347,54 @@ export const PanchangDashboard: React.FC<Props> = ({
                     onClick={onOpenHoraiStudio}
                     className="text-xs font-bold text-[var(--accent)] hover:underline"
                   >
-                    Interactive Night Horai + Flower Wheel →
+                    {t(
+                      'Interactive Night Horai + Flower Wheel →',
+                      'रात्रि होरा र २४-पत्र कमल चक्र हेर्नुहोस् →'
+                    )}
                   </button>
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {panchang.dayHorai.map((h) => (
-                  <div
-                    key={h.slotNumber}
-                    className={`p-3 rounded-xl border flex items-start justify-between gap-2 ${
-                      h.isActiveNow
-                        ? 'border-[var(--accent)] bg-[var(--accent-bg)] ring-1 ring-[var(--accent)]'
-                        : 'border-[var(--border)] bg-[var(--surface-muted)]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <SacredFlowerIcon
-                        variety={h.sacredFlower.variety}
-                        primaryHex={h.sacredFlower.primaryHex}
-                        secondaryHex={h.sacredFlower.secondaryHex}
-                        size={24}
-                        animated={h.isActiveNow}
-                      />
-                      <div>
-                        <div className="text-sm font-bold text-[var(--text)]">
-                          {h.horaiName}
-                        </div>
-                        <div className="text-xs text-[var(--text-secondary)]">
-                          {h.quality}
+                {panchang.dayHorai.map((h) => {
+                  const hLoc = trHoraiDisplay(h, lang);
+                  return (
+                    <div
+                      key={h.slotNumber}
+                      className={`p-3 rounded-xl border flex items-start justify-between gap-2 ${
+                        h.isActiveNow
+                          ? 'border-[var(--accent)] bg-[var(--accent-bg)] ring-1 ring-[var(--accent)]'
+                          : 'border-[var(--border)] bg-[var(--surface-muted)]'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <SacredFlowerIcon
+                          variety={h.sacredFlower.variety}
+                          primaryHex={h.sacredFlower.primaryHex}
+                          secondaryHex={h.sacredFlower.secondaryHex}
+                          size={24}
+                          animated={h.isActiveNow}
+                        />
+                        <div>
+                          <div className="text-sm font-bold text-[var(--text)]">
+                            {hLoc.horaiName}
+                          </div>
+                          <div className="text-xs text-[var(--text-secondary)]">
+                            {hLoc.quality}
+                          </div>
                         </div>
                       </div>
+                      <span className="font-mono text-xs font-bold text-[var(--text)] whitespace-nowrap">
+                        {h.startTime}–{h.endTime}
+                      </span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-[var(--text)] whitespace-nowrap">
-                      {h.startTime}–{h.endTime}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
             <div className="lg:col-span-5 space-y-3">
               <h3 className="text-sm font-bold text-[var(--text)]">
-                Day Gowri Panchangam (8 Solar Octants)
+                {t('Day Gowri Panchangam (8 Solar Octants)', 'दिवा गौरी पञ्चाङ्गम् (८ सौर खण्ड)')}
               </h3>
               <div className="space-y-2">
                 {panchang.dayGowri.map((g) => (
@@ -321,7 +409,7 @@ export const PanchangDashboard: React.FC<Props> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-[var(--text)]">
-                          {g.name} ({g.tamilLabel})
+                          {trGowriName(g.name, lang)}
                         </span>
                         <StatusBadge tone={g.tone} label={g.nature} />
                       </div>
@@ -345,7 +433,7 @@ export const PanchangDashboard: React.FC<Props> = ({
             {/* Key Muhurat Slots */}
             <div className="lg:col-span-5 space-y-3">
               <h3 className="text-sm font-bold text-[var(--text)]">
-                Key Solar &amp; Lunar Muhurat Windows
+                {t('Key Solar & Lunar Muhurat Windows', 'प्रमुख सौर र चन्द्र मुहूर्त समय')}
               </h3>
               <div className="space-y-2.5">
                 {panchang.muhurats.map((m) => (
@@ -364,7 +452,13 @@ export const PanchangDashboard: React.FC<Props> = ({
                               ? 'avoid'
                               : 'info'
                           }
-                          label={m.category}
+                          label={
+                            m.category === 'Auspicious'
+                              ? t('Auspicious', 'शुभ')
+                              : m.category === 'Inauspicious'
+                              ? t('Inauspicious', 'अशुभ / त्याज्य')
+                              : m.category
+                          }
                         />
                       </div>
                       <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
@@ -383,7 +477,10 @@ export const PanchangDashboard: React.FC<Props> = ({
             <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2.5">
                 <h3 className="text-sm font-bold text-[var(--text)]">
-                  Day Choghadiya ({panchang.sunriseTime} – {panchang.sunsetTime})
+                  {t(
+                    `Day Choghadiya (${panchang.sunriseTime} – ${panchang.sunsetTime})`,
+                    `दिवा चौघडिया (${panchang.sunriseTime} – ${panchang.sunsetTime})`
+                  )}
                 </h3>
                 <div className="space-y-1.5">
                   {panchang.dayChoghadiya.map((c, idx) => (
@@ -397,7 +494,9 @@ export const PanchangDashboard: React.FC<Props> = ({
                     >
                       <div className="flex items-center gap-2">
                         <StatusBadge tone={choghadiyaTone(c.nature)} label={c.name} />
-                        <span className="text-[var(--text-secondary)]">{c.ruler}</span>
+                        <span className="text-[var(--text-secondary)]">
+                          {trPlanet(c.ruler, lang)}
+                        </span>
                       </div>
                       <span className="font-mono text-[var(--text)] font-medium">
                         {c.startTime}–{c.endTime}
@@ -409,7 +508,7 @@ export const PanchangDashboard: React.FC<Props> = ({
 
               <div className="space-y-2.5">
                 <h3 className="text-sm font-bold text-[var(--text)]">
-                  Night Choghadiya (Sunset – Next Sunrise)
+                  {t('Night Choghadiya (Sunset – Next Sunrise)', 'रात्रि चौघडिया (सूर्यास्त – अर्को सूर्योदय)')}
                 </h3>
                 <div className="space-y-1.5">
                   {panchang.nightChoghadiya.map((c, idx) => (
@@ -423,7 +522,9 @@ export const PanchangDashboard: React.FC<Props> = ({
                     >
                       <div className="flex items-center gap-2">
                         <StatusBadge tone={choghadiyaTone(c.nature)} label={c.name} />
-                        <span className="text-[var(--text-secondary)]">{c.ruler}</span>
+                        <span className="text-[var(--text-secondary)]">
+                          {trPlanet(c.ruler, lang)}
+                        </span>
                       </div>
                       <span className="font-mono text-[var(--text)] font-medium">
                         {c.startTime}–{c.endTime}
@@ -441,7 +542,9 @@ export const PanchangDashboard: React.FC<Props> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="obs-panel p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
-                <div className="text-xs font-medium text-[var(--text-muted)]">1. Tithi (Lunar Day)</div>
+                <div className="text-xs font-medium text-[var(--text-muted)]">
+                  {t('1. Tithi (Lunar Day)', '१. तिथि')}
+                </div>
                 <div className="text-lg font-bold text-[var(--text)]">{panchang.tithi.name}</div>
                 <div className="text-xs text-[var(--accent)] font-medium">{panchang.tithi.paksha}</div>
                 <div className="text-xs text-[var(--text-secondary)]">{panchang.tithi.group}</div>
@@ -462,12 +565,16 @@ export const PanchangDashboard: React.FC<Props> = ({
 
             <div className="obs-panel p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
-                <div className="text-xs font-medium text-[var(--text-muted)]">2. Nakshatra</div>
+                <div className="text-xs font-medium text-[var(--text-muted)]">
+                  {t('2. Nakshatra', '२. नक्षत्र')}
+                </div>
                 <div className="text-lg font-bold text-[var(--text)]">
-                  {panchang.nakshatra.name} (P{panchang.nakshatra.pada})
+                  {trNakshatra(panchang.nakshatra.name, lang)} ({t('P', 'चरण ')}
+                  {panchang.nakshatra.pada})
                 </div>
                 <div className="text-xs text-[var(--text-secondary)]">
-                  Lord: {panchang.nakshatra.ruler} • {panchang.nakshatra.natureGroup}
+                  {t('Lord:', 'स्वामी:')} {trPlanet(panchang.nakshatra.ruler, lang)} •{' '}
+                  {panchang.nakshatra.natureGroup}
                 </div>
                 <div className="text-xs text-[var(--text-muted)]">
                   {panchang.nakshatra.mukhaGaze}
@@ -489,47 +596,61 @@ export const PanchangDashboard: React.FC<Props> = ({
 
             <div className="obs-panel p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
-                <div className="text-xs font-medium text-[var(--text-muted)]">3. Nitya Yoga</div>
+                <div className="text-xs font-medium text-[var(--text-muted)]">
+                  {t('3. Nitya Yoga', '३. नित्य योग')}
+                </div>
                 <div className="text-lg font-bold text-[var(--text)]">{panchang.yoga.name}</div>
                 <div className="text-xs text-[var(--text-secondary)]">
-                  Yoga #{panchang.yoga.index} of 27
+                  {t(`Yoga #${panchang.yoga.index} of 27`, `योग #${panchang.yoga.index} / २७`)}
                 </div>
                 <StatusBadge
                   tone={panchang.yoga.isMaleficYoga ? 'mixed' : 'favorable'}
-                  label={panchang.yoga.isMaleficYoga ? 'Sharp / Caution' : 'Benefic Yoga'}
+                  label={
+                    panchang.yoga.isMaleficYoga
+                      ? t('Sharp / Caution', 'तीक्ष्ण / सावधानी')
+                      : t('Benefic Yoga', 'शुभ योग')
+                  }
                 />
               </div>
               <div className="text-[11px] font-mono text-[var(--text-muted)]">
-                {panchang.yoga.progressPercent}% elapsed
+                {panchang.yoga.progressPercent}% {t('elapsed', 'पूरा')}
               </div>
             </div>
 
             <div className="obs-panel p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
                 <div className="text-xs font-medium text-[var(--text-muted)]">
-                  4. Karana (Half-Tithi)
+                  {t('4. Karana (Half-Tithi)', '४. करण (अर्ध-तिथि)')}
                 </div>
                 <div className="text-lg font-bold text-[var(--text)]">{panchang.karana.name}</div>
                 <StatusBadge
                   tone={panchang.karana.isBhadraVishti ? 'avoid' : 'favorable'}
-                  label={panchang.karana.isBhadraVishti ? 'Vishti Bhadra' : panchang.karana.nature}
+                  label={
+                    panchang.karana.isBhadraVishti
+                      ? t('Vishti Bhadra', 'भद्रा (विष्टि)')
+                      : panchang.karana.nature
+                  }
                 />
               </div>
               <div className="text-[11px] font-mono text-[var(--text-muted)]">
-                Daylight: {panchang.dinamanaHours}
+                {t('Daylight:', 'दिनमान:')} {panchang.dinamanaHours}
               </div>
             </div>
 
             <div className="obs-panel p-4 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
-                <div className="text-xs font-medium text-[var(--text-muted)]">5. Vara (Solar Day)</div>
-                <div className="text-lg font-bold text-[var(--text)]">{panchang.vara.name}</div>
+                <div className="text-xs font-medium text-[var(--text-muted)]">
+                  {t('5. Vara (Solar Day)', '५. वार (सौर दिन)')}
+                </div>
+                <div className="text-lg font-bold text-[var(--text)]">
+                  {trVara(panchang.vara.name, lang)}
+                </div>
                 <div className="text-xs text-[var(--accent)] font-medium">
-                  Ruler: {panchang.vara.lord}
+                  {t('Ruler:', 'स्वामी:')} {trPlanet(panchang.vara.lord, lang)}
                 </div>
               </div>
               <div className="text-[11px] font-mono text-[var(--text-muted)]">
-                Moon: {panchang.moonSign}
+                {t('Moon:', 'चन्द्र राशि:')} {trSign(panchang.moonSign, lang)}
               </div>
             </div>
           </div>
@@ -542,8 +663,10 @@ export const PanchangDashboard: React.FC<Props> = ({
             <div className="obs-panel p-5 flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-1.5 max-w-3xl">
                 <div className="text-base font-bold text-[var(--text)]">
-                  Personal Star Harmony Verdict: Tara #{panchang.personalTarabala.taraNumber} (
-                  {panchang.personalTarabala.taraName})
+                  {t(
+                    `Personal Star Harmony Verdict: Tara #${panchang.personalTarabala.taraNumber} (${panchang.personalTarabala.taraName})`,
+                    `व्यक्तिगत ताराबल निर्णय: तारा #${panchang.personalTarabala.taraNumber} (${panchang.personalTarabala.taraName})`
+                  )}
                 </div>
                 <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
                   {panchang.personalTarabala.verdict}
@@ -552,7 +675,9 @@ export const PanchangDashboard: React.FC<Props> = ({
               <StatusBadge
                 tone={panchang.personalTarabala.isAuspicious ? 'optimal' : 'mixed'}
                 label={
-                  panchang.personalTarabala.isAuspicious ? 'Supportive Today' : 'Use Best Hours'
+                  panchang.personalTarabala.isAuspicious
+                    ? t('Supportive Today', 'आज अनुकूल')
+                    : t('Use Best Hours', 'शुभ होरा छान्नुहोस्')
                 }
               />
             </div>
@@ -561,12 +686,14 @@ export const PanchangDashboard: React.FC<Props> = ({
               {/* Special Vara-Nakshatra Yogas */}
               <div className="obs-panel p-4 space-y-2.5">
                 <div className="text-xs font-bold text-[var(--text)]">
-                  Vara-Nakshatra Special Yogas
+                  {t('Vara-Nakshatra Special Yogas', 'वार-नक्षत्र विशेष योग')}
                 </div>
                 {panchang.specialYogas.length === 0 ? (
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    No rare Vara-Nakshatra Siddhi or Dagdha conjunctions are active today; rely on
-                    primary Tithi, Tarabala, and Choghadiya windows.
+                    {t(
+                      'No rare Vara-Nakshatra Siddhi or Dagdha conjunctions are active today; rely on primary Tithi, Tarabala, and Choghadiya windows.',
+                      'आज कुनै विशेष सिद्धि वा दग्ध योग सक्रिय छैन; मुख्य तिथि, ताराबल र शुभ होराका आधारमा कार्य अघि बढाउनुहोस्।'
+                    )}
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -601,11 +728,15 @@ export const PanchangDashboard: React.FC<Props> = ({
               <div className="obs-panel p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold text-[var(--text)]">
-                    Dhanishtha Panchaka Rule
+                    {t('Dhanishtha Panchaka Rule', 'धनिष्ठा पञ्चक नियम')}
                   </span>
                   <StatusBadge
                     tone={panchang.panchaka.isActive ? 'avoid' : 'optimal'}
-                    label={panchang.panchaka.isActive ? 'Active' : 'Clear'}
+                    label={
+                      panchang.panchaka.isActive
+                        ? t('Active', 'सक्रिय')
+                        : t('Clear', 'शुद्ध')
+                    }
                   />
                 </div>
                 <div className="text-sm font-semibold text-[var(--text)]">
@@ -620,11 +751,14 @@ export const PanchangDashboard: React.FC<Props> = ({
               <div className="obs-panel p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold text-[var(--text)]">
-                    Dishashoola Travel Rule
+                    {t('Dishashoola Travel Rule', 'दिशाशूल यात्रा नियम')}
                   </span>
                   <StatusBadge
                     tone="mixed"
-                    label={`Avoid ${panchang.dishashoola.forbiddenDirection}`}
+                    label={t(
+                      `Avoid ${panchang.dishashoola.forbiddenDirection}`,
+                      `${panchang.dishashoola.forbiddenDirection} परहेज`
+                    )}
                   />
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
@@ -633,7 +767,8 @@ export const PanchangDashboard: React.FC<Props> = ({
                 <div className="pt-2 border-t border-[var(--border)] flex items-start gap-2 text-xs text-[var(--text)]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[var(--sage)] shrink-0 mt-0.5" />
                   <span>
-                    <strong>Parihara:</strong> {panchang.dishashoola.pariharaRemedy}
+                    <strong>{t('Parihara:', 'परिहार उपाय:')}</strong>{' '}
+                    {panchang.dishashoola.pariharaRemedy}
                   </span>
                 </div>
               </div>
