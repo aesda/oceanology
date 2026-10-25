@@ -12,6 +12,13 @@ import {
   ArrowRight,
   ShieldCheck,
   Printer,
+  Briefcase,
+  Coins,
+  Heart,
+  Activity,
+  Award,
+  Layers,
+  Clock,
 } from 'lucide-react';
 import { AyanamshaMode, BirthProfile, HouseSystem } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
@@ -21,24 +28,25 @@ import { NumerologyReport } from '../engines/numerologyEngine';
 import { CosmicSynthesisReport } from '../engines/synthesisEngine';
 import { gregorianToBikramSambat } from '../engines/locationAtlas';
 import { getNakshatraTreatiseByIndex } from '../data/nakshatraCodex';
-import { PLANET_TREATISES } from '../data/classicalCompendium';
 import {
   evaluateActionConsequence,
   LIFE_ACTIONS,
   scanUpcomingBestWindows,
 } from '../data/karmaAndMuhurtaCodex';
+import { generateDeepLifeReport } from '../engines/deepLifeReportEngine';
 import {
   buildLocalizedPersonalSummary,
   formatCityForLang,
   formatCountryForLang,
+  formatDisplayDate,
   trActionTitle,
   trDashaGuide,
+  trDignity,
   trGowriName,
   trHoraiDisplay,
   trHouseGuide,
   trNakshatra,
   trPlanet,
-  trPlanetRole,
   trSign,
   useLanguage,
 } from '../i18n/i18n';
@@ -95,6 +103,7 @@ export const PersonalReportReader: React.FC<Props> = ({
   const { lang, t } = useLanguage();
   const [pdfBusy, setPdfBusy] = useState<'NONE' | 'DOWNLOAD' | 'PREVIEW'>('NONE');
   const [pdfStatusMsg, setPdfStatusMsg] = useState<string | null>(null);
+  const [readingMode, setReadingMode] = useState<'FULL' | 'SUMMARY'>('FULL');
 
   const bsBirth = useMemo(
     () => gregorianToBikramSambat(profile.year, profile.month, profile.day),
@@ -104,6 +113,20 @@ export const PersonalReportReader: React.FC<Props> = ({
   const plainSummary = useMemo(
     () =>
       buildLocalizedPersonalSummary(
+        profile,
+        natalChart,
+        vedicReport,
+        panchangReport,
+        numerologyReport,
+        synthesisReport,
+        lang
+      ),
+    [profile, natalChart, vedicReport, panchangReport, numerologyReport, synthesisReport, lang]
+  );
+
+  const deepReport = useMemo(
+    () =>
+      generateDeepLifeReport(
         profile,
         natalChart,
         vedicReport,
@@ -210,7 +233,7 @@ export const PersonalReportReader: React.FC<Props> = ({
       });
       setPdfStatusMsg(
         t(
-          'Opened full multi-page PDF report in a new tab.',
+          'Opened full multi-page PDF dossier in a new tab.',
           'नयाँ ट्याबमा बहु-पृष्ठ PDF रिपोर्ट खोलियो।'
         )
       );
@@ -226,19 +249,20 @@ export const PersonalReportReader: React.FC<Props> = ({
   };
 
   const pad2 = (n: number) => String(n).padStart(2, '0');
+  const isFull = readingMode === 'FULL';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12 animate-bloom-in">
-      {/* ==================== TOP DOSSIER HERO & PDF EXPORT CARD ==================== */}
-      <section className="obs-card p-6 sm:p-8 space-y-6 border-t-4 border-t-[var(--accent)]">
+    <div className="max-w-5xl mx-auto space-y-8 pb-14 animate-bloom-in">
+      {/* ==================== TOP PRODUCT DOSSIER HERO & SCORECARD ==================== */}
+      <section className="obs-card p-5 sm:p-8 space-y-6 border-t-4 border-t-[var(--accent)]">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2 min-w-0">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 obs-badge-brass text-xs font-semibold">
-              <SacredFlowerIcon variety="lotus" primaryHex="#6366F1" secondaryHex="#E0E7FF" size={16} />
+              <SacredFlowerIcon variety="lotus" primaryHex="#4F46E5" secondaryHex="#E0E7FF" size={16} />
               <span>
                 {t(
-                  'Easy-to-Read Personal Horoscope & Multi-Page PDF Dossier',
-                  'सरल व्यक्तिगत जन्म कुण्डली फलादेश र बहु-पृष्ठ PDF रिपोर्ट'
+                  'Comprehensive Personal Life Dossier • Classical Jyotish + Numerology',
+                  'बृहत् व्यक्तिगत जीवन फलादेश • शास्त्रीय ज्योतिष र अंक विज्ञान'
                 )}
               </span>
             </div>
@@ -247,7 +271,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               {profile.firstName} {profile.middleName} {profile.lastName}
             </h1>
 
-            <p className="text-base text-[var(--text-secondary)] leading-relaxed tabular-nums">
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed tabular-nums">
               {lang === 'ne' ? (
                 <>
                   जन्म मिति:{' '}
@@ -261,7 +285,8 @@ export const PersonalReportReader: React.FC<Props> = ({
                       : `${pad2(profile.hour)}:${pad2(profile.minute)}`}
                   </strong>{' '}
                   • स्थान: <strong className="text-[var(--text)]">{cityDisplay}</strong>,{' '}
-                  {countryDisplay} (वि.सं. {bsBirth.formattedNp})
+                  {countryDisplay} ({bsBirth.formattedNp}) • उमेर:{' '}
+                  <strong className="text-[var(--text)]">{deepReport.currentAge} वर्ष</strong>
                 </>
               ) : (
                 <>
@@ -276,7 +301,8 @@ export const PersonalReportReader: React.FC<Props> = ({
                       : `${pad2(profile.hour)}:${pad2(profile.minute)}`}
                   </strong>{' '}
                   in <strong className="text-[var(--text)]">{cityDisplay}</strong>, {countryDisplay}{' '}
-                  (Nepali B.S. {bsBirth.formattedEn})
+                  ({bsBirth.formattedEn}) • Age{' '}
+                  <strong className="text-[var(--text)]">{deepReport.currentAge}</strong>
                 </>
               )}
             </p>
@@ -285,28 +311,126 @@ export const PersonalReportReader: React.FC<Props> = ({
           <button
             type="button"
             onClick={onEditProfile}
-            className="btn-editorial-secondary inline-flex items-center gap-2 text-sm no-print"
+            className="btn-editorial-secondary inline-flex items-center gap-2 text-sm no-print shrink-0"
           >
             <Sliders className="w-4 h-4 text-[var(--accent)]" />
             <span>{t('Change Birth Details', 'जन्म विवरण सच्याउनुहोस्')}</span>
           </button>
         </div>
 
-        {/* Prominent PDF Export Action Box */}
-        <div className="obs-panel p-5 space-y-4 no-print">
-          <div className="space-y-1">
-            <div className="text-base font-bold text-[var(--text)]">
+        {deepReport.unknownBirthTimeNote && (
+          <div className="p-4 rounded-xl bg-[var(--amber-bg)] border border-[var(--amber)]/30 text-sm text-[var(--text)] leading-relaxed">
+            <strong className="text-[var(--amber)]">
+              {t('Note on Unknown Birth Time:', 'जन्म समय सम्बन्धी जानकारी:')}
+            </strong>{' '}
+            {deepReport.unknownBirthTimeNote}
+          </div>
+        )}
+
+        {/* 5-Domain Life Readiness Scorecard */}
+        <div className="space-y-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
               {t(
-                'Want a clean printable copy with all charts, tables & explanations?',
-                'सबै कुण्डली चार्ट, तालिका र व्याख्यासहित प्रिन्ट वा PDF सेभ गर्न चाहनुहुन्छ?'
+                'Five-Domain Life Blueprint Scorecard (Synthesized from BPHS, Jaimini & Uttara Kalamrita)',
+                'पञ्च-क्षेत्र जीवन क्षमता सूचकाङ्क (पाराशर, जैमिनी र उत्तरकालामृत सूत्रमा आधारित)'
               )}
+            </h2>
+            <span className="text-xs font-semibold text-[var(--accent)] tabular-nums">
+              {t(
+                `Overall Chart Harmony: ${synthesisReport.overallResonanceScore}/100`,
+                `समग्र कुण्डली सामञ्जस्य: ${synthesisReport.overallResonanceScore}/100`
+              )}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {deepReport.domainScorecard.map((dom) => (
+              <div
+                key={dom.id}
+                className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] p-3.5 flex flex-col justify-between gap-2.5 min-w-0"
+              >
+                <div className="space-y-2 min-w-0">
+                  <div className="text-xs font-semibold text-[var(--text-secondary)] truncate">
+                    {dom.title}
+                  </div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-2xl font-bold text-[var(--text)] tabular-nums leading-none">
+                      {dom.score}
+                      <span className="text-xs font-medium text-[var(--text-muted)]">/100</span>
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        dom.tone === 'optimal'
+                          ? 'bg-[var(--sage)]'
+                          : dom.tone === 'favorable'
+                          ? 'bg-[var(--accent)]'
+                          : 'bg-[var(--amber)]'
+                      }`}
+                      style={{ width: `${dom.score}%` }}
+                    />
+                  </div>
+                  <div>
+                    <StatusBadge tone={dom.tone} label={dom.verdictLabel} />
+                  </div>
+                </div>
+                <p className="text-xs text-[var(--text-secondary)] font-medium leading-snug line-clamp-2">
+                  {dom.summary}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Export & Reading Depth Controls */}
+        <div className="obs-panel p-4 sm:p-5 space-y-4 no-print">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1 max-w-2xl min-w-0">
+              <div className="text-base font-bold text-[var(--text)]">
+                {t(
+                  'Download Your Complete Multi-Page Product Dossier (.PDF) or Choose Reading Depth',
+                  'पूर्ण बहु-पृष्ठ PDF पुस्तक डाउनलोड गर्नुहोस् वा अध्ययन मोड छान्नुहोस्'
+                )}
+              </div>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {t(
+                  'Includes all 10 chapters: Career & D10 Dikpala, Indu Lagna Wealth, Upapada Marriage & Spouse Portrait, Ayurvedic Constitution, Turning-Point Ages (16–48), Live Sade Sati / Guru Transits, Cheiro Numerology, and Vector Kundali Charts.',
+                  'करियर र D10, इन्दु लग्न धन योग, विवाह र दाराकारक, आयुर्वेदिक प्रकृति, उमेर १६–४८ का मोडहरू, साढेसाती/गुरु गोचर र कुण्डली चार्टसहित पूर्ण प्रतिवेदन।'
+                )}
+              </p>
             </div>
-            <p className="text-sm text-[var(--text-secondary)]">
-              {t(
-                'Generates an 8-section vector PDF including your D1 & D9 Kundali diagrams, plain-English reading, planetary table, 12-house strengths, Dasha dates, and upcoming best days.',
-                'लग्न र नवांश (D1/D9) कुण्डली चार्ट, ग्रह तालिका, १२ भावको बल, विंशोत्तरी दशा र शुभ मितिहरूसहित पूर्ण रिपोर्ट डाउनलोड वा प्रिन्ट गर्नुहोस्।'
-              )}
-            </p>
+
+            {/* Reading Depth Toggle */}
+            <div
+              role="group"
+              aria-label="Reading depth selector"
+              className="flex flex-wrap p-1 rounded-lg bg-[var(--surface)] border border-[var(--border)] max-w-full"
+            >
+              <button
+                type="button"
+                onClick={() => setReadingMode('FULL')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
+                  isFull
+                    ? 'bg-[var(--accent-bg)] text-[var(--accent)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                }`}
+              >
+                {t('Full 10-Chapter Dossier', 'पूर्ण १०-अध्याय रिपोर्ट')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setReadingMode('SUMMARY')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
+                  !isFull
+                    ? 'bg-[var(--accent-bg)] text-[var(--accent)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                }`}
+              >
+                {t('5-Min Layman Summary', '५-मिनेट सरल सारांश')}
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -320,7 +444,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               <span>
                 {pdfBusy === 'DOWNLOAD'
                   ? t('Building PDF…', 'PDF बन्दैछ…')
-                  : t('Download Full PDF (.pdf)', 'पूर्ण PDF डाउनलोड (.pdf)')}
+                  : t('Download Full PDF Dossier (.pdf)', 'पूर्ण PDF रिपोर्ट डाउनलोड (.pdf)')}
               </span>
             </button>
 
@@ -334,7 +458,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               <span>
                 {pdfBusy === 'PREVIEW'
                   ? t('Opening…', 'खुल्दैछ…')
-                  : t('View PDF in Browser', 'ब्राउजरमा PDF हेर्नुहोस्')}
+                  : t('Preview PDF in Browser', 'ब्राउजरमा PDF हेर्नुहोस्')}
               </span>
             </button>
 
@@ -344,7 +468,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               className="btn-editorial-secondary inline-flex items-center gap-2 text-sm"
             >
               <Printer className="w-4 h-4 text-[var(--accent)]" />
-              <span>{t('Print Page', 'यो पृष्ठ प्रिन्ट / सेभ')}</span>
+              <span>{t('Print Dossier', 'यो पृष्ठ प्रिन्ट / सेभ')}</span>
             </button>
           </div>
         </div>
@@ -356,52 +480,54 @@ export const PersonalReportReader: React.FC<Props> = ({
           </div>
         )}
 
-        {/* Quick Chapter Jump Links */}
+        {/* Chapter Table of Contents Jump Bar */}
         <nav
           aria-label="Report chapters"
-          className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)] text-sm no-print"
+          className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)] text-xs sm:text-sm no-print"
         >
           {[
-            { href: '#rep-takeaways', label: t('1. Key Takeaways', '१. मुख्य सारांश') },
-            { href: '#rep-plain-reading', label: t('2. Plain-English Reading', '२. सरल फलादेश') },
-            { href: '#rep-charts', label: t('3. Kundali & Natal Charts', '३. कुण्डली चार्टहरू') },
-            { href: '#rep-planets', label: t('4. Your 9 Planets', '४. नवग्रह फल') },
-            { href: '#rep-birthstar', label: t('5. Birth Star Guide', '५. जन्म नक्षत्र') },
-            { href: '#rep-houses-dasha', label: t('6. Life Areas & Timeline', '६. १२ भाव र दशा') },
-            { href: '#rep-timing', label: t('7. Best Dates & Remedies', '७. शुभ मिति र उपाय') },
-          ].map((ch) => (
-            <a
-              key={ch.href}
-              href={ch.href}
-              className="px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--accent-bg)] hover:text-[var(--accent)] text-[var(--text-secondary)] font-medium transition"
-            >
-              {ch.label}
-            </a>
-          ))}
+            { href: '#rep-takeaways', label: t('1. Executive Summary', '१. मुख्य सारांश'), show: true },
+            { href: '#rep-soul', label: t('2. Soul & Public Image', '२. आत्मा र सामाजिक छवि'), show: isFull },
+            { href: '#rep-career-wealth', label: t('3. Career & Wealth', '३. करियर र धन योग'), show: true },
+            { href: '#rep-love-health', label: t('4. Marriage & Health', '४. विवाह र स्वास्थ्य'), show: true },
+            { href: '#rep-charts', label: t('5. Kundali Charts', '५. कुण्डली चार्ट'), show: isFull },
+            { href: '#rep-planets', label: t('6. Deep 9 Planets', '६. नवग्रह गहन फल'), show: isFull },
+            { href: '#rep-birthstar', label: t('7. Birth Star', '७. जन्म नक्षत्र'), show: isFull },
+            { href: '#rep-houses', label: t('8. 12 Houses & Yogas', '८. १२ भाव र राजयोग'), show: isFull },
+            { href: '#rep-maturity-transits', label: t('9. Ages 16–48 & Live Transits', '९. उमेर मोड र गोचर'), show: true },
+            { href: '#rep-numerology-timing', label: t('10. Numerology, Dates & Books', '१०. अंक, साइत र ग्रन्थ'), show: true },
+          ]
+            .filter((c) => c.show)
+            .map((ch) => (
+              <a
+                key={ch.href}
+                href={ch.href}
+                className="px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--accent-bg)] hover:text-[var(--accent)] text-[var(--text-secondary)] font-medium transition"
+              >
+                {ch.label}
+              </a>
+            ))}
         </nav>
       </section>
 
-      {/* ==================== CHAPTER 1: 5 KEY TAKEAWAYS AT A GLANCE ==================== */}
-      <section id="rep-takeaways" className="obs-card p-6 sm:p-8 space-y-5">
+      {/* ==================== CHAPTER 1: EXECUTIVE SUMMARY & PLAIN-ENGLISH READING ==================== */}
+      <section id="rep-takeaways" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
         <div className="space-y-1">
           <div className="text-sm font-semibold text-[var(--accent)]">
-            {t('Chapter 1', 'अध्याय १')}
+            {t('Chapter 1 • Plain-Language Executive Overview', 'अध्याय १ • सरल कार्यकारी सारांश')}
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-            {t(
-              'Your Chart at a Glance — 5 Key Takeaways',
-              'एकै नजरमा तपाईंको कुण्डली — ५ मुख्य निष्कर्ष'
-            )}
+            {plainSummary.greetingHeadline}
           </h2>
           <p className="text-base text-[var(--text-secondary)]">
             {t(
-              'If you only read one box today, start here. Every point translates your astronomical birth chart into clear everyday guidance.',
-              'तपाईंको खगोलीय जन्म कुण्डलीका सबैभन्दा महत्त्वपूर्ण ५ आधारहरूलाई यहाँ सरल दैनिक मार्गदर्शनमा प्रस्तुत गरिएको छ।'
+              'Zero astrology jargon required—start here to understand your core personality, current life chapter, biggest natural advantages, and where steady patience pays off most.',
+              'कुनै जटिल ज्योतिषीय शब्दकोश बिना नै आफ्नो मूल स्वभाव, हालको जीवन कालखण्ड, प्रमुख सबल पक्ष र ध्यान दिनुपर्ने क्षेत्रहरू सरल भाषामा बुझ्नुहोस्।'
             )}
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {plainSummary.quickBulletTakeaways.map((item) => (
             <div
               key={item.label}
@@ -414,29 +540,11 @@ export const PersonalReportReader: React.FC<Props> = ({
             </div>
           ))}
         </div>
-      </section>
 
-      {/* ==================== CHAPTER 2: PLAIN-LANGUAGE PERSONAL READING ==================== */}
-      <section id="rep-plain-reading" className="obs-card p-6 sm:p-8 space-y-6">
-        <div className="space-y-1">
-          <div className="text-sm font-semibold text-[var(--accent)]">
-            {t('Chapter 2', 'अध्याय २')}
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-            {plainSummary.greetingHeadline}
-          </h2>
-          <p className="text-base text-[var(--text-secondary)]">
-            {t(
-              'No Sanskrit dictionary needed—here is how your Rising sign, Sun, Moon, Birth Star, and active life cycle work together in plain language.',
-              'जटिल शब्दावली बिना नै तपाईंको लग्न, सूर्य, चन्द्र राशि, जन्म नक्षत्र र हालको महादशाले जीवनमा पार्ने प्रभाव सरल भाषामा बुझ्नुहोस्।'
-            )}
-          </p>
-        </div>
-
-        <div className="space-y-5 text-base sm:text-[17px] leading-[1.75] text-[var(--text)]">
+        <div className="space-y-4 text-base leading-[1.75] text-[var(--text)] pt-2">
           <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] space-y-2">
             <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
-              <Compass className="w-5 h-5 text-[var(--accent)]" />
+              <Compass className="w-5 h-5 text-[var(--accent)] shrink-0" />
               <span>
                 {t(
                   'Who You Are (Rising Sign, Sun & Moon)',
@@ -449,7 +557,7 @@ export const PersonalReportReader: React.FC<Props> = ({
 
           <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] space-y-2">
             <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[var(--accent)]" />
+              <Sparkles className="w-5 h-5 text-[var(--accent)] shrink-0" />
               <span>
                 {t(
                   `Your Birth Star Gift (${birthNak.name}, Pada ${moonPlanet.nakshatraPada})`,
@@ -462,7 +570,7 @@ export const PersonalReportReader: React.FC<Props> = ({
 
           <div className="p-5 rounded-xl bg-[var(--accent-bg)]/50 border border-[var(--accent)]/30 space-y-2">
             <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-[var(--accent)]" />
+              <Calendar className="w-5 h-5 text-[var(--accent)] shrink-0" />
               <span>
                 {t('Your Current Life Chapter:', 'हालको जीवन अध्याय:')}{' '}
                 {plainSummary.currentChapterTitle}
@@ -499,398 +607,1013 @@ export const PersonalReportReader: React.FC<Props> = ({
         </div>
       </section>
 
-      {/* ==================== CHAPTER 3: VISUAL KUNDALI & NATAL WHEEL ==================== */}
-      <section id="rep-charts" className="obs-card p-6 sm:p-8 space-y-6">
-        <div className="space-y-1">
-          <div className="text-sm font-semibold text-[var(--accent)]">
-            {t('Chapter 3', 'अध्याय ३')}
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-            {t(
-              'Your Visual Birth Charts (Vedic Kundali & Ecliptic Wheel)',
-              'तपाईंको दृश्य जन्म कुण्डली र ३६०° ग्रह चक्र'
-            )}
-          </h2>
-          <p className="text-base text-[var(--text-secondary)]">
-            {t(
-              'Left: Your Vedic Divisional Kundali (switch between D1 Root Life Chart and D9 Marriage & Soul Chart). Right: Your 360° Astronomical Sky Wheel.',
-              'बायाँ: तपाईंको वैदिक वर्ग कुण्डली (D1 जन्म लग्न र D9 नवांश कुण्डली)। दायाँ: ३६०° खगोलीय राशि चक्र।'
-            )}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <div className="obs-panel p-4 space-y-3">
-            <h3 className="text-base font-bold text-[var(--text)]">
-              {t('Vedic Kundali (D1 Rashi & D9 Navamsha)', 'वैदिक कुण्डली (D1 लग्न र D9 नवांश)')}
-            </h3>
-            <VedicKundliSvg divisionalTable={vedicReport.divisionalTable} />
-          </div>
-
-          <div className="obs-panel p-4 space-y-3">
-            <h3 className="text-base font-bold text-[var(--text)]">
-              {t(`360° Ecliptic Sky Wheel (${ayanamsha})`, `३६०° क्रान्तिवृत्त ग्रह चक्र (${ayanamsha})`)}
-            </h3>
-            <NatalWheelSvg chart={natalChart} />
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== CHAPTER 4: YOUR PLANETS EXPLAINED SIMPLY ==================== */}
-      <section id="rep-planets" className="obs-card p-6 sm:p-8 space-y-6">
-        <div className="space-y-1">
-          <div className="text-sm font-semibold text-[var(--accent)]">
-            {t('Chapter 4', 'अध्याय ४')}
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-            {t(
-              'Your Planets & What Each Placement Means for You',
-              'तपाईंका नवग्रह र प्रत्येक ग्रह स्थितिको सरल अर्थ'
-            )}
-          </h2>
-          <p className="text-base text-[var(--text-secondary)]">
-            {t(
-              'Each planet governs a specific part of human life—confidence, emotions, drive, intellect, growth, love, and discipline. Here is where each sits in your chart.',
-              'प्रत्येक ग्रहले आत्मबल, मन, साहस, बुद्धि, ज्ञान, प्रेम वा अनुशासनको प्रतिनिधित्व गर्छ। तपाईंको कुण्डलीमा ती ग्रहहरूको स्थान र फल यसप्रकार छ।'
-            )}
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {natalChart.planets
-            .filter((p) => !['Uranus', 'Neptune', 'Pluto'].includes(p.id))
-            .map((p) => {
-              const shortName = p.name
-                .replace('North Node (Rahu)', 'Rahu (North Node)')
-                .replace('South Node (Ketu)', 'Ketu (South Node)');
-              const baseId = p.name.includes('Rahu')
-                ? 'Rahu'
-                : p.name.includes('Ketu')
-                ? 'Ketu'
-                : p.id;
-              const houseInfo = trHouseGuide(p.house, lang);
-              const role = trPlanetRole(baseId, lang);
-              const treatise = PLANET_TREATISES[baseId];
-
-              return (
-                <div key={p.id} className="obs-panel p-5 space-y-2.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xl font-bold" style={{ color: p.color }}>
-                        {p.symbol}
-                      </span>
-                      <div>
-                        <h3 className="text-lg font-bold text-[var(--text)]">
-                          {lang === 'ne'
-                            ? `${trPlanet(baseId, 'ne')} — ${trSign(p.signName, 'ne')} राशिमा (${p.formattedDMS})`
-                            : `${shortName} in ${p.signName} (${p.formattedDMS})`}
-                        </h3>
-                        <p className="text-sm text-[var(--text-muted)]">{role}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StatusBadge
-                        size="md"
-                        tone={
-                          p.dignity === 'Exalted' || p.dignity === 'Own Sign'
-                            ? 'optimal'
-                            : p.dignity === 'Debilitated'
-                            ? 'avoid'
-                            : 'info'
-                        }
-                        label={
-                          lang === 'ne'
-                            ? `भाव ${p.house}: ${houseInfo.shortTitle}`
-                            : `House ${p.house}: ${houseInfo.shortTitle}`
-                        }
-                      />
-                      {p.isRetrograde && (
-                        <StatusBadge
-                          size="md"
-                          tone="mixed"
-                          label={t('Retrograde (Inward)', 'वक्री (अन्तर्मुखी बल)')}
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="text-base text-[var(--text-secondary)] leading-relaxed">
-                    {lang === 'ne' ? (
-                      <>
-                        यो ग्रह <strong className="text-[var(--text)]">भाव {p.house}</strong> (
-                        {houseInfo.lifeAreas}) र{' '}
-                        <button
-                          type="button"
-                          onClick={() => onInspectNakshatra(p.nakshatraIndex)}
-                          className="text-[var(--accent)] font-semibold hover:underline"
-                        >
-                          {trNakshatra(p.nakshatraName, 'ne')} नक्षत्र, चरण {p.nakshatraPada}
-                        </button>{' '}
-                        मा अवस्थित छ। {houseInfo.plainDescription}
-                      </>
-                    ) : (
-                      <>
-                        Placed in <strong className="text-[var(--text)]">House {p.house}</strong> (
-                        {houseInfo.lifeAreas.toLowerCase()}) and{' '}
-                        <button
-                          type="button"
-                          onClick={() => onInspectNakshatra(p.nakshatraIndex)}
-                          className="text-[var(--accent)] font-semibold hover:underline"
-                        >
-                          {p.nakshatraName} Star, Pada {p.nakshatraPada}
-                        </button>
-                        . {houseInfo.plainDescription}{' '}
-                        {treatise ? `Growth lesson: ${treatise.vedicSoulLesson}` : ''}
-                      </>
-                    )}
-                  </p>
-                </div>
-              );
-            })}
-        </div>
-      </section>
-
-      {/* ==================== CHAPTER 5: BIRTH STAR (JANMA NAKSHATRA) GUIDE ==================== */}
-      <section id="rep-birthstar" className="obs-card p-6 sm:p-8 space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-[var(--accent)]">
-              {t('Chapter 5', 'अध्याय ५')}
+      {/* ==================== CHAPTER 2: SOUL PURPOSE, ARUDHA PUBLIC IMAGE & KARMIC AXIS ==================== */}
+      {isFull && (
+        <section id="rep-soul" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-[var(--accent)]">
+                {t('Chapter 2 • Beyond the Surface', 'अध्याय २ • भित्री आत्मा र बाहिरी छवि')}
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+                {t(
+                  'Inner Truth vs. Public Reputation & Your Soul’s Growth Axis',
+                  'वास्तविक स्वभाव बनाम सामाजिक छवि (आरूढ लग्न) र आत्मिक विकास मार्ग'
+                )}
+              </h2>
+              <p className="text-base text-[var(--text-secondary)]">
+                {t(
+                  'Why do people sometimes perceive you differently from how you feel inside? Classical Jaimini astrology answers this through your Arudha Lagna, Soul King (Atmakaraka), and Rahu–Ketu growth axis.',
+                  'तपाईं आफूलाई भित्र जस्तो अनुभव गर्नुहुन्छ, समाजले किन कहिलेकाहीँ फरक रूपले हेर्छ? जैमिनी सूत्रको आरूढ लग्न, आत्मकारक र राहु-केतु अक्षले यसको स्पष्ट उत्तर दिन्छ।'
+                )}
+              </p>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
-              {t(
-                `Your Birth Star Deep Dive: ${birthNak.name} (Pada ${moonPlanet.nakshatraPada})`,
-                `तपाईंको जन्म नक्षत्र विशेष अध्ययन: ${trNakshatra(birthNak.name, 'ne')} (चरण ${moonPlanet.nakshatraPada})`
-              )}
-            </h2>
-            <p className="text-base text-[var(--text-secondary)]">
-              {t('Ruled by', 'नक्षत्र स्वामी:')} <strong>{trPlanet(birthNak.ruler, lang)}</strong> •{' '}
-              {t('Presiding Deity:', 'अधिष्ठातृ देवता:')} <strong>{birthNak.deity}</strong> •{' '}
-              {t('Symbol:', 'प्रतीक:')} <strong>{birthNak.symbol}</strong> •{' '}
-              {t('Temperament:', 'स्वभाव समूह:')} <strong>{birthNak.natureGroup}</strong>
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onInspectNakshatra(moonPlanet.nakshatraIndex)}
-            className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5"
-          >
-            <BookOpen className="w-4 h-4 text-[var(--accent)]" />
-            <span>{t('Open Full 28-Star Codex', '२८ नक्षत्र विश्वकोश खोल्नुहोस्')}</span>
-          </button>
-        </div>
-
-        <div className="space-y-4 text-base leading-relaxed">
-          <div className="obs-panel p-5 space-y-2">
-            <h3 className="text-base font-bold text-[var(--text)]">
-              {t('Inner Nature & Emotional Style', 'आन्तरिक स्वभाव र भावनात्मक शैली')}
-            </h3>
-            <p className="text-[var(--text-secondary)]">{birthNak.moonPortrait}</p>
-          </div>
-
-          <div className="obs-panel p-5 space-y-2">
-            <h3 className="text-base font-bold text-[var(--text)]">
-              {t(
-                `Your Exact Quarter — Pada ${birthPadaObj.pada} (${birthPadaObj.navamshaSign} Navamsha)`,
-                `तपाईंको जन्म चरण — चरण ${birthPadaObj.pada} (${trSign(birthPadaObj.navamshaSign, 'ne')} नवांश)`
-              )}
-            </h3>
-            <p className="text-[var(--text-secondary)]">{birthPadaObj.expression}</p>
+            <StatusBadge
+              tone="info"
+              label={`AL: ${deepReport.identityAndSoul.arudhaLagnaSign} • AK: ${deepReport.identityAndSoul.atmakarakaPlanet}`}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="obs-panel p-5 space-y-2">
-              <h3 className="text-base font-bold text-[var(--sage)]">
-                {t('Best Career & Activity Fit', 'अनुकूल पेशा र शुभ कार्यहरू')}
+              <h3 className="text-base font-bold text-[var(--text)]">
+                {t(
+                  `Public Mirror — Arudha Lagna in ${deepReport.identityAndSoul.arudhaLagnaSign}`,
+                  `सामाजिक दर्पण — ${deepReport.identityAndSoul.arudhaLagnaSign} आरूढ लग्न`
+                )}
               </h3>
-              <p className="text-sm font-semibold text-[var(--text)]">
-                {t('Careers:', 'उपयुक्त क्षेत्र:')} {birthNak.vocations.join(' • ')}
-              </p>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {t('Favorable activities:', 'शुभ कार्य:')} {birthNak.auspiciousWorks.join(', ')}.
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.identityAndSoul.innerVsOuterNarrative}
               </p>
             </div>
 
             <div className="obs-panel p-5 space-y-2">
-              <h3 className="text-base font-bold text-[var(--crimson)]">
-                {t('Blind Spot & Activities to Pace Carefully', 'सजग रहनुपर्ने पक्ष र सावधानी')}
+              <h3 className="text-base font-bold text-[var(--text)]">
+                {t(
+                  `Soul Compass (Atmakaraka): ${deepReport.identityAndSoul.atmakarakaTitle}`,
+                  `आत्मकारक जीवन-पाठ: ${deepReport.identityAndSoul.atmakarakaTitle}`
+                )}
               </h3>
-              <p className="text-sm text-[var(--text-secondary)]">{birthNak.shadowTrap}</p>
-              <p className="text-sm text-[var(--text-muted)]">
-                {t('Avoid under this star:', 'यस नक्षत्रमा वर्जित कार्य:')}{' '}
-                {birthNak.inauspiciousWorks.join(', ')}.
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.identityAndSoul.atmakarakaNarrative}{' '}
+                <span className="text-[var(--text-muted)] text-sm">
+                  ({t('Karakamsha in D9:', 'नवांश कारकांश:')}{' '}
+                  <strong>{deepReport.identityAndSoul.karakamshaSign}</strong>)
+                </span>
               </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] space-y-1.5">
+              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                {t(
+                  `Innate Past Mastery (Ketu in House ${deepReport.identityAndSoul.ketuHouse})`,
+                  `जन्मजात सहज सीप (केतु — भाव ${deepReport.identityAndSoul.ketuHouse})`
+                )}
+              </div>
+              <p className="text-sm sm:text-base text-[var(--text)] leading-relaxed">
+                {deepReport.identityAndSoul.ketuComfortGift}
+              </p>
+            </div>
+
+            <div className="p-5 rounded-xl bg-[var(--accent-bg)]/45 border border-[var(--accent)]/30 space-y-1.5">
+              <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                {t(
+                  `This-Life Growth Frontier (Rahu in House ${deepReport.identityAndSoul.rahuHouse})`,
+                  `यस जीवनको मुख्य विकास क्षेत्र (राहु — भाव ${deepReport.identityAndSoul.rahuHouse})`
+                )}
+              </div>
+              <p className="text-sm sm:text-base text-[var(--text)] leading-relaxed">
+                {deepReport.identityAndSoul.rahuGrowthEdge}
+              </p>
+            </div>
+          </div>
+
+          <div className="obs-panel p-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
+            <span>
+              <strong>{t('Sun Degree Sabian Image:', 'सूर्य अंश प्रतीक:')}</strong> “
+              {deepReport.identityAndSoul.sunSabian}”
+            </span>
+            <span>
+              {t('Book Lineage:', 'शास्त्रीय आधार:')} {deepReport.identityAndSoul.sourceCitation}
+            </span>
+          </div>
+        </section>
+      )}
+
+      {/* ==================== CHAPTER 3: CAREER CALLING & WEALTH ARCHITECTURE ==================== */}
+      <section id="rep-career-wealth" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+        <div className="space-y-1">
+          <div className="text-sm font-semibold text-[var(--accent)]">
+            {t(
+              'Chapter 3 • Career, Calling & Financial Blueprint',
+              'अध्याय ३ • करियर, पेशागत दिशा र आर्थिक समृद्धि सूत्र'
+            )}
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+            {t(
+              'How You Best Work, Lead & Build Lasting Wealth',
+              'तपाईंको सर्वोत्तम कार्यशैली, उपयुक्त पेशा र दिगो धन निर्माण मार्ग'
+            )}
+          </h2>
+          <p className="text-base text-[var(--text-secondary)]">
+            {t(
+              'Combines your 10th House Career Ruler, D10 Dashamsha Directional Guardian, KP Cusp 10 Sub-Lord, Kalidasa’s Indu Lagna (Wealth Ascendant), and D2 Hora earning style.',
+              'दशमेश, दशमांश (D10) दिक्पाल, केपी दशम सब-लर्ड, कालिदासको इन्दु लग्न र होरा (D2) कुण्डलीको संयुक्त व्यावहारिक विश्लेषण।'
+            )}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Career Column */}
+          <div className="obs-panel p-5 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-2 text-sm font-bold text-[var(--accent)]">
+                  <Briefcase className="w-4 h-4 shrink-0" />
+                  <span>{t('Career & Vocation DNA', 'करियर र कर्म पहिचान')}</span>
+                </div>
+                <StatusBadge
+                  tone="optimal"
+                  label={`${deepReport.careerBlueprint.tenthLordPlanet} → H${deepReport.careerBlueprint.tenthLordHouse}`}
+                />
+              </div>
+
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {deepReport.careerBlueprint.headline}
+              </h3>
+
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.careerBlueprint.laymanNarrative}
+              </p>
+
+              <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 space-y-1.5 text-sm">
+                <div className="font-semibold text-[var(--text)]">
+                  {t('D10 Career Guardian (Dikpala):', 'दशमांश (D10) दिक्पाल:')}{' '}
+                  <span className="text-[var(--accent)]">
+                    {deepReport.careerBlueprint.dikpalaDeity} (
+                    {deepReport.careerBlueprint.dikpalaDirection}) —{' '}
+                    {deepReport.careerBlueprint.dikpalaArchetype}
+                  </span>
+                </div>
+                <p className="text-[var(--text-secondary)]">
+                  {deepReport.careerBlueprint.dikpalaStyle}
+                </p>
+              </div>
+
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.careerBlueprint.amatyakarakaNote}{' '}
+                {isFull ? deepReport.careerBlueprint.kpCareerNote : ''}
+              </p>
+
+              <div className="space-y-1.5 pt-1">
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                  {t('Strongest Career Lanes for Your Chart', 'तपाईंको कुण्डली सुहाउँदा प्रमुख पेशाहरू')}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {deepReport.careerBlueprint.recommendedLanes.map((lane) => (
+                    <span
+                      key={lane}
+                      className="px-2.5 py-1 rounded-md bg-[var(--surface)] border border-[var(--border)] text-xs font-semibold text-[var(--text)]"
+                    >
+                      {lane}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
+              {deepReport.careerBlueprint.sourceCitation}
+            </div>
+          </div>
+
+          {/* Wealth Column */}
+          <div className="obs-panel p-5 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-2 text-sm font-bold text-[var(--sage)]">
+                  <Coins className="w-4 h-4 shrink-0" />
+                  <span>{t('Wealth & Money Psychology', 'धनार्जन र बचत मनोविज्ञान')}</span>
+                </div>
+                <StatusBadge
+                  tone="optimal"
+                  label={`Indu Lagna: ${deepReport.wealthBlueprint.induLagnaSign}`}
+                />
+              </div>
+
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {deepReport.wealthBlueprint.induStrengthTier}
+              </h3>
+
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.wealthBlueprint.induNarrative}
+              </p>
+
+              {/* Surya vs Chandra Hora Bar */}
+              <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 space-y-2">
+                <div className="flex items-center justify-between gap-2 text-xs font-bold text-[var(--text)]">
+                  <span>{deepReport.wealthBlueprint.horaEarningStyleTitle}</span>
+                  <span className="tabular-nums text-[var(--accent)] whitespace-nowrap shrink-0">
+                    {deepReport.wealthBlueprint.suryaHoraPercent}% /{' '}
+                    {deepReport.wealthBlueprint.chandraHoraPercent}%
+                  </span>
+                </div>
+                <div className="h-2.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden flex">
+                  <div
+                    className="h-full bg-[var(--amber)]"
+                    style={{ width: `${deepReport.wealthBlueprint.suryaHoraPercent}%` }}
+                    title="Surya Hora"
+                  />
+                  <div
+                    className="h-full bg-[var(--accent)]"
+                    style={{ width: `${deepReport.wealthBlueprint.chandraHoraPercent}%` }}
+                    title="Chandra Hora"
+                  />
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {deepReport.wealthBlueprint.horaEarningNarrative}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-lg bg-[var(--sage-bg)] border border-[var(--sage)]/25 text-sm text-[var(--text)] leading-relaxed">
+                <strong className="text-[var(--sage)]">
+                  {t('Practical Money Rule:', 'व्यावहारिक आर्थिक नियम:')}
+                </strong>{' '}
+                {deepReport.wealthBlueprint.cashflowVsRetentionAdvice}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
+              {deepReport.wealthBlueprint.sourceCitation}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ==================== CHAPTER 6: 12 LIFE AREAS & UPCOMING TIMELINE ==================== */}
-      <section id="rep-houses-dasha" className="obs-card p-6 sm:p-8 space-y-6">
+      {/* ==================== CHAPTER 4: LOVE, SPOUSE PORTRAIT & AYURVEDIC HEALTH ==================== */}
+      <section id="rep-love-health" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
         <div className="space-y-1">
           <div className="text-sm font-semibold text-[var(--accent)]">
-            {t('Chapter 6', 'अध्याय ६')}
+            {t(
+              'Chapter 4 • Love, Marriage & Mind-Body Constitution',
+              'अध्याय ४ • प्रेम, वैवाहिक जीवनसाथी र आयुर्वेदिक स्वास्थ्य प्रकृति'
+            )}
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
             {t(
-              'Your 12 Life Areas (Strength Scores) & Multi-Year Chapters',
-              'तपाईंका १२ जीवन-क्षेत्र (भाव बल अंक) र महादशा कालखण्ड'
+              'Your Partner Portrait, Relationship Harmony & Daily Wellness Guide',
+              'तपाईंको जीवनसाथीको स्वभाव, दाम्पत्य सामञ्जस्य र दैनिक स्वास्थ्य सूत्र'
+            )}
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Love & Marriage */}
+          <div className="obs-panel p-5 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-2 text-sm font-bold text-[var(--accent)]">
+                  <Heart className="w-4 h-4 shrink-0" />
+                  <span>{t('Spouse & Partnership Blueprint', 'जीवनसाथी र साझेदारी दर्पण')}</span>
+                </div>
+                <StatusBadge
+                  tone="info"
+                  label={`UL: ${deepReport.relationshipBlueprint.upapadaLagnaSign} • DK: ${deepReport.relationshipBlueprint.darakarakaPlanet}`}
+                />
+              </div>
+
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {deepReport.relationshipBlueprint.partnerArchetypeTitle}
+              </h3>
+
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.relationshipBlueprint.partnerPortraitNarrative}
+              </p>
+
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.relationshipBlueprint.marriageEnvironmentNarrative}{' '}
+                {deepReport.relationshipBlueprint.navamshaD9Note}
+              </p>
+
+              <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 space-y-1">
+                <div className="text-xs font-bold text-[var(--text)]">
+                  {deepReport.relationshipBlueprint.marsBalanceHeadline}
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {deepReport.relationshipBlueprint.marsBalanceExplanation}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-lg bg-[var(--accent-bg)]/45 border border-[var(--accent)]/30 text-sm text-[var(--text)]">
+                <strong className="text-[var(--accent)]">
+                  {t('Golden Relationship Habit:', 'सम्बन्ध सुमधुर राख्ने मूल मन्त्र:')}
+                </strong>{' '}
+                {deepReport.relationshipBlueprint.goldenRelationshipRule}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
+              {deepReport.relationshipBlueprint.sourceCitation}
+            </div>
+          </div>
+
+          {/* Health & Ayurvedic Prakriti */}
+          <div className="obs-panel p-5 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="inline-flex items-center gap-2 text-sm font-bold text-[var(--sage)]">
+                  <Activity className="w-4 h-4 shrink-0" />
+                  <span>{t('Ayurvedic Constitution & Vitality', 'आयुर्वेदिक त्रिदोष प्रकृति र ऊर्जा')}</span>
+                </div>
+                <StatusBadge tone="optimal" label={deepReport.wellnessBlueprint.dominantDosha} />
+              </div>
+
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {deepReport.wellnessBlueprint.constitutionSummary}
+              </h3>
+
+              {/* Vata / Pitta / Kapha Bars */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  {
+                    label: t('Vata (Air)', 'वात (वायु)'),
+                    pct: deepReport.wellnessBlueprint.vataPercent,
+                    bar: 'bg-[var(--accent)]',
+                  },
+                  {
+                    label: t('Pitta (Fire)', 'पित्त (अग्नि)'),
+                    pct: deepReport.wellnessBlueprint.pittaPercent,
+                    bar: 'bg-[var(--amber)]',
+                  },
+                  {
+                    label: t('Kapha (Earth)', 'कफ (जल/पृथ्वी)'),
+                    pct: deepReport.wellnessBlueprint.kaphaPercent,
+                    bar: 'bg-[var(--sage)]',
+                  },
+                ].map((d) => (
+                  <div
+                    key={d.label}
+                    className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-2.5 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between text-xs font-semibold text-[var(--text)]">
+                      <span className="truncate">{d.label}</span>
+                      <span className="tabular-nums font-bold">{d.pct}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
+                      <div className={`h-full rounded-full ${d.bar}`} style={{ width: `${d.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-2 text-sm text-[var(--text-secondary)] leading-relaxed">
+                <p>
+                  <strong className="text-[var(--text)]">
+                    {t('Natural Gift:', 'स्वाभाविक क्षमता:')}
+                  </strong>{' '}
+                  {deepReport.wellnessBlueprint.naturalStrength}
+                </p>
+                <p>
+                  <strong className="text-[var(--amber)]">
+                    {t('Early Overwork Signal:', 'धपेडी हुँदा देखिने संकेत:')}
+                  </strong>{' '}
+                  {deepReport.wellnessBlueprint.stressSignalToWatch}
+                </p>
+                <p>
+                  <strong className="text-[var(--sage)]">
+                    {t('Nourishment & Hydration:', 'उपयुक्त खानपान:')}
+                  </strong>{' '}
+                  {deepReport.wellnessBlueprint.foodAndHydrationTip}
+                </p>
+                <p>
+                  <strong className="text-[var(--accent)]">
+                    {t('Sleep & Movement:', 'व्यायाम र विश्राम:')}
+                  </strong>{' '}
+                  {deepReport.wellnessBlueprint.movementAndSleepTip}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[var(--border)] text-xs text-[var(--text-muted)]">
+              {deepReport.wellnessBlueprint.sourceCitation}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== CHAPTER 5: VISUAL KUNDALI & NATAL WHEEL ==================== */}
+      {isFull && (
+        <section id="rep-charts" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+          <div className="space-y-1">
+            <div className="text-sm font-semibold text-[var(--accent)]">
+              {t('Chapter 5 • Visual Celestial Geometry', 'अध्याय ५ • दृश्य जन्म कुण्डली र राशि चक्र')}
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+              {t(
+                'Your Visual Birth Charts (Vedic Kundali & 360° Sky Wheel)',
+                'तपाईंको दृश्य जन्म कुण्डली (D1/D9) र ३६०° खगोलीय ग्रह चक्र'
+              )}
+            </h2>
+            <p className="text-base text-[var(--text-secondary)]">
+              {t(
+                'Left: Switch between your D1 Rashi Root Chart, D9 Navamsha Marriage Chart, and D10 Career Chart. Right: Your exact 360° ecliptic wheel.',
+                'बायाँ: जन्म लग्न (D1), नवांश (D9) र दशमांश (D10) वर्ग कुण्डली। दायाँ: ३६०° क्रान्तिवृत्त राशि चक्र।'
+              )}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div className="obs-panel p-4 space-y-3">
+              <h3 className="text-base font-bold text-[var(--text)]">
+                {t('Vedic Divisional Kundali (D1 / D9 / D10)', 'वैदिक वर्ग कुण्डली (D1 / D9 / D10)')}
+              </h3>
+              <VedicKundliSvg divisionalTable={vedicReport.divisionalTable} />
+            </div>
+
+            <div className="obs-panel p-4 space-y-3">
+              <h3 className="text-base font-bold text-[var(--text)]">
+                {t(`360° Ecliptic Sky Wheel (${ayanamsha})`, `३६०° क्रान्तिवृत्त ग्रह चक्र (${ayanamsha})`)}
+              </h3>
+              <NatalWheelSvg chart={natalChart} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ==================== CHAPTER 6: DEEP 9-PLANET SYNTHESIS CARDS ==================== */}
+      {isFull && (
+        <section id="rep-planets" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+          <div className="space-y-1">
+            <div className="text-sm font-semibold text-[var(--accent)]">
+              {t(
+                'Chapter 6 • Planet-by-Planet Classical & Layman Synthesis',
+                'अध्याय ६ • नवग्रहको विस्तृत शास्त्रीय र व्यावहारिक फलादेश'
+              )}
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+              {t(
+                'All 9 Vedic Planets: Plain Meaning, BPHS Sutra & Divisional Strength',
+                'नवग्रह स्थिति: सरल अर्थ, बृहत् पाराशर सूत्र र नवांश/दशमांश बल'
+              )}
+            </h2>
+            <p className="text-base text-[var(--text-secondary)]">
+              {t(
+                'Every card below blends how the planet works in your daily life with its authentic Brihat Parashara Hora Shastra house ruling and D9/D10 divisional confirmation.',
+                'प्रत्येक ग्रहले तपाईंको दैनिक जीवनमा पार्ने प्रभाव, पाराशर होरा शास्त्रको भाव फल र नवांश/दशमांश स्थितिको पूर्ण विवरण।'
+              )}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {deepReport.deepPlanetCards.map((card) => (
+              <div key={card.planetId} className="obs-panel p-5 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl font-bold" style={{ color: card.color }}>
+                      {card.symbol}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold text-[var(--text)]">
+                        {lang === 'ne'
+                          ? `${card.planetLabel} — ${card.signLabel} राशिमा (${card.degreeDMS})`
+                          : `${card.planetLabel} in ${card.signLabel} (${card.degreeDMS})`}
+                      </h3>
+                      <p className="text-sm text-[var(--text-muted)]">{card.roleSubtitle}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusBadge
+                      size="md"
+                      tone={
+                        card.dignity === 'Exalted' || card.dignity === 'Own Sign'
+                          ? 'optimal'
+                          : card.dignity === 'Debilitated'
+                          ? 'mixed'
+                          : 'info'
+                      }
+                      label={
+                        lang === 'ne'
+                          ? `भाव ${card.house}: ${card.houseTitle} • ${trDignity(card.dignity, 'ne')}`
+                          : `H${card.house}: ${card.houseTitle} • ${card.dignity}`
+                      }
+                    />
+                    {card.isVargottama && (
+                      <StatusBadge
+                        size="md"
+                        tone="optimal"
+                        label={t('Vargottama (Extra Strong)', 'वर्गोत्तम (विशेष बली)')}
+                      />
+                    )}
+                    {card.isRetrograde && (
+                      <StatusBadge
+                        size="md"
+                        tone="mixed"
+                        label={t('Retrograde', 'वक्री')}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-base text-[var(--text-secondary)] leading-relaxed">
+                  {card.laymanSynthesis}
+                </p>
+
+                {lang === 'en' && (
+                  <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 text-sm text-[var(--text-secondary)] leading-relaxed">
+                    <strong className="text-[var(--text)]">Classical BPHS / Phaladeepika Ruling:</strong>{' '}
+                    {card.classicalBphsRuling}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-[var(--text-muted)]">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onInspectNakshatra(card.nakshatraIndex)}
+                      className="text-[var(--accent)] font-semibold hover:underline no-print"
+                    >
+                      {t(
+                        `Birth Star: ${card.nakshatraLabel} (Pada ${card.pada}) →`,
+                        `नक्षत्र: ${card.nakshatraLabel} (चरण ${card.pada}) →`
+                      )}
+                    </button>
+                    <span>
+                      D9: <strong>{card.d9SignLabel}</strong> • D10:{' '}
+                      <strong>{card.d10SignLabel}</strong>
+                    </span>
+                  </div>
+                  {lang === 'en' && (
+                    <span className="italic">Soul lesson: {card.growthLesson}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ==================== CHAPTER 7: BIRTH STAR (JANMA NAKSHATRA) DEEP DIVE ==================== */}
+      {isFull && (
+        <section id="rep-birthstar" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1">
+              <div className="text-sm font-semibold text-[var(--accent)]">
+                {t('Chapter 7 • Lunar Mansion Treatise', 'अध्याय ७ • जन्म नक्षत्र विशेष अध्ययन')}
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+                {t(
+                  `Your Birth Star Deep Dive: ${birthNak.name} (Pada ${moonPlanet.nakshatraPada})`,
+                  `तपाईंको जन्म नक्षत्र विशेष अध्ययन: ${trNakshatra(birthNak.name, 'ne')} (चरण ${moonPlanet.nakshatraPada})`
+                )}
+              </h2>
+              <p className="text-base text-[var(--text-secondary)]">
+                {t('Ruled by', 'नक्षत्र स्वामी:')} <strong>{trPlanet(birthNak.ruler, lang)}</strong> •{' '}
+                {t('Presiding Deity:', 'अधिष्ठातृ देवता:')} <strong>{birthNak.deity}</strong> •{' '}
+                {t('Symbol:', 'प्रतीक:')} <strong>{birthNak.symbol}</strong> •{' '}
+                {t('Shakti Power:', 'निहित शक्ति:')} <strong>{birthNak.shaktiTranslation}</strong>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onInspectNakshatra(moonPlanet.nakshatraIndex)}
+              className="btn-editorial-secondary text-sm inline-flex items-center gap-1.5 no-print"
+            >
+              <BookOpen className="w-4 h-4 text-[var(--accent)]" />
+              <span>{t('Open Full 28-Star Codex', '२८ नक्षत्र विश्वकोश खोल्नुहोस्')}</span>
+            </button>
+          </div>
+
+          <div className="space-y-4 text-base leading-relaxed">
+            <div className="obs-panel p-5 space-y-2">
+              <h3 className="text-base font-bold text-[var(--text)]">
+                {t('Inner Nature & Emotional Style', 'आन्तरिक स्वभाव र भावनात्मक शैली')}
+              </h3>
+              <p className="text-[var(--text-secondary)]">{birthNak.moonPortrait}</p>
+            </div>
+
+            <div className="obs-panel p-5 space-y-2">
+              <h3 className="text-base font-bold text-[var(--text)]">
+                {t(
+                  `Your Exact Quarter — Pada ${birthPadaObj.pada} (${birthPadaObj.navamshaSign} Navamsha, Sound "${birthPadaObj.bijaSound}")`,
+                  `तपाईंको जन्म चरण — चरण ${birthPadaObj.pada} (${trSign(birthPadaObj.navamshaSign, 'ne')} नवांश, नामाक्षर "${birthPadaObj.bijaSound}")`
+                )}
+              </h3>
+              <p className="text-[var(--text-secondary)]">{birthPadaObj.expression}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="obs-panel p-5 space-y-2">
+                <h3 className="text-base font-bold text-[var(--sage)]">
+                  {t('Best Career & Activity Fit', 'अनुकूल पेशा र शुभ कार्यहरू')}
+                </h3>
+                <p className="text-sm font-semibold text-[var(--text)]">
+                  {t('Careers:', 'उपयुक्त क्षेत्र:')} {birthNak.vocations.join(' • ')}
+                </p>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  {t('Favorable activities:', 'शुभ कार्य:')} {birthNak.auspiciousWorks.join(', ')}.
+                </p>
+              </div>
+
+              <div className="obs-panel p-5 space-y-2">
+                <h3 className="text-base font-bold text-[var(--crimson)]">
+                  {t('Blind Spot & Activities to Pace Carefully', 'सजग रहनुपर्ने पक्ष र सावधानी')}
+                </h3>
+                <p className="text-sm text-[var(--text-secondary)]">{birthNak.shadowTrap}</p>
+                <p className="text-sm text-[var(--text-muted)]">
+                  {t('Avoid under this star:', 'यस नक्षत्रमा वर्जित कार्य:')}{' '}
+                  {birthNak.inauspiciousWorks.join(', ')}.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ==================== CHAPTER 8: 12 LIFE AREAS & ACTIVE CLASSICAL YOGAS ==================== */}
+      {isFull && (
+        <section id="rep-houses" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+          <div className="space-y-1">
+            <div className="text-sm font-semibold text-[var(--accent)]">
+              {t(
+                'Chapter 8 • 337-Point Ashtakavarga & Classical Yogas',
+                'अध्याय ८ • १२ जीवन-क्षेत्र (अष्टकवर्ग बल) र सक्रिय शास्त्रीय योगहरू'
+              )}
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+              {t(
+                'Your 12 Life Areas (Strength Scores) & Special Chart Combinations',
+                'तपाईंका १२ भावको बल सूचकाङ्क र विशेष राजयोग / धनयोगहरू'
+              )}
+            </h2>
+            <p className="text-base text-[var(--text-secondary)]">
+              {t(
+                'In Brihat Parashara Hora Shastra (Ch. 66), 28 points is average. 30+ points indicate effortless support; under 25 points indicates areas where steady habits beat shortcuts.',
+                'वैदिक सर्वाष्टकवर्गमा २८ बिन्दु औसत मानिन्छ। ३०+ बिन्दु भएका भावमा सहज प्रगति हुन्छ भने २५ भन्दा कम बिन्दु भएका भावमा धैर्य र अनुशासनले सफलता दिन्छ।'
+              )}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {savSortedByHouse.map((h) => {
+              const guide = trHouseGuide(h.house, lang);
+              const pct = Math.min(100, Math.round((h.bindus / 40) * 100));
+              const barClass =
+                h.bindus >= 30
+                  ? 'bg-[var(--sage)]'
+                  : h.bindus < 25
+                  ? 'bg-[var(--crimson)]'
+                  : 'bg-[var(--accent)]';
+              const tone = h.bindus >= 30 ? 'optimal' : h.bindus < 25 ? 'avoid' : 'info';
+              const tag =
+                h.bindus >= 30
+                  ? t('Strong', 'सबल')
+                  : h.bindus < 25
+                  ? t('Patience', 'धैर्य')
+                  : t('Balanced', 'सन्तुलित');
+
+              return (
+                <div key={h.house} className="obs-panel p-4 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span className="text-sm sm:text-base font-bold text-[var(--text)]">
+                        {lang === 'ne' ? `भाव ${h.house}` : `H${h.house}`}: {guide.shortTitle}
+                      </span>{' '}
+                      <span className="text-xs text-[var(--text-muted)]">
+                        ({trSign(h.signName, lang)})
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="tabular-nums font-bold text-sm text-[var(--text)]">
+                        {h.bindus} {t('pts', 'बिन्दु')}
+                      </span>
+                      <StatusBadge tone={tone} label={tag} />
+                    </div>
+                  </div>
+
+                  <div className="h-2 rounded-full bg-[var(--surface)] border border-[var(--border)] overflow-hidden">
+                    <div className={`h-full rounded-full ${barClass}`} style={{ width: `${pct}%` }} />
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                    {h.bindus >= 30
+                      ? guide.whenStrong
+                      : h.bindus < 25
+                      ? guide.whenLow
+                      : guide.plainDescription}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {vedicReport.yogas.length > 0 && (
+            <div className="pt-4 border-t border-[var(--border)] space-y-3">
+              <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
+                <Award className="w-5 h-5 text-[var(--accent)]" />
+                <span>
+                  {t(
+                    `Active Classical Yogas Detected in Your Chart (${vedicReport.yogas.length})`,
+                    `तपाईंको कुण्डलीमा बनेका प्रमुख शास्त्रीय योगहरू (${vedicReport.yogas.length})`
+                  )}
+                </span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {vedicReport.yogas.map((yg) => (
+                  <div key={yg.name} className="obs-panel p-4 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-sm font-bold text-[var(--text)]">{yg.name}</span>
+                      <StatusBadge
+                        tone={yg.strength === 'High' ? 'optimal' : 'favorable'}
+                        label={`${yg.category} • ${yg.strength}`}
+                      />
+                    </div>
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                      {yg.description}
+                    </p>
+                    {yg.sourceText && (
+                      <div className="text-[11px] text-[var(--text-muted)]">
+                        {t('Source:', 'स्रोत:')} {yg.sourceText}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ==================== CHAPTER 9: AGE MILESTONES (16-48), LIVE GOCHARA TRANSITS & SUB-PERIODS ==================== */}
+      <section id="rep-maturity-transits" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+        <div className="space-y-1">
+          <div className="text-sm font-semibold text-[var(--accent)]">
+            {t(
+              'Chapter 9 • Life Milestones, Live Transits & Multi-Year Roadmap',
+              'अध्याय ९ • जीवनका परिपक्वता उमेर (१६–४८), प्रत्यक्ष गोचर र अन्तर्दशा समयरेखा'
+            )}
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+            {t(
+              'Your Turning-Point Ages, Live Saturn/Jupiter Sky Weather & Sub-Periods',
+              'तपाईंको भाग्योदय उमेर मोडहरू, हालको शनि/गुरु गोचर र आगामी अन्तर्दशा फल'
             )}
           </h2>
           <p className="text-base text-[var(--text-secondary)]">
-            {lang === 'ne' ? (
-              <>
-                वैदिक सर्वाष्टकवर्गमा <strong>२८ बिन्दु</strong> औसत मानिन्छ।{' '}
-                <strong className="text-[var(--sage)]">३०+ बिन्दु</strong> भएका भावहरूमा सहज सफलता मिल्छ
-                भने <strong className="text-[var(--crimson)]">२५ भन्दा कम</strong> बिन्दु भएका भावमा धैर्य र
-                निरन्तर अनुशासन आवश्यक पर्छ।
-              </>
-            ) : (
-              <>
-                In Vedic Ashtakavarga, <strong>28 points</strong> is average. Scores of{' '}
-                <strong className="text-[var(--sage)]">30+</strong> mean easier natural support; scores
-                below <strong className="text-[var(--crimson)]">25</strong> ask for steady discipline.
-              </>
+            {t(
+              'Shows what is happening in the sky right now relative to your Natal Moon (Sade Sati, Guru Bala & Moorthi Nirnaya) plus the exact ages when each planet in your chart matures.',
+              'तपाईंको जन्म चन्द्र राशिबाट हालको शनि (साढेसाती/ढैया), बृहस्पति गुरुबल र मूर्ति निर्णयको अवस्था तथा उमेर १६ देखि ४८ सम्मका विशेष मोडहरू।'
             )}
           </p>
         </div>
 
-        <div className="space-y-3">
-          {savSortedByHouse.map((h) => {
-            const guide = trHouseGuide(h.house, lang);
-            const pct = Math.min(100, Math.round((h.bindus / 40) * 100));
-            const barClass =
-              h.bindus >= 30
-                ? 'bg-[var(--sage)]'
-                : h.bindus < 25
-                ? 'bg-[var(--crimson)]'
-                : 'bg-[var(--accent)]';
-            const tone = h.bindus >= 30 ? 'optimal' : h.bindus < 25 ? 'avoid' : 'info';
-            const tag =
-              h.bindus >= 30
-                ? t('Strong Tailwind', 'बलियो सहयोग')
-                : h.bindus < 25
-                ? t('Needs Patience', 'धैर्य आवश्यक')
-                : t('Balanced', 'सन्तुलित');
+        {/* Live Slow-Planet Gochara Weather */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="obs-panel p-5 space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                {t('Live Saturn Transit (Sade Sati Check)', 'प्रत्यक्ष शनि गोचर र साढेसाती जाँच')}
+              </span>
+              <StatusBadge
+                tone={deepReport.liveSkyAndSubPeriods.saturnTone}
+                label={
+                  deepReport.liveSkyAndSubPeriods.isSadeSati
+                    ? t('Sade Sati Active', 'साढेसाती सक्रिय')
+                    : t(
+                        `Saturn in ${deepReport.liveSkyAndSubPeriods.saturnTransitSign} (H${deepReport.liveSkyAndSubPeriods.saturnHouseFromMoon} from Moon)`,
+                        `शनि: ${deepReport.liveSkyAndSubPeriods.saturnTransitSign} (चन्द्रबाट ${deepReport.liveSkyAndSubPeriods.saturnHouseFromMoon})`
+                      )
+                }
+              />
+            </div>
+            <h3 className="text-base font-bold text-[var(--text)]">
+              {deepReport.liveSkyAndSubPeriods.saturnPhaseHeadline}
+            </h3>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              {deepReport.liveSkyAndSubPeriods.saturnGuidance}
+            </p>
+          </div>
 
-            return (
-              <div key={h.house} className="obs-panel p-4 space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <span className="text-base font-bold text-[var(--text)]">
-                      {lang === 'ne' ? `भाव ${h.house}` : `House ${h.house}`}: {guide.shortTitle}
-                    </span>{' '}
-                    <span className="text-sm text-[var(--text-muted)]">
-                      ({trSign(h.signName, lang)})
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-base text-[var(--text)]">
-                      {h.bindus} {t('pts', 'बिन्दु')}
-                    </span>
-                    <StatusBadge tone={tone} label={tag} />
-                  </div>
-                </div>
-
-                <div className="h-2.5 rounded-full bg-[var(--surface)] border border-[var(--border)] overflow-hidden">
-                  <div className={`h-full rounded-full ${barClass}`} style={{ width: `${pct}%` }} />
-                </div>
-
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                  {h.bindus >= 30
-                    ? guide.whenStrong
-                    : h.bindus < 25
-                    ? guide.whenLow
-                    : guide.plainDescription}
-                </p>
-              </div>
-            );
-          })}
+          <div className="obs-panel p-5 space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                {t('Live Jupiter Transit (Guru Bala Check)', 'प्रत्यक्ष बृहस्पति गोचर र गुरुबल')}
+              </span>
+              <StatusBadge
+                tone={deepReport.liveSkyAndSubPeriods.hasGuruBala ? 'optimal' : 'info'}
+                label={
+                  deepReport.liveSkyAndSubPeriods.hasGuruBala
+                    ? t('Strong Guru Bala Blessing', 'प्रबल गुरुबल प्राप्त')
+                    : t(
+                        `Jupiter in ${deepReport.liveSkyAndSubPeriods.jupiterTransitSign}`,
+                        `गुरु: ${deepReport.liveSkyAndSubPeriods.jupiterTransitSign}`
+                      )
+                }
+              />
+            </div>
+            <h3 className="text-base font-bold text-[var(--text)]">
+              {deepReport.liveSkyAndSubPeriods.jupiterHeadline}
+            </h3>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              {deepReport.liveSkyAndSubPeriods.jupiterGuidance}
+            </p>
+          </div>
         </div>
 
-        {/* Lifetime Major Chapters Summary */}
-        <div className="pt-4 border-t border-[var(--border)] space-y-4">
-          <h3 className="text-lg font-bold text-[var(--text)]">
-            {t(
-              'Your Major Life Chapters (Vimshottari Mahadashas)',
-              'तपाईंको जीवनका प्रमुख महादशा अध्यायहरू (विंशोत्तरी दशा)'
-            )}
+        <div className="obs-panel p-4 space-y-1.5 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <strong className="text-[var(--text)]">
+              {t('Lunar Moorthi Nirnaya:', 'गोचर मूर्ति निर्णय:')}{' '}
+              <span className="text-[var(--accent)]">
+                {deepReport.liveSkyAndSubPeriods.moorthiFormLabel}
+              </span>
+            </strong>
+            <span className="text-xs text-[var(--text-muted)]">
+              {deepReport.liveSkyAndSubPeriods.sourceCitation}
+            </span>
+          </div>
+          <p className="text-[var(--text-secondary)]">
+            {deepReport.liveSkyAndSubPeriods.moorthiExplanation}{' '}
+            {deepReport.liveSkyAndSubPeriods.nodalTransitNote}
+          </p>
+        </div>
+
+        {/* Planetary Maturity Ages (16..48) */}
+        <div className="space-y-3 pt-2">
+          <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
+            <Clock className="w-5 h-5 text-[var(--accent)]" />
+            <span>
+              {t(
+                'Your 9 Turning-Point Ages (Graha Paripakvata — Ages 16 to 48)',
+                'तपाईंका ९ ग्रह परिपक्वता उमेर र जीवन मोडहरू (उमेर १६ देखि ४८)'
+              )}
+            </span>
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {vedicReport.dashas.map((d) => {
-              const info = trDashaGuide(d.lord, lang);
-              return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {deepReport.maturityMilestones.map((ms) => (
+              <div
+                key={ms.planetId}
+                className={`rounded-xl border p-4 space-y-1.5 ${
+                  ms.status === 'ACTIVE_NOW'
+                    ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45'
+                    : 'border-[var(--border)] bg-[var(--bg-elevated)]'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-[var(--text)] tabular-nums">
+                    {t(`Age ${ms.maturityAge}`, `उमेर ${ms.maturityAge}`)} ({ms.calendarYear}) •{' '}
+                    {ms.planetLabel}
+                  </span>
+                  <StatusBadge
+                    tone={
+                      ms.status === 'ACTIVE_NOW'
+                        ? 'optimal'
+                        : ms.status === 'COMPLETED'
+                        ? 'info'
+                        : 'favorable'
+                    }
+                    label={
+                      ms.status === 'ACTIVE_NOW'
+                        ? t('Now', 'अहिले')
+                        : ms.status === 'COMPLETED'
+                        ? t('Unlocked', 'पार भइसक्यो')
+                        : t('Upcoming', 'आगामी')
+                    }
+                  />
+                </div>
+                <div className="text-xs font-semibold text-[var(--accent)]">{ms.headline}</div>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  {ms.laymanMeaning}
+                </p>
+                {ms.conjunctionNote && (
+                  <p className="text-[11px] text-[var(--amber)] font-medium">
+                    {ms.conjunctionNote}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Active Mahadasha's 9 Sub-Periods (Antardashas) + Lifetime Mahadashas */}
+        {isFull && (
+          <div className="pt-4 border-t border-[var(--border)] space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {t(
+                  `Sub-Chapter Roadmap Inside Your Active ${vedicReport.activeMahadasha.lord} Major Chapter`,
+                  `सक्रिय ${trPlanet(vedicReport.activeMahadasha.lord, 'ne')} महादशाभित्रका ९ अन्तर्दशा उप-अध्यायहरू`
+                )}
+              </h3>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {t(
+                  'While a Major Chapter sets the 6-to-20 year theme, these shorter Antardasha sub-periods show the exact month-to-month shifts.',
+                  'महादशाले लामो कालखण्डको मूल दिशा तय गर्छ भने यी अन्तर्दशाहरूले महिना-महिना र वर्ष-वर्षको प्रत्यक्ष फलादेश देखाउँछन्।'
+                )}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {deepReport.liveSkyAndSubPeriods.subPeriods.map((sp) => (
                 <div
-                  key={d.lord}
-                  className={`p-4 rounded-xl border space-y-1.5 ${
-                    d.isCurrent
+                  key={`${sp.antarLordId}-${sp.startDate}`}
+                  className={`rounded-xl border p-3.5 space-y-1.5 ${
+                    sp.status === 'ACTIVE'
                       ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45'
                       : 'border-[var(--border)] bg-[var(--bg-elevated)]'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-base font-bold text-[var(--text)]">
-                      {t(
-                        `${d.lord} Chapter (${d.years} yrs)`,
-                        `${trPlanet(d.lord, 'ne')} महादशा (${d.years} वर्ष)`
-                      )}
+                    <span className="text-sm font-bold text-[var(--text)]">
+                      {trPlanet(vedicReport.activeMahadasha.lord, lang)} – {sp.antarLordLabel}
                     </span>
-                    {d.isCurrent && (
+                    {sp.status === 'ACTIVE' && (
                       <StatusBadge tone="optimal" label={t('Active Now', 'हाल सक्रिय')} />
                     )}
                   </div>
-                  <div className="text-xs font-mono text-[var(--text-muted)]">
-                    {d.startDate} → {d.endDate}
+                  <div className="text-xs tabular-nums text-[var(--text-muted)]">
+                    {formatDisplayDate(sp.startDate, lang, true)} →{' '}
+                    {formatDisplayDate(sp.endDate, lang, true)}
                   </div>
-                  <div className="text-sm font-semibold text-[var(--accent)]">
-                    {info.chapterTitle}
-                  </div>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {info.bestFocus}
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    {sp.laymanGuidance}
                   </p>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+
+            <h3 className="text-base font-bold text-[var(--text)] pt-2">
+              {t(
+                'Full 120-Year Vimshottari Mahadasha Sequence',
+                'सम्पूूर्ण १२०-वर्षे विंशोत्तरी महादशा क्रम'
+              )}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {vedicReport.dashas.map((d) => {
+                const info = trDashaGuide(d.lord, lang);
+                return (
+                  <div
+                    key={d.lord}
+                    className={`p-3.5 rounded-xl border space-y-1 ${
+                      d.isCurrent
+                        ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45'
+                        : 'border-[var(--border)] bg-[var(--bg-elevated)]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-bold text-[var(--text)]">
+                        {t(
+                          `${d.lord} (${d.years} yrs)`,
+                          `${trPlanet(d.lord, 'ne')} (${d.years} वर्ष)`
+                        )}
+                      </span>
+                      {d.isCurrent && (
+                        <StatusBadge tone="optimal" label={t('Current', 'सक्रिय')} />
+                      )}
+                    </div>
+                    <div className="text-xs tabular-nums text-[var(--text-muted)]">
+                      {d.startDate} → {d.endDate}
+                    </div>
+                    <div className="text-xs font-semibold text-[var(--accent)]">
+                      {info.chapterTitle}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       <LotusVineDivider
-        label={t('Daily Horai, Best Dates & Remedies', 'दैनिक होरा समय, शुभ मिति र व्यावहारिक उपाय')}
+        label={t(
+          'Deep Numerology, Best Dates, Remedies & Classical Sources',
+          'गहन अंक विज्ञान, शुभ मिति, व्यावहारिक उपाय र शास्त्रीय ग्रन्थसूची'
+        )}
       />
 
-      {/* ==================== CHAPTER 7: DECISION TIMING & PRACTICAL REMEDIES ==================== */}
-      <section id="rep-timing" className="obs-card p-6 sm:p-8 space-y-6">
+      {/* ==================== CHAPTER 10: DEEP NUMEROLOGY, DECISION TIMING, REMEDIES & BIBLIOGRAPHY ==================== */}
+      <section id="rep-numerology-timing" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="text-sm font-semibold text-[var(--accent)]">
-              {t('Chapter 7', 'अध्याय ७')}
+              {t(
+                'Chapter 10 • Numerology, Decision Timing & Practical Remedies',
+                'अध्याय १० • गहन अंक ज्योतिष, आगामी शुभ साइत र व्यावहारिक उपाय'
+              )}
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
               {t(
-                'Today’s Horai Time, Best Upcoming Dates & Practical Remedies',
-                'आजको होरा समय, आगामी सर्वोत्तम मिति र सरल शास्त्रीय उपाय'
+                'Cheiro Compound Numbers, 4 Life Pinnacles, Best Dates & Daily Alignment',
+                'चेइरो संयुक्त अंक, जीवनका ४ शिखर चक्र, शुभ मिति र शास्त्रीय उपायहरू'
               )}
             </h2>
-            <p className="text-base text-[var(--text-secondary)]">
-              {lang === 'ne' ? (
-                <>
-                  तपाईंको जन्म नक्षत्र ({trNakshatra(moonPlanet.nakshatraName, 'ne')}) र{' '}
-                  {cityDisplay} को स्थानीय पञ्चाङ्ग अनुसार तयार पारिएको तालिका।{' '}
-                  <strong>७०+ अंक</strong> भएका दिनहरू सर्वोत्तम शुभ मानिन्छन्।
-                </>
-              ) : (
-                <>
-                  Personalized for {cityDisplay} using your Birth Star ({moonPlanet.nakshatraName}).
-                  Scores of <strong>70+</strong> mark strong green-light windows.
-                </>
-              )}
-            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 no-print">
             {onOpenHoraiStudio && (
               <button
                 type="button"
@@ -911,15 +1634,82 @@ export const PersonalReportReader: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Deep Numerology Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="obs-panel p-5 space-y-2">
+            <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+              {deepReport.deepNumerology.lifePathHeadline}
+            </div>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+              {deepReport.deepNumerology.lifePathDeepNarrative}
+            </p>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] pt-1">
+              <strong className="text-[var(--text)]">
+                {t('Post-35 Maturity Number:', '३५ वर्षपछिको परिपक्वता अंक:')}{' '}
+                {deepReport.deepNumerology.maturityNumberLabel}
+              </strong>{' '}
+              — {deepReport.deepNumerology.maturityNarrative}
+            </p>
+          </div>
+
+          <div className="obs-panel p-5 space-y-2">
+            <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+              {t('Cheiro Esoteric Compound Current:', 'चेइरो गुप्त संयुक्त अंक कम्पन:')}{' '}
+              {deepReport.deepNumerology.compoundTitle}
+            </div>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+              {deepReport.deepNumerology.compoundNarrative}
+            </p>
+            <div className="pt-1 space-y-1">
+              <div className="text-xs font-bold text-[var(--text)]">
+                {deepReport.deepNumerology.karmicLessonsTitle}
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.deepNumerology.karmicLessonsItems.slice(0, 2).join(' ')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 4 Life Pinnacles */}
+        {isFull && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {deepReport.deepNumerology.pinnacleRoadmap.map((pin) => (
+              <div
+                key={pin.label}
+                className={`rounded-xl border p-3.5 space-y-1.5 ${
+                  pin.isCurrent
+                    ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45'
+                    : 'border-[var(--border)] bg-[var(--bg-elevated)]'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-[var(--accent)] tabular-nums">
+                    {pin.ageSpan}
+                  </span>
+                  <StatusBadge
+                    tone={pin.isCurrent ? 'optimal' : 'info'}
+                    label={`#${pin.number} / Ch ${pin.challenge}`}
+                  />
+                </div>
+                <div className="text-xs font-bold text-[var(--text)]">{pin.label}</div>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-3">
+                  {pin.meaning}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Today's Horai, Gowri & Nalla Neram Box */}
         <div className="obs-panel floral-banner-glow p-5 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <SacredFlowerIcon
                 variety={panchangReport.activeHorai.sacredFlower.variety}
                 primaryHex={panchangReport.activeHorai.sacredFlower.primaryHex}
                 secondaryHex={panchangReport.activeHorai.sacredFlower.secondaryHex}
-                size={26}
+                size={24}
               />
               <span className="text-base font-bold text-[var(--text)]">
                 {t('Active Horai Right Now:', 'अहिलेको सक्रिय होरा:')}{' '}
@@ -931,13 +1721,13 @@ export const PersonalReportReader: React.FC<Props> = ({
                 label={activeHoraiDisp.quality}
               />
             </div>
-            <span className="text-xs font-mono text-[var(--text-secondary)]">
+            <span className="text-xs tabular-nums text-[var(--text-secondary)]">
               {t('Active Gowri:', 'सक्रिय गौरी:')}{' '}
               {trGowriName(panchangReport.activeGowri.name, lang)} (
               {panchangReport.activeGowri.nature})
             </span>
           </div>
-          <p className="text-sm text-[var(--text-secondary)]">
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
             <strong>{t('Today’s Nalla Neram (Pure Good Time):', 'आजको शुभ वेला (नल्ल नेरम):')}</strong>{' '}
             {panchangReport.nallaNeram[0].startTime}–{panchangReport.nallaNeram[0].endTime} (
             {trGowriName(panchangReport.nallaNeram[0].gowriName, lang)}) &amp;{' '}
@@ -953,6 +1743,7 @@ export const PersonalReportReader: React.FC<Props> = ({
           </p>
         </div>
 
+        {/* 8-Decision Upcoming Best Dates Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
@@ -962,7 +1753,9 @@ export const PersonalReportReader: React.FC<Props> = ({
                 <th className="py-3 px-3 font-semibold">
                   {t('Best Date in Next 12 Days', 'आगामी १२ दिनको सर्वोत्तम मिति')}
                 </th>
-                <th className="py-3 px-3 font-semibold text-right">{t('Explore', 'विस्तृत')}</th>
+                <th className="py-3 px-3 font-semibold text-right no-print">
+                  {t('Explore', 'विस्तृत')}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
@@ -984,18 +1777,19 @@ export const PersonalReportReader: React.FC<Props> = ({
                       label={t(`${row.todayScore}/100 Today`, `आज ${row.todayScore}/100`)}
                     />
                   </td>
-                  <td className="py-3.5 px-3 font-mono text-[var(--text-secondary)]">
+                  <td className="py-3.5 px-3 tabular-nums text-[var(--text-secondary)]">
                     {row.bestNext ? (
                       <span>
-                        <strong className="text-[var(--text)]">{row.bestNext.dateStr}</strong> (
-                        {row.bestNext.score}/100 •{' '}
-                        {trNakshatra(row.bestNext.nakshatraName, lang)})
+                        <strong className="text-[var(--text)]">
+                          {formatDisplayDate(row.bestNext.dateStr, lang, true)}
+                        </strong>{' '}
+                        ({row.bestNext.score}/100 • {trNakshatra(row.bestNext.nakshatraName, lang)})
                       </span>
                     ) : (
                       '—'
                     )}
                   </td>
-                  <td className="py-3.5 px-3 text-right">
+                  <td className="py-3.5 px-3 text-right no-print">
                     <button
                       type="button"
                       onClick={() => onOpenActionTiming(row.action.id)}
@@ -1014,11 +1808,11 @@ export const PersonalReportReader: React.FC<Props> = ({
         {/* Grounded Remedies Box */}
         <div className="p-5 rounded-xl bg-[var(--sage-bg)] border border-[var(--sage)]/30 space-y-3">
           <h3 className="text-lg font-bold text-[var(--sage)] flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5" />
+            <ShieldCheck className="w-5 h-5 shrink-0" />
             <span>
               {t(
-                'Simple, Practical Daily Alignment & Classical Remedies',
-                'सरल दैनिक जीवनशैली र शास्त्रीय उपायहरू'
+                'Simple, Practical Daily Alignment & Classical Remedies (Upaya)',
+                'सरल दैनिक जीवनशैली र शास्त्रीय उपायहरू (उपाय)'
               )}
             </span>
           </h3>
@@ -1044,26 +1838,61 @@ export const PersonalReportReader: React.FC<Props> = ({
             </li>
             <li>
               <strong className="text-[var(--text)]">
+                {t('Ayurvedic Daily Reset:', 'आयुर्वेदिक दैनिक सन्तुलन:')}
+              </strong>{' '}
+              {deepReport.wellnessBlueprint.foodAndHydrationTip}
+            </li>
+            <li>
+              <strong className="text-[var(--text)]">
                 {t('Classical Mantra Support:', 'शास्त्रीय वैदिक मन्त्र:')}
               </strong>{' '}
-              <span className="font-mono text-sm">{birthNak.vedicMantra}</span>
+              <span className="text-sm font-medium">{birthNak.vedicMantra}</span>
             </li>
           </ul>
         </div>
 
+        {/* Authoritative Classical & Modern Book Bibliography */}
+        {isFull && (
+          <div id="rep-sources" className="pt-4 border-t border-[var(--border)] space-y-3">
+            <div className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-[var(--accent)]" />
+              <h3 className="text-lg font-bold text-[var(--text)]">
+                {t(
+                  'Classical & Scholarly Source Lineage Behind Your Dossier',
+                  'यस प्रतिवेदनमा प्रयोग गरिएका प्रामाणिक शास्त्रीय तथा आधुनिक ग्रन्थहरू'
+                )}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {deepReport.bibliography.map((bk) => (
+                <div
+                  key={bk.id}
+                  className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] p-3.5 space-y-1"
+                >
+                  <div className="text-sm font-bold text-[var(--text)]">{bk.title}</div>
+                  <div className="text-xs text-[var(--accent)] font-medium">{bk.authorAndEra}</div>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    {lang === 'ne' ? bk.usedForNe : bk.usedForEn}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Bottom Download CTA */}
-        <div className="obs-panel p-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="obs-panel p-5 flex flex-wrap items-center justify-between gap-4 no-print">
           <div>
             <div className="text-base font-bold text-[var(--text)]">
               {t(
-                'Save or share this complete report as a PDF',
-                'यो सम्पूर्ण व्यक्तिगत रिपोर्ट PDF मा सुरक्षित वा प्रिन्ट गर्नुहोस्'
+                'Save or share your complete 10-section Personal Life Dossier (.PDF)',
+                'यो सम्पूर्ण १०-खण्ड व्यक्तिगत जीवन प्रतिवेदन PDF मा सुरक्षित वा प्रिन्ट गर्नुहोस्'
               )}
             </div>
             <div className="text-sm text-[var(--text-secondary)]">
               {t(
-                'Includes full planetary degree tables, 12-year forecast, numerology profile, and vector Kundali charts.',
-                'पूर्ण ग्रह स्पष्ट तालिका, १२-वर्षे पूर्वानुमान, अंक ज्योतिष र भेक्टर कुण्डली चार्ट समावेश।'
+                'Vector A4 layout with D1/D9 Kundali diagrams, Career & Indu Lagna Wealth, Spouse Portrait, Ayurveda, Age 16–48 Milestones, Transits & Numerology.',
+                'भेक्टर कुण्डली चार्ट, करियर, इन्दु लग्न धन योग, जीवनसाथी, आयुर्वेद, उमेर मोड र अंक ज्योतिष समावेश।'
               )}
             </div>
           </div>
@@ -1079,7 +1908,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               <span>
                 {pdfBusy === 'DOWNLOAD'
                   ? t('Building PDF…', 'PDF बन्दैछ…')
-                  : t('Download Detailed PDF Report', 'विस्तृत PDF रिपोर्ट डाउनलोड')}
+                  : t('Download Full PDF Dossier', 'विस्तृत PDF रिपोर्ट डाउनलोड')}
               </span>
             </button>
             <button

@@ -1,5 +1,5 @@
 import { AyanamshaMode, BirthProfile, HouseSystem } from '../types/oceanology';
-import { NatalChartResult, ZODIAC_SIGNS } from './astronomyEngine';
+import { NatalChartResult } from './astronomyEngine';
 import { DivisionalChartEntry, VedicReport } from './vedicEngine';
 import { PanchangReport } from './panchangEngine';
 import { NumerologyReport } from './numerologyEngine';
@@ -17,8 +17,8 @@ import {
   buildPlainEnglishPersonalSummary,
   DASHA_PLAIN_GUIDE,
   HOUSE_PLAIN_GUIDE,
-  PLANET_PLAIN_ROLES,
 } from '../data/plainEnglishGuide';
+import { generateDeepLifeReport } from './deepLifeReportEngine';
 
 export interface PdfReportBundleInput {
   profile: BirthProfile;
@@ -44,6 +44,7 @@ export function cleanPdfText(raw: string | number | undefined | null): string {
     .replace(/\u2013/g, '-')
     .replace(/\u2022/g, '|')
     .replace(/\u2192/g, '->')
+    .replace(/\u2194/g, '<->')
     .replace(/\u2026/g, '...')
     .replace(/\u2212/g, '-')
     .replace(/\u00A0/g, ' ')
@@ -106,7 +107,6 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   });
 
   const pageW = 210;
-  const pageH = 297;
   const marginX = 14;
   const contentW = pageW - marginX * 2; // 182mm
   const topY = 18;
@@ -126,6 +126,15 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     numerologyReport,
     synthesisReport
   );
+  const deepReport = generateDeepLifeReport(
+    profile,
+    natalChart,
+    vedicReport,
+    panchangReport,
+    numerologyReport,
+    synthesisReport,
+    'en'
+  );
 
   const sunPlanet = natalChart.planets.find((p) => p.id === 'Sun') || natalChart.planets[0];
   const moonPlanet = natalChart.planets.find((p) => p.id === 'Moon') || natalChart.planets[1];
@@ -139,7 +148,7 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   };
 
   const drawSectionHeader = (numLabel: string, title: string, subtitle: string) => {
-    ensureSpace(22);
+    ensureSpace(24);
     y += 3;
     doc.setFillColor(238, 242, 255); // Indigo-50
     doc.setDrawColor(199, 210, 254); // Indigo-200
@@ -151,36 +160,41 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     doc.text(cleanPdfText(numLabel.toUpperCase()), marginX + 4, y + 5.2);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(11.6);
     doc.setTextColor(15, 23, 42); // Slate-900
     doc.text(cleanPdfText(title), marginX + 4, y + 10.8);
 
     y += 17;
     if (subtitle) {
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9.5);
+      doc.setFontSize(9.2);
       doc.setTextColor(71, 85, 105);
       const lines = doc.splitTextToSize(cleanPdfText(subtitle), contentW);
       doc.text(lines, marginX, y);
-      y += lines.length * 4.4 + 2.5;
+      y += lines.length * 4.3 + 2.5;
     }
   };
 
-  const drawParagraphBlock = (heading: string, body: string, accentBar = true) => {
+  const drawParagraphBlock = (
+    heading: string,
+    body: string,
+    accentBar = true,
+    accentRgb: [number, number, number] = [79, 70, 229]
+  ) => {
     const cleanHead = cleanPdfText(heading);
     const cleanBody = cleanPdfText(body);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.2);
+    doc.setFontSize(10);
     const wrappedHead = doc.splitTextToSize(cleanHead, contentW - 10);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.8);
+    doc.setFontSize(9.5);
     const wrappedBody = doc.splitTextToSize(cleanBody, contentW - 10);
 
-    const headH = wrappedHead.length * 4.8;
-    const bodyH = wrappedBody.length * 4.6;
-    const boxH = 5.5 + headH + 1.8 + bodyH + 3.5;
+    const headH = wrappedHead.length * 4.7;
+    const bodyH = wrappedBody.length * 4.4;
+    const boxH = 5.2 + headH + 1.6 + bodyH + 3.4;
 
     ensureSpace(boxH + 3);
 
@@ -189,21 +203,32 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     doc.roundedRect(marginX, y, contentW, boxH, 1.8, 1.8, 'FD');
 
     if (accentBar) {
-      doc.setFillColor(79, 70, 229);
+      doc.setFillColor(accentRgb[0], accentRgb[1], accentRgb[2]);
       doc.rect(marginX, y, 1.6, boxH, 'F');
     }
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.2);
+    doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
-    doc.text(wrappedHead, marginX + 4.8, y + 5.8);
+    doc.text(wrappedHead, marginX + 4.8, y + 5.6);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.8);
+    doc.setFontSize(9.5);
     doc.setTextColor(51, 65, 85);
-    doc.text(wrappedBody, marginX + 4.8, y + 5.8 + headH + 1.4);
+    doc.text(wrappedBody, marginX + 4.8, y + 5.6 + headH + 1.3);
 
-    y += boxH + 3.2;
+    y += boxH + 3;
+  };
+
+  const drawCitationNote = (citation: string) => {
+    const cleanCite = cleanPdfText(`Classical & Scholarly Sources: ${citation}`);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8.2);
+    const lines = doc.splitTextToSize(cleanCite, contentW - 4);
+    ensureSpace(lines.length * 3.8 + 3);
+    doc.setTextColor(100, 116, 139);
+    doc.text(lines, marginX + 2, y + 3);
+    y += lines.length * 3.8 + 2.5;
   };
 
   const drawNorthIndianKundli = (
@@ -225,19 +250,16 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     doc.setTextColor(100, 116, 139);
     doc.text(cleanPdfText(chartSub), x0, y0 - 1.5);
 
-    // Chart Background & Outer Square
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(79, 70, 229);
     doc.setLineWidth(0.45);
     doc.rect(x0, y0, sizeMm, sizeMm, 'FD');
 
-    // Diagonals
     doc.setDrawColor(148, 163, 184);
     doc.setLineWidth(0.3);
     doc.line(x0, y0, x0 + sizeMm, y0 + sizeMm);
     doc.line(x0 + sizeMm, y0, x0, y0 + sizeMm);
 
-    // Inner Diamond
     const mid = sizeMm / 2;
     doc.setDrawColor(79, 70, 229);
     doc.setLineWidth(0.38);
@@ -267,7 +289,6 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
         const px = x0 + (hPos.planetsX / 400) * sizeMm;
         const py = y0 + (hPos.planetsY / 400) * sizeMm;
         const labels = occupants.map((o) => PLANET_SHORT[o.planetId] || o.planetName.slice(0, 2));
-        // Split into 2 short lines if >= 4 planets share a house
         const line1 = labels.slice(0, 3).join(' ');
         const line2 = labels.slice(3).join(' ');
         doc.setFont('helvetica', 'bold');
@@ -283,19 +304,23 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     }
   };
 
-  // ==================== PAGE 1: COVER & EXECUTIVE SNAPSHOT ====================
+  // ==================== PAGE 1: COVER, SNAPSHOT & 5-DOMAIN LIFE SCORECARD ====================
   doc.setFillColor(15, 23, 42); // Slate-900 Header Banner
   doc.roundedRect(marginX, 12, contentW, 38, 3, 3, 'F');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
+  doc.setFontSize(8.8);
   doc.setTextColor(165, 180, 252); // Indigo-300
-  doc.text('OCEANOLOGY | PERSONAL HOROSCOPE, VEDIC KUNDALI & LIFE TIMING DOSSIER', marginX + 6, 20);
+  doc.text(
+    'OCEANOLOGY | PERSONAL LIFE DOSSIER, VEDIC KUNDALI & NUMEROLOGY EDITION',
+    marginX + 6,
+    20
+  );
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
+  doc.setFontSize(19.5);
   doc.setTextColor(255, 255, 255);
-  doc.text(fullName || 'Personal Horoscope Report', marginX + 6, 30.5);
+  doc.text(fullName || 'Personal Horoscope Dossier', marginX + 6, 30.5);
 
   const pad2 = (n: number) => String(n).padStart(2, '0');
   const tzSign = profile.location.timezoneOffsetHours >= 0 ? '+' : '-';
@@ -304,23 +329,23 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   const birthLine1 = cleanPdfText(
     `Born: ${profile.year}-${pad2(profile.month)}-${pad2(profile.day)} at ${
       profile.unknownTime
-        ? 'Solar Noon (Unknown Exact Time)'
+        ? 'Solar Noon (Unknown Exact Birth Time)'
         : `${pad2(profile.hour)}:${pad2(profile.minute)}:${pad2(profile.second)}`
-    } (${tzStr})  |  Nepali Date: B.S. ${bsBirth.formattedEn}`
+    } (${tzStr})  |  Nepali Date: ${bsBirth.formattedEn}  |  Age: ${deepReport.currentAge}`
   );
   const birthLine2 = cleanPdfText(
     `Birthplace: ${cleanCityName(profile.location.name)}, ${profile.location.country} (${profile.location.latitude.toFixed(
       2
-    )}°N, ${profile.location.longitude.toFixed(2)}°E)  |  Zodiac: ${ayanamsha}  |  Houses: ${houseSystem}`
+    )}N, ${profile.location.longitude.toFixed(2)}E)  |  Zodiac: ${ayanamsha}  |  Houses: ${houseSystem}`
   );
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.8);
+  doc.setFontSize(8.5);
   doc.setTextColor(226, 232, 240);
   doc.text(birthLine1, marginX + 6, 38.5);
   doc.text(birthLine2, marginX + 6, 44.2);
 
-  y = 56;
+  y = 55;
 
   // 6-Card Executive Snapshot Grid (2 rows x 3 cols)
   const topSav = [...vedicReport.sarvashtakavarga].sort((a, b) => b.bindus - a.bindus)[0];
@@ -328,12 +353,12 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     {
       label: 'RISING SIGN (ASCENDANT)',
       value: `${natalChart.ascendant.signName} (${natalChart.ascendant.formattedDMS})`,
-      sub: 'Your outward style & physical vitality',
+      sub: `Public Image (AL): ${deepReport.identityAndSoul.arudhaLagnaSign}`,
     },
     {
       label: 'SUN & MOON SIGNS',
       value: `${sunPlanet.signName} Sun / ${moonPlanet.signName} Moon`,
-      sub: 'Inner purpose & emotional nature',
+      sub: `Soul Planet (AK): ${deepReport.identityAndSoul.atmakarakaPlanet}`,
     },
     {
       label: 'VEDIC BIRTH STAR',
@@ -346,12 +371,12 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
       sub: `Active until ${vedicReport.activeAntardasha.endDate}`,
     },
     {
-      label: 'STRONGEST LIFE AREA',
-      value: `House ${topSav.house} (${topSav.bindus} pts)`,
+      label: 'WEALTH & STRONGEST HOUSE',
+      value: `Indu: ${deepReport.wealthBlueprint.induLagnaSign} | H${topSav.house} (${topSav.bindus}pt)`,
       sub: HOUSE_PLAIN_GUIDE[topSav.house]?.shortTitle || topSav.signName,
     },
     {
-      label: 'LIFE PATH & alignment',
+      label: 'LIFE PATH & ALIGNMENT',
       value: `Life Path #${numerologyReport.lifePath.final}  |  ${synthesisReport.overallResonanceScore}/100`,
       sub: `Personal Year ${numerologyReport.personalYear.final} (${numerologyReport.system})`,
     },
@@ -359,41 +384,98 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
   const cardGap = 4;
   const cardW = (contentW - cardGap * 2) / 3;
-  const cardH = 21;
+  const cardH = 20;
 
   snapshotCards.forEach((c, idx) => {
     const col = idx % 3;
     const row = Math.floor(idx / 3);
     const cx = marginX + col * (cardW + cardGap);
-    const cy = y + row * (cardH + 3.5);
+    const cy = y + row * (cardH + 3);
 
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(203, 213, 225);
     doc.roundedRect(cx, cy, cardW, cardH, 2, 2, 'FD');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.2);
+    doc.setFontSize(7);
     doc.setTextColor(79, 70, 229);
-    doc.text(cleanPdfText(c.label), cx + 3.2, cy + 5.2);
+    doc.text(cleanPdfText(c.label), cx + 3, cy + 4.8);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
+    doc.setFontSize(9.5);
     doc.setTextColor(15, 23, 42);
-    const valClipped = doc.splitTextToSize(cleanPdfText(c.value), cardW - 6)[0] || '';
-    doc.text(valClipped, cx + 3.2, cy + 11.6);
+    const valClipped = doc.splitTextToSize(cleanPdfText(c.value), cardW - 5.5)[0] || '';
+    doc.text(valClipped, cx + 3, cy + 11);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.8);
+    doc.setFontSize(7.6);
     doc.setTextColor(100, 116, 139);
-    const subClipped = doc.splitTextToSize(cleanPdfText(c.sub), cardW - 6)[0] || '';
-    doc.text(subClipped, cx + 3.2, cy + 17.2);
+    const subClipped = doc.splitTextToSize(cleanPdfText(c.sub), cardW - 5.5)[0] || '';
+    doc.text(subClipped, cx + 3, cy + 16.5);
   });
 
-  y += cardH * 2 + 11;
+  y += cardH * 2 + 8;
+
+  // 5-Domain Life Blueprint Scorecard Strip
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.2);
+  doc.setTextColor(15, 23, 42);
+  doc.text('5-DOMAIN LIFE BLUEPRINT SCORECARD (CAREER, WEALTH, LOVE, VITALITY, WISDOM)', marginX, y + 3.5);
+  y += 5.5;
+
+  const scGap = 2.5;
+  const scW = (contentW - scGap * 4) / 5;
+  const scH = 23;
+  deepReport.domainScorecard.forEach((sc, idx) => {
+    const sx = marginX + idx * (scW + scGap);
+    const isOpt = sc.tone === 'optimal';
+    const isFav = sc.tone === 'favorable';
+
+    doc.setFillColor(isOpt ? 236 : isFav ? 238 : 254, isOpt ? 253 : isFav ? 242 : 252, isOpt ? 245 : isFav ? 255 : 232);
+    doc.setDrawColor(isOpt ? 167 : isFav ? 199 : 253, isOpt ? 243 : isFav ? 210 : 230, isOpt ? 208 : isFav ? 254 : 138);
+    doc.roundedRect(sx, y, scW, scH, 1.8, 1.8, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(51, 65, 85);
+    const shortTitle = doc.splitTextToSize(cleanPdfText(sc.title.toUpperCase()), scW - 4)[0] || sc.id;
+    doc.text(shortTitle, sx + 2.2, y + 4.8);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    if (isOpt) doc.setTextColor(5, 150, 105);
+    else if (isFav) doc.setTextColor(79, 70, 229);
+    else doc.setTextColor(180, 83, 9);
+    doc.text(`${sc.score}/100`, sx + 2.2, y + 12.2);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+    const vClip = doc.splitTextToSize(cleanPdfText(sc.verdictLabel), scW - 4)[0] || '';
+    doc.text(vClip, sx + 2.2, y + 17.2);
+
+    // Mini progress bar
+    const barW = scW - 4.4;
+    doc.setFillColor(226, 232, 240);
+    doc.rect(sx + 2.2, y + 19.2, barW, 1.8, 'F');
+    if (isOpt) doc.setFillColor(5, 150, 105);
+    else if (isFav) doc.setFillColor(79, 70, 229);
+    else doc.setFillColor(217, 119, 6);
+    doc.rect(sx + 2.2, y + 19.2, barW * (sc.score / 100), 1.8, 'F');
+  });
+
+  y += scH + 5;
+
+  if (deepReport.unknownBirthTimeNote) {
+    drawParagraphBlock(
+      'Note on Solar-Noon Birth Time Safeguard',
+      deepReport.unknownBirthTimeNote,
+      true,
+      [217, 119, 6]
+    );
+  }
 
   // Quick Key Takeaways Box on Page 1
-  doc.setFillColor(236, 253, 245); // Emerald-50
-  doc.setDrawColor(167, 243, 208);
   const takeawayLines: { label: string; wrapped: string[] }[] = plainSummary.quickBulletTakeaways.map(
     (b) => ({
       label: cleanPdfText(b.label),
@@ -401,35 +483,38 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     })
   );
   const takeawayH =
-    11 + takeawayLines.reduce((acc, item) => acc + Math.max(1, item.wrapped.length) * 4.5 + 1.8, 0);
+    10.5 + takeawayLines.reduce((acc, item) => acc + Math.max(1, item.wrapped.length) * 4.3 + 1.6, 0);
+  ensureSpace(takeawayH + 4);
+  doc.setFillColor(236, 253, 245); // Emerald-50
+  doc.setDrawColor(167, 243, 208);
   doc.roundedRect(marginX, y, contentW, takeawayH, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
+  doc.setFontSize(10);
   doc.setTextColor(6, 95, 70);
-  doc.text('AT A GLANCE: YOUR 5 MOST IMPORTANT TAKEAWAYS', marginX + 4.5, y + 6.5);
+  doc.text('AT A GLANCE: YOUR 5 MOST IMPORTANT TAKEAWAYS', marginX + 4.5, y + 6.2);
 
-  let ty = y + 12.2;
+  let ty = y + 11.6;
   for (const item of takeawayLines) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
+    doc.setFontSize(8.8);
     doc.setTextColor(15, 23, 42);
     doc.text(`${item.label}:`, marginX + 4.5, ty);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
+    doc.setFontSize(8.8);
     doc.setTextColor(51, 65, 85);
     doc.text(item.wrapped, marginX + 52, ty);
-    ty += Math.max(1, item.wrapped.length) * 4.5 + 1.8;
+    ty += Math.max(1, item.wrapped.length) * 4.3 + 1.6;
   }
 
   y += takeawayH + 5;
 
-  // ==================== SECTION 1: PLAIN-ENGLISH PERSONAL READING ====================
+  // ==================== SECTION 1 OF 10: PLAIN-ENGLISH READING, PUBLIC IMAGE & SOUL PURPOSE ====================
   drawSectionHeader(
-    'Section 1 of 8',
-    'Plain-English Personal Reading (What Your Chart Means)',
-    'Written in everyday language so you can immediately understand your personality, current life chapter, natural strengths, and daily timing before diving into technical tables.'
+    'Section 1 of 10',
+    'Executive Personal Reading, Public Image (Arudha) & Soul Purpose',
+    'Everyday zero-jargon guidance paired with your Jaimini Arudha Lagna (how the world perceives you), Atmakaraka soul compass, and Rahu-Ketu growth axis.'
   );
 
   drawParagraphBlock('1. Your Core Personality (Rising, Sun & Moon)', plainSummary.bigThreeParagraph);
@@ -438,15 +523,188 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     `3. Current Life Chapter: ${plainSummary.currentChapterTitle}`,
     plainSummary.currentChapterParagraph
   );
-  drawParagraphBlock('4. Where Life Flows Best for You', plainSummary.strengthsParagraph);
-  drawParagraphBlock('5. Where Patience & Structure Pay Off', plainSummary.careAreaParagraph);
-  drawParagraphBlock('6. Practical Guidance for Today', plainSummary.todayGuidanceParagraph);
+  drawParagraphBlock('4. Where Life Flows Best vs. Where Patience Pays Off', `${plainSummary.strengthsParagraph} ${plainSummary.careAreaParagraph}`);
+  drawParagraphBlock(
+    `5. Inner Truth vs. Public Image (Arudha Lagna in ${deepReport.identityAndSoul.arudhaLagnaSign})`,
+    deepReport.identityAndSoul.innerVsOuterNarrative
+  );
+  drawParagraphBlock(
+    `6. Soul Compass: ${deepReport.identityAndSoul.atmakarakaPlanet} as Atmakaraka (${deepReport.identityAndSoul.atmakarakaTitle})`,
+    deepReport.identityAndSoul.atmakarakaNarrative
+  );
+  drawParagraphBlock(
+    `7. Karmic Comfort Zone vs. Growth Edge (Ketu H${deepReport.identityAndSoul.ketuHouse} -> Rahu H${deepReport.identityAndSoul.rahuHouse})`,
+    `Past Instinct & Natural Gift (Ketu): ${deepReport.identityAndSoul.ketuComfortGift}   |   Lifetime Growth Edge (Rahu): ${deepReport.identityAndSoul.rahuGrowthEdge}   |   Degree Symbols: Ascendant "${deepReport.identityAndSoul.ascendantSabian}"; Sun "${deepReport.identityAndSoul.sunSabian}".`
+  );
+  drawCitationNote(deepReport.identityAndSoul.sourceCitation);
 
-  // 4-System Synthesis Pillars
+  // ==================== SECTION 2 OF 10: CAREER, CALLING & D10 DASHAMSHA BLUEPRINT ====================
   drawSectionHeader(
-    'Section 2 of 8',
-    'Four-System Concordance & Vedic Kundali Charts (D1 & D9)',
-    'Visual North-Indian Rashi (D1) and Navamsha (D9) Kundali diagrams paired with your 4-system cross-tradition synthesis.'
+    'Section 2 of 10',
+    'Career, Calling & D10 Dashamsha Professional Blueprint',
+    'Synthesizes your 10th House Lord placement (BPHS Ch. 24), D10 Dashamsha Directional Guardian (Dikpala), Jaimini Amatyakaraka, and KP 10th Cusp Sub-Lord.'
+  );
+
+  drawParagraphBlock(
+    `${deepReport.careerBlueprint.headline}  [${deepReport.careerBlueprint.workStyleMode}]`,
+    deepReport.careerBlueprint.laymanNarrative
+  );
+  drawParagraphBlock(
+    `D10 Dashamsha Directional Guardian (Dikpala: ${deepReport.careerBlueprint.dikpalaDeity} - ${deepReport.careerBlueprint.dikpalaDirection})`,
+    `${deepReport.careerBlueprint.dikpalaArchetype}: ${deepReport.careerBlueprint.dikpalaStyle}`
+  );
+  drawParagraphBlock(
+    `Career Minister (Amatyakaraka: ${deepReport.careerBlueprint.amatyakarakaPlanet}) & KP 10th Cusp Sub-Lord (${deepReport.careerBlueprint.kpCusp10SubLord})`,
+    `${deepReport.careerBlueprint.amatyakarakaNote}   |   ${deepReport.careerBlueprint.kpCareerNote}`
+  );
+  drawParagraphBlock(
+    'High-Fit Career Lanes & Practical Career Rule',
+    `Recommended Professional Lanes: ${deepReport.careerBlueprint.recommendedLanes.join('  |  ')}.   Actionable Career Habit: ${deepReport.careerBlueprint.careerActionTip}`,
+    true,
+    [5, 150, 105]
+  );
+  drawCitationNote(deepReport.careerBlueprint.sourceCitation);
+
+  // ==================== SECTION 3 OF 10: WEALTH ARCHITECTURE, INDU LAGNA & D2 HORA ====================
+  drawSectionHeader(
+    'Section 3 of 10',
+    'Wealth Architecture, Kalidasa Indu Lagna & D2 Hora Strategy',
+    'Evaluates how money arrives, whether you earn best via solo enterprise or collaborative trust (D2 Hora), and how to retain surplus (H2 vs. H11 vs. H12).'
+  );
+
+  drawParagraphBlock(
+    `Wealth Ascendant (Indu Lagna): ${deepReport.wealthBlueprint.induLagnaSign} (House ${deepReport.wealthBlueprint.induHouseFromLagna}) - ${deepReport.wealthBlueprint.induStrengthTier}`,
+    `${deepReport.wealthBlueprint.induNarrative}  [Kalas Calculation: ${deepReport.wealthBlueprint.induKalasTrail}]`
+  );
+
+  // Visual D2 Hora Split Bar in PDF
+  ensureSpace(22);
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(marginX, y, contentW, 18, 1.8, 1.8, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(15, 23, 42);
+  doc.text(
+    cleanPdfText(`D2 Hora Wealth Split: ${deepReport.wealthBlueprint.horaEarningStyleTitle}`),
+    marginX + 4,
+    y + 5.2
+  );
+
+  const horaBarX = marginX + 4;
+  const horaBarW = contentW - 8;
+  const suryaW = Math.max(8, horaBarW * (deepReport.wealthBlueprint.suryaHoraPercent / 100));
+  doc.setFillColor(217, 119, 6); // Amber for Surya Hora
+  doc.rect(horaBarX, y + 7.5, suryaW, 4.5, 'F');
+  doc.setFillColor(79, 70, 229); // Indigo for Chandra Hora
+  doc.rect(horaBarX + suryaW, y + 7.5, Math.max(4, horaBarW - suryaW), 4.5, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.8);
+  doc.setTextColor(180, 83, 9);
+  doc.text(
+    `Solar / Self-Built Hora: ${deepReport.wealthBlueprint.suryaHoraPercent}%`,
+    horaBarX,
+    y + 15.8
+  );
+  doc.setTextColor(67, 56, 202);
+  doc.text(
+    `Lunar / Collaborative Hora: ${deepReport.wealthBlueprint.chandraHoraPercent}%`,
+    horaBarX + horaBarW,
+    y + 15.8,
+    { align: 'right' }
+  );
+  y += 21;
+
+  drawParagraphBlock('D2 Hora Earning Mechanics', deepReport.wealthBlueprint.horaEarningNarrative);
+  drawParagraphBlock(
+    `Cashflow vs. Savings Retention (H2 Savings: ${deepReport.wealthBlueprint.savingsBindusH2} pts | H11 Gains: ${deepReport.wealthBlueprint.gainsBindusH11} pts | H12 Outflow: ${deepReport.wealthBlueprint.expenseBindusH12} pts)`,
+    deepReport.wealthBlueprint.cashflowVsRetentionAdvice,
+    true,
+    [5, 150, 105]
+  );
+  drawCitationNote(deepReport.wealthBlueprint.sourceCitation);
+
+  // ==================== SECTION 4 OF 10: LOVE, MARRIAGE & AYURVEDIC CONSTITUTION ====================
+  drawSectionHeader(
+    'Section 4 of 10',
+    'Love, Marriage Portrait (Upapada & Darakaraka) & Ayurvedic Vitality',
+    'Partner temperament, real-world marriage environment, rational Mars/Kuja balance, and your Ayurvedic Vata-Pitta-Kapha wellness blueprint.'
+  );
+
+  drawParagraphBlock(
+    `Partner Archetype (Darakaraka ${deepReport.relationshipBlueprint.darakarakaPlanet}): ${deepReport.relationshipBlueprint.partnerArchetypeTitle}`,
+    deepReport.relationshipBlueprint.partnerPortraitNarrative
+  );
+  drawParagraphBlock(
+    `Marriage Institution (Upapada Lagna in ${deepReport.relationshipBlueprint.upapadaLagnaSign}) & 7th House (${deepReport.relationshipBlueprint.seventhHouseSign})`,
+    `${deepReport.relationshipBlueprint.marriageEnvironmentNarrative}   |   ${deepReport.relationshipBlueprint.navamshaD9Note}`
+  );
+  drawParagraphBlock(
+    `Temperament & Mars Balance Check: ${deepReport.relationshipBlueprint.marsBalanceHeadline}`,
+    `${deepReport.relationshipBlueprint.marsBalanceExplanation}   |   Golden Relationship Habit: ${deepReport.relationshipBlueprint.goldenRelationshipRule}`
+  );
+  drawCitationNote(deepReport.relationshipBlueprint.sourceCitation);
+
+  // Ayurvedic Tridosha Visual Bars
+  ensureSpace(32);
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(marginX, y, contentW, 27, 1.8, 1.8, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(
+    cleanPdfText(`Ayurvedic Constitutional Balance (Dominant Tendency: ${deepReport.wellnessBlueprint.dominantDosha})`),
+    marginX + 4,
+    y + 5.5
+  );
+
+  const doshaRows: { label: string; pct: number; rgb: [number, number, number] }[] = [
+    { label: 'Vata (Air + Ether - Nervous System & Creativity)', pct: deepReport.wellnessBlueprint.vataPercent, rgb: [79, 70, 229] },
+    { label: 'Pitta (Fire + Water - Metabolism & Drive)', pct: deepReport.wellnessBlueprint.pittaPercent, rgb: [217, 119, 6] },
+    { label: 'Kapha (Earth + Water - Stamina & Immunity)', pct: deepReport.wellnessBlueprint.kaphaPercent, rgb: [5, 150, 105] },
+  ];
+
+  doshaRows.forEach((dr, idx) => {
+    const ry = y + 9.2 + idx * 5.6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(51, 65, 85);
+    doc.text(dr.label, marginX + 4, ry + 3);
+
+    const bx = marginX + 86;
+    const bw = 76;
+    doc.setFillColor(226, 232, 240);
+    doc.roundedRect(bx, ry, bw, 3.6, 1, 1, 'F');
+    doc.setFillColor(dr.rgb[0], dr.rgb[1], dr.rgb[2]);
+    doc.roundedRect(bx, ry, Math.max(3, bw * (dr.pct / 100)), 3.6, 1, 1, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${dr.pct}%`, marginX + contentW - 4, ry + 3, { align: 'right' });
+  });
+  y += 30;
+
+  drawParagraphBlock(
+    'Constitutional Strengths & Early Stress Signals',
+    `${deepReport.wellnessBlueprint.constitutionSummary}  Natural Strength: ${deepReport.wellnessBlueprint.naturalStrength}  Stress Signal to Watch: ${deepReport.wellnessBlueprint.stressSignalToWatch}`
+  );
+  drawParagraphBlock(
+    'Daily Food, Sleep, Movement & 6th-House Recovery Protocol',
+    `Food & Hydration: ${deepReport.wellnessBlueprint.foodAndHydrationTip}   |   Movement & Sleep: ${deepReport.wellnessBlueprint.movementAndSleepTip}   |   ${deepReport.wellnessBlueprint.sixthHouseResilienceNote}`,
+    true,
+    [5, 150, 105]
+  );
+  drawCitationNote(deepReport.wellnessBlueprint.sourceCitation);
+
+  // ==================== SECTION 5 OF 10: VEDIC KUNDALI CHARTS (D1 & D9) & 4-SYSTEM CONCORDANCE ====================
+  drawSectionHeader(
+    'Section 5 of 10',
+    'Visual Vedic Kundali Charts (D1 & D9) & Four-System Concordance',
+    'North-Indian Rashi (D1) and Navamsha (D9) Kundali diagrams paired with your 4-system cross-tradition synthesis.'
   );
 
   ensureSpace(96);
@@ -472,7 +730,6 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   );
   y += kundliSize + 6;
 
-  // Legend below Kundali charts
   const vargottamaList = vedicReport.divisionalTable
     .filter((d) => d.planetId !== 'Asc' && d.isVargottama)
     .map((d) => d.planetName);
@@ -490,11 +747,11 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     );
   }
 
-  // ==================== SECTION 3: PLANETARY EPHEMERIS & PLANET READINGS ====================
+  // ==================== SECTION 6 OF 10: EPHEMERIS & DEEP 9-PLANET BPHS READINGS ====================
   drawSectionHeader(
-    'Section 3 of 8',
-    'Complete Planetary Positions & Plain-English Meanings',
-    `Exact geocentric positions computed under ${ayanamsha} zodiac and ${houseSystem} houses, with plain-English house meanings.`
+    'Section 6 of 10',
+    'Complete Planetary Positions & Deep 9-Planet Classical Synthesis',
+    `Exact geocentric positions computed under ${ayanamsha} zodiac and ${houseSystem} houses, followed by layman + Brihat Parashara Hora Shastra Ch. 24 rulings.`
   );
 
   const drawPlanetTableHeader = () => {
@@ -575,35 +832,20 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
   y += 5;
 
-  // Individual Planet-by-Planet Personal Readings (9 Vedic Grahas)
-  const coreNineIds = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
-  for (const pid of coreNineIds) {
-    const p = natalChart.planets.find(
-      (pl) => pl.id === pid || pl.name.toLowerCase().includes(pid.toLowerCase())
-    );
-    if (!p) continue;
-    const hGuide = HOUSE_PLAIN_GUIDE[p.house];
-    const treatise = PLANET_TREATISES[pid];
-    const role = PLANET_PLAIN_ROLES[pid] || '';
-    const detailText = `Governs: ${role}. Placed in ${p.signName} (${p.formattedDMS}) in House ${
-      p.house
-    } (${hGuide?.shortTitle || ''}), inside ${p.nakshatraName} Star (Pada ${p.nakshatraPada})${
-      p.isRetrograde
-        ? ' [Retrograde - internalized, reflective strength]'
-        : ''
-    }. In your life, ${pid} directs energy toward ${
-      hGuide?.lifeAreas.toLowerCase() || 'this domain'
-    }. ${treatise ? `Key lesson: ${treatise.vedicSoulLesson}` : ''}`;
-
+  for (const pc of deepReport.deepPlanetCards) {
+    const vargaBadges = `D9 Navamsha: ${pc.d9SignLabel} | D10 Career: ${pc.d10SignLabel}${
+      pc.isVargottama ? ' | VARGOTTAMA (Double-Reinforced)' : ''
+    }${pc.isRetrograde ? ' | Retrograde' : ''}`;
+    const bodyText = `${pc.laymanSynthesis}  [${vargaBadges}]  Classical BPHS House Ruling: ${pc.classicalBphsRuling}  Growth Lesson: ${pc.growthLesson}`;
     drawParagraphBlock(
-      `${pid} in ${p.signName} (House ${p.house}: ${hGuide?.shortTitle || ''}) - ${p.dignity}`,
-      detailText
+      `${pc.planetLabel} in ${pc.signLabel} (${pc.degreeDMS}) - House ${pc.house} (${pc.houseTitle}) | ${pc.dignity}`,
+      bodyText
     );
   }
 
-  // ==================== SECTION 4: BIRTH STAR (JANMA NAKSHATRA) DEEP DIVE ====================
+  // ==================== SECTION 7 OF 10: BIRTH STAR (JANMA NAKSHATRA) DEEP DIVE ====================
   drawSectionHeader(
-    'Section 4 of 8',
+    'Section 7 of 10',
     `Your Birth Star Deep Dive: ${birthNakTreatise.name} (Pada ${moonPlanet.nakshatraPada})`,
     `Ruler: ${birthNakTreatise.ruler}  |  Deity: ${birthNakTreatise.deity}  |  Symbol: ${birthNakTreatise.symbol}  |  Nature: ${birthNakTreatise.natureGroup}`
   );
@@ -622,26 +864,22 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     `${birthNakTreatise.shaktiPhala} Classical Boon: ${birthNakTreatise.taittiriyaBoon}`
   );
   drawParagraphBlock(
-    'Natural Career Strengths & Blind Spot to Watch',
-    `Ideal Vocations: ${birthNakTreatise.vocations.join(', ')}. Shadow Tendency to Watch: ${birthNakTreatise.shadowTrap}`
-  );
-  drawParagraphBlock(
-    'Best Activities vs. Activities to Avoid Under Your Birth Star',
-    `Favorable for: ${birthNakTreatise.auspiciousWorks.join(', ')}. Avoid / Caution for: ${birthNakTreatise.inauspiciousWorks.join(', ')}.`
+    'Natural Career Strengths, Blind Spot & Favorable Works',
+    `Ideal Vocations: ${birthNakTreatise.vocations.join(', ')}. Shadow Tendency to Watch: ${birthNakTreatise.shadowTrap}  |  Favorable for: ${birthNakTreatise.auspiciousWorks.join(', ')}. Caution for: ${birthNakTreatise.inauspiciousWorks.join(', ')}.`
   );
 
-  // ==================== SECTION 5: 12-HOUSE STRENGTHS, YOGAS & JAIMINI ====================
+  // ==================== SECTION 8 OF 10: 12-HOUSE STRENGTHS, YOGAS & JAIMINI ====================
   drawSectionHeader(
-    'Section 5 of 8',
-    '12-House Life Strength Analysis (Sarvashtakavarga) & Active Yogas',
+    'Section 8 of 10',
+    '12-House Life Strength Analysis (Sarvashtakavarga), Yogas & Jaimini',
     '28 points is the baseline average per house. Houses with 30+ points flow naturally; houses below 25 ask for steady habits and patience.'
   );
 
   const savSortedByHouse = [...vedicReport.sarvashtakavarga].sort((a, b) => a.house - b.house);
-  ensureSpace(12 * 8.2 + 12);
+  ensureSpace(12 * 8 + 10);
 
   savSortedByHouse.forEach((hRow) => {
-    ensureSpace(8.5);
+    ensureSpace(8.2);
     const guide = HOUSE_PLAIN_GUIDE[hRow.house];
     const labelStr = `H${hRow.house}: ${guide?.shortTitle || ''} (${hRow.signName})`;
     doc.setFont('helvetica', 'bold');
@@ -656,15 +894,14 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     doc.roundedRect(barX, y + 1.2, barMaxW, 4.8, 1.2, 1.2, 'F');
 
     if (hRow.bindus >= 30) {
-      doc.setFillColor(5, 150, 105); // Emerald
+      doc.setFillColor(5, 150, 105);
     } else if (hRow.bindus < 25) {
-      doc.setFillColor(225, 29, 72); // Rose
+      doc.setFillColor(225, 29, 72);
     } else {
-      doc.setFillColor(79, 70, 229); // Indigo
+      doc.setFillColor(79, 70, 229);
     }
     doc.roundedRect(barX, y + 1.2, Math.max(4, barMaxW * pct), 4.8, 1.2, 1.2, 'F');
 
-    // 28 Benchmark tick
     const benchX = barX + (28 / 42) * barMaxW;
     doc.setDrawColor(15, 23, 42);
     doc.setLineWidth(0.35);
@@ -691,7 +928,6 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     }
   }
 
-  // Jaimini Karakas Summary
   const jaiminiSummary = vedicReport.charaKarakas
     .map(
       (ck) =>
@@ -700,14 +936,167 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     .join('  |  ');
   drawParagraphBlock('Seven Jaimini Soul Significators (Chara Karakas)', jaiminiSummary, false);
 
-  // ==================== SECTION 6: VIMSHOTTARI DASHA & 12-YEAR FORECAST ====================
+  // ==================== SECTION 9 OF 10: MATURITY AGES (16-48), LIVE GOCHARA, ANTARDASHAS & 12-YR HORIZON ====================
   drawSectionHeader(
-    'Section 6 of 8',
-    'Lifetime Planetary Chapters (Vimshottari Dasha) & 12-Year Horizon',
-    'Your 120-year Vimshottari Mahadasha sequence alongside a year-by-year 12-year outlook.'
+    'Section 9 of 10',
+    'Turning-Point Ages (16-48), Live Sky Transits & Planetary Chapters',
+    'Combines Planetary Maturity Ages (Graha Paripakvata), live Saturn Sade Sati / Jupiter Guru Bala / Moorthi Nirnaya transits, active Antardasha sub-periods, and your 12-year outlook.'
   );
 
+  // 9A: Planetary Maturity Ages Table (16 -> 48)
+  ensureSpace(22);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  doc.text('Planetary Maturity Milestones (Graha Paripakvata - Ages 16 to 48)', marginX, y + 4);
+  y += 6.5;
+
+  const drawMaturityHeader = () => {
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(203, 213, 225);
+    doc.rect(marginX, y, contentW, 7.5, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Age (Year)', marginX + 2, y + 5);
+    doc.text('Planet & Houses', marginX + 27, y + 5);
+    doc.text('Status', marginX + 64, y + 5);
+    doc.text('Real-Life Turning Point Meaning', marginX + 86, y + 5);
+    y += 7.5;
+  };
+
+  drawMaturityHeader();
+  deepReport.maturityMilestones.forEach((ms, idx) => {
+    const meaningStr = cleanPdfText(
+      `${ms.headline}: ${ms.laymanMeaning}${ms.conjunctionNote ? ` (${ms.conjunctionNote})` : ''}`
+    );
+    const wrappedM = doc.splitTextToSize(meaningStr, 93);
+    const rowH = Math.max(7.5, wrappedM.length * 4 + 2.8);
+    if (y + rowH > bottomLimitY) {
+      doc.addPage();
+      y = topY + 4;
+      drawMaturityHeader();
+    }
+    if (ms.status === 'ACTIVE_NOW') {
+      doc.setFillColor(238, 242, 255);
+      doc.rect(marginX, y, contentW, rowH, 'F');
+    } else if (idx % 2 === 1) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(marginX, y, contentW, rowH, 'F');
+    }
+    doc.setDrawColor(226, 232, 240);
+    doc.line(marginX, y + rowH, marginX + contentW, y + rowH);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.2);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Age ${ms.maturityAge} (${ms.calendarYear})`, marginX + 2, y + 4.8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    const hRuled = ms.housesRuled.length > 0 ? `R:H${ms.housesRuled.join(',')}` : 'Node';
+    doc.text(cleanPdfText(`${ms.planetLabel} (H${ms.houseOccupied}, ${hRuled})`), marginX + 27, y + 4.8);
+
+    doc.setFont('helvetica', 'bold');
+    if (ms.status === 'ACTIVE_NOW') doc.setTextColor(79, 70, 229);
+    else if (ms.status === 'COMPLETED') doc.setTextColor(5, 150, 105);
+    else doc.setTextColor(100, 116, 139);
+    const stTag = ms.status === 'ACTIVE_NOW' ? 'ACTIVE' : ms.status === 'COMPLETED' ? 'DONE' : 'UPCOMING';
+    doc.text(stTag, marginX + 64, y + 4.8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
+    doc.text(wrappedM, marginX + 86, y + 4.8);
+    y += rowH;
+  });
+
+  y += 5;
+
+  // 9B: Live Slow-Planet Gochara Transits from Natal Moon
+  drawParagraphBlock(
+    `Live Saturn Transit (${deepReport.liveSkyAndSubPeriods.saturnTransitSign} - ${deepReport.liveSkyAndSubPeriods.saturnHouseFromMoon}th from Moon): ${deepReport.liveSkyAndSubPeriods.saturnPhaseHeadline}`,
+    deepReport.liveSkyAndSubPeriods.saturnGuidance,
+    true,
+    deepReport.liveSkyAndSubPeriods.isSadeSati ? [217, 119, 6] : [5, 150, 105]
+  );
+  drawParagraphBlock(
+    `Live Jupiter Transit (${deepReport.liveSkyAndSubPeriods.jupiterTransitSign} - ${deepReport.liveSkyAndSubPeriods.jupiterHouseFromMoon}th from Moon): ${deepReport.liveSkyAndSubPeriods.jupiterHeadline}`,
+    deepReport.liveSkyAndSubPeriods.jupiterGuidance
+  );
+  drawParagraphBlock(
+    `Live Nodal Axis & Moorthi Nirnaya (${deepReport.liveSkyAndSubPeriods.moorthiFormLabel})`,
+    `${deepReport.liveSkyAndSubPeriods.nodalTransitNote}   |   ${deepReport.liveSkyAndSubPeriods.moorthiExplanation}`
+  );
+  drawCitationNote(deepReport.liveSkyAndSubPeriods.sourceCitation);
+
+  // 9C: Active Mahadasha's 9 Antardasha Sub-Periods
   ensureSpace(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  doc.text(
+    cleanPdfText(`Sub-Chapters Inside Your Active ${deepReport.liveSkyAndSubPeriods.activeMahadashaLabel} Mahadasha (Antardashas)`),
+    marginX,
+    y + 4
+  );
+  y += 6.5;
+
+  const drawAntarHeader = () => {
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(203, 213, 225);
+    doc.rect(marginX, y, contentW, 7.5, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Sub-Period', marginX + 2.5, y + 5);
+    doc.text('Date Window', marginX + 38, y + 5);
+    doc.text('Plain-English Focus & Guidance', marginX + 82, y + 5);
+    y += 7.5;
+  };
+
+  drawAntarHeader();
+  deepReport.liveSkyAndSubPeriods.subPeriods.forEach((sp, idx) => {
+    const wrappedG = doc.splitTextToSize(cleanPdfText(`${sp.themeTitle} - ${sp.laymanGuidance}`), 97);
+    const rowH = Math.max(7.2, wrappedG.length * 4 + 2.6);
+    if (y + rowH > bottomLimitY) {
+      doc.addPage();
+      y = topY + 4;
+      drawAntarHeader();
+    }
+    if (sp.status === 'ACTIVE') {
+      doc.setFillColor(238, 242, 255);
+      doc.rect(marginX, y, contentW, rowH, 'F');
+    } else if (idx % 2 === 1) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(marginX, y, contentW, rowH, 'F');
+    }
+    doc.setDrawColor(226, 232, 240);
+    doc.line(marginX, y + rowH, marginX + contentW, y + rowH);
+
+    doc.setFont('helvetica', sp.status === 'ACTIVE' ? 'bold' : 'normal');
+    doc.setFontSize(8.1);
+    doc.setTextColor(sp.status === 'ACTIVE' ? 79 : 15, sp.status === 'ACTIVE' ? 70 : 23, sp.status === 'ACTIVE' ? 229 : 42);
+    doc.text(
+      cleanPdfText(`${sp.antarLordLabel}${sp.status === 'ACTIVE' ? ' [NOW]' : ''}`),
+      marginX + 2.5,
+      y + 4.8
+    );
+    doc.setTextColor(51, 65, 85);
+    doc.text(cleanPdfText(`${sp.startDate} -> ${sp.endDate}`), marginX + 38, y + 4.8);
+    doc.text(wrappedG, marginX + 82, y + 4.8);
+    y += rowH;
+  });
+
+  y += 5;
+
+  // 9D: Lifetime Mahadashas Table
+  ensureSpace(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  doc.text('120-Year Lifetime Vimshottari Mahadasha Sequence', marginX, y + 4);
+  y += 6.5;
+
   doc.setFillColor(241, 245, 249);
   doc.setDrawColor(203, 213, 225);
   doc.rect(marginX, y, contentW, 7.5, 'FD');
@@ -748,10 +1137,10 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
   y += 6;
 
-  // 12-Year Year-by-Year Horizon Table
+  // 9E: 12-Year Year-by-Year Horizon Table
   ensureSpace(24);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
+  doc.setFontSize(10);
   doc.setTextColor(15, 23, 42);
   doc.text('12-Year Annual Forecast (Vedic Dasha + Personal Year + Transits)', marginX, y);
   y += 4;
@@ -799,22 +1188,59 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
   y += 5;
 
-  // ==================== SECTION 7: DAILY PANCHANG, HORAI TIME & 10-DECISION TIMING GUIDE ====================
+  // ==================== SECTION 10 OF 10: DEEP NUMEROLOGY, PANCHANG HORAI, REMEDIES & BIBLIOGRAPHY ====================
   drawSectionHeader(
-    'Section 7 of 8',
-    `Daily Panchang, Horai Time & Decision Timing (${cleanCityName(profile.location.name)})`,
-    `Computed for ${panchangReport.dateStr} (${panchangReport.vara.name})  |  Sunrise ${panchangReport.sunriseTime} - Sunset ${panchangReport.sunsetTime}`
+    'Section 10 of 10',
+    `Deep Numerology (${numerologyReport.system}), Daily Timing, Remedies & Bibliography`,
+    'Cheiro compound vibration, Decoz 4 Life Pinnacles, today’s local Horai & 10-decision timing matrix, practical remedies, and classical book references.'
   );
 
+  drawParagraphBlock(
+    deepReport.deepNumerology.lifePathHeadline,
+    deepReport.deepNumerology.lifePathDeepNarrative
+  );
+  drawParagraphBlock(
+    deepReport.deepNumerology.compoundTitle,
+    deepReport.deepNumerology.compoundNarrative
+  );
+  drawParagraphBlock(
+    deepReport.deepNumerology.maturityNumberLabel,
+    deepReport.deepNumerology.maturityNarrative
+  );
+
+  const pinnacleLines = deepReport.deepNumerology.pinnacleRoadmap
+    .map(
+      (p) =>
+        `${p.label} (${p.ageSpan})${p.isCurrent ? ' [ACTIVE SEASON]' : ''}: Pinnacle #${p.number}, Challenge #${p.challenge} - ${p.meaning}`
+    )
+    .join('   |   ');
+  drawParagraphBlock('Four Life Pinnacles & Challenges Roadmap', pinnacleLines);
+  drawParagraphBlock(
+    deepReport.deepNumerology.karmicLessonsTitle,
+    deepReport.deepNumerology.karmicLessonsItems.join('   |   ')
+  );
+
+  const numItems = [
+    { name: 'Expression / Destiny Number', val: numerologyReport.expression },
+    { name: "Heart's Desire (Soul Urge)", val: numerologyReport.heartsDesire },
+    { name: 'Outer Personality Number', val: numerologyReport.personality },
+    { name: 'Personal Year Cycle', val: numerologyReport.personalYear },
+  ];
+  for (const ni of numItems) {
+    drawParagraphBlock(
+      `${ni.name}: #${ni.val.final} (Calculation ${ni.val.trail})`,
+      ni.val.meaning
+    );
+  }
+  drawCitationNote(deepReport.deepNumerology.sourceCitation);
+
+  // Daily Panchang, 12 Horais & 10-Decision Matrix
   const nallaSummary = panchangReport.nallaNeram
     .map((nn) => `${nn.periodLabel}: ${nn.startTime}-${nn.endTime} (${nn.gowriName})`)
     .join('  |  ');
-  const panchangOverview = `Lunar Day (Tithi): ${panchangReport.tithi.name} (${panchangReport.tithi.paksha}). Transit Star: ${panchangReport.nakshatra.name} (Pada ${panchangReport.nakshatra.pada}). Yoga: ${panchangReport.yoga.name}. Karana: ${panchangReport.karana.name}. Active Horai: ${panchangReport.activeHorai.horaiName} (${panchangReport.activeHorai.startTime}-${panchangReport.activeHorai.endTime}). Active Gowri: ${panchangReport.activeGowri.name} (${panchangReport.activeGowri.nature}). ${nallaSummary}. Personal Star Harmony (Tarabala): Tara #${panchangReport.personalTarabala.taraNumber} (${panchangReport.personalTarabala.taraName}) - ${
-    panchangReport.personalTarabala.isAuspicious ? 'Supportive' : 'Mixed / Pace carefully'
-  }. Travel Caution Today: Avoid ${panchangReport.dishashoola.forbiddenDirection} (${panchangReport.dishashoola.pariharaRemedy}).`;
-  drawParagraphBlock('Today’s Local Sky, Horai, Gowri & Nalla Neram Summary', panchangOverview);
+  const panchangOverview = `Computed for ${cleanCityName(profile.location.name)} on ${panchangReport.dateStr} (${panchangReport.vara.name}), Sunrise ${panchangReport.sunriseTime} - Sunset ${panchangReport.sunsetTime}. Lunar Day (Tithi): ${panchangReport.tithi.name} (${panchangReport.tithi.paksha}). Transit Star: ${panchangReport.nakshatra.name} (Pada ${panchangReport.nakshatra.pada}). Yoga: ${panchangReport.yoga.name}. Karana: ${panchangReport.karana.name}. Active Horai: ${panchangReport.activeHorai.horaiName} (${panchangReport.activeHorai.startTime}-${panchangReport.activeHorai.endTime}). ${nallaSummary}. Personal Star Harmony (Tarabala): Tara #${panchangReport.personalTarabala.taraNumber} (${panchangReport.personalTarabala.taraName}).`;
+  drawParagraphBlock('Today’s Local Panchang, Horai & Nalla Neram Summary', panchangOverview);
 
-  // Daytime 12-Horai Schedule Compact 2-Column Grid
   ensureSpace(46);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
@@ -878,12 +1304,9 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(67, 56, 202);
-      doc.text(
-        `${hSlot.startTime}-${hSlot.endTime}`,
-        cellX + colW - 2,
-        y + 4.2,
-        { align: 'right' }
-      );
+      doc.text(`${hSlot.startTime}-${hSlot.endTime}`, cellX + colW - 2, y + 4.2, {
+        align: 'right',
+      });
     });
     y += 7;
   }
@@ -943,11 +1366,7 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
       doc.rect(marginX, y, contentW, 7.5, 'F');
     }
     doc.setDrawColor(226, 232, 240);
-    doc.line(marginX, y + 7.5, marginX + contentW, y + rowHeightVal());
-
-    function rowHeightVal() {
-      return 7.5;
-    }
+    doc.line(marginX, y + 7.5, marginX + contentW, y + 7.5);
 
     const verdictLabel =
       todayEv.score >= 70 ? 'Optimal' : todayEv.score >= 48 ? 'Mixed / Caution' : 'Wait / Postpone';
@@ -977,28 +1396,6 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
   y += 5;
 
-  // ==================== SECTION 8: NUMEROLOGY & PRACTICAL REMEDIES ====================
-  drawSectionHeader(
-    'Section 8 of 8',
-    `Numerology Blueprint (${numerologyReport.system}) & Practical Remedies`,
-    'Core name & birth numbers paired with grounded classical and behavioral remedies (Upaya).'
-  );
-
-  const numItems = [
-    { name: 'Life Path Number', val: numerologyReport.lifePath },
-    { name: 'Expression / Destiny Number', val: numerologyReport.expression },
-    { name: "Heart's Desire (Soul Urge)", val: numerologyReport.heartsDesire },
-    { name: 'Outer Personality Number', val: numerologyReport.personality },
-    { name: 'Personal Year Cycle', val: numerologyReport.personalYear },
-  ];
-
-  for (const ni of numItems) {
-    drawParagraphBlock(
-      `${ni.name}: #${ni.val.final} (Calculation ${ni.val.trail})`,
-      ni.val.meaning
-    );
-  }
-
   // Grounded Classical & Behavioral Remedies
   const activeDashaTreatise = PLANET_TREATISES[vedicReport.activeMahadasha.lord];
   const activeKarma = BEHAVIORAL_KARMA_VIPAKA.find(
@@ -1019,16 +1416,29 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
 
   drawParagraphBlock('Personalized Remedies & Daily Alignment Habits (Parihara)', remedyBody);
 
-  // Synthesis Q&A Appendix
+  // Synthesis Q&A + Authoritative Bibliography Appendix
   if (synthesisReport.aiCopilotPrompts.length > 0) {
     drawSectionHeader(
-      'Appendix',
+      'Appendix A',
       'Frequently Asked Personal Questions (Grounded in Your Chart)',
       'Direct answers synthesized from your birth chart, active Dasha, Ashtakavarga, and Personal Year.'
     );
     for (const qa of synthesisReport.aiCopilotPrompts) {
       drawParagraphBlock(qa.question, qa.groundedAnswer, false);
     }
+  }
+
+  drawSectionHeader(
+    'Appendix B',
+    'Authoritative Classical & Modern Book Bibliography',
+    'Every formula and layman synthesis in this dossier is mathematically derived from these primary canons.'
+  );
+  for (const bib of deepReport.bibliography) {
+    drawParagraphBlock(
+      `${bib.title} (${bib.authorAndEra})`,
+      bib.usedForEn,
+      false
+    );
   }
 
   // ==================== RUNNING HEADERS & PAGE FOOTERS ON ALL PAGES ====================
@@ -1041,7 +1451,7 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.8);
       doc.setTextColor(100, 116, 139);
-      doc.text(`OCEANOLOGY PERSONAL DOSSIER  |  ${fullName}`, marginX, 11);
+      doc.text(`OCEANOLOGY PERSONAL LIFE DOSSIER  |  ${fullName}`, marginX, 11);
       doc.setFont('helvetica', 'normal');
       doc.text(`${ayanamsha} / ${houseSystem}`, pageW - marginX, 11, { align: 'right' });
       doc.setDrawColor(226, 232, 240);
@@ -1057,7 +1467,7 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
     doc.text(
-      `Generated ${generatedOn} at oceanology.vercel.app  |  100% Client-Side Ephemeris`,
+      `Generated ${generatedOn} at oceanology.vercel.app  |  100% Client-Side Ephemeris & Book-Grounded Engine`,
       marginX,
       289
     );
@@ -1094,7 +1504,6 @@ export async function openDetailedPdfInNewTab(input: PdfReportBundleInput): Prom
   const url = URL.createObjectURL(blob);
   const win = window.open(url, '_blank', 'noopener,noreferrer');
   if (!win) {
-    // Fallback to direct download if popup blocked
     const link = document.createElement('a');
     link.href = url;
     link.download = buildPdfFileName(input.profile);
