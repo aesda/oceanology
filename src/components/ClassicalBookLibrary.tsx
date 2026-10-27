@@ -9,7 +9,7 @@ import {
   ArrowUpRight,
   Trees,
 } from 'lucide-react';
-import { NatalChartResult, ZODIAC_SIGNS } from '../engines/astronomyEngine';
+import { NatalChartResult, norm360, ZODIAC_SIGNS } from '../engines/astronomyEngine';
 import { VedicReport } from '../engines/vedicEngine';
 import { HOUSE_TREATISES, PLANET_TREATISES } from '../data/classicalCompendium';
 import { CLASSICAL_CANON_BOOKS, PLANET_IN_BHAVA_RULINGS } from '../data/canonAnthology';
@@ -19,6 +19,13 @@ import {
   computePlanetVitalityMap,
   detectSaravaliConjunctions,
 } from '../data/shadbalaVargaAndUpayaCodex';
+import {
+  buildSamvatsaraPair,
+  computeBhriguBinduProfile,
+  computeYoginiDashaSystem,
+  detectPushkaraBlessings,
+  resolveNatalPakshiBird,
+} from '../data/yoginiNadiVarshaphalCodex';
 import { SegmentedTabs, StatusBadge, WorkspacePageHeader } from './ui/DashboardPrimitives';
 import {
   trDignity,
@@ -109,7 +116,34 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
       ),
     [chart, vedic.activeMahadasha.lord, lowestSav, lang]
   );
+  const yoginiDasha = React.useMemo(
+    () => computeYoginiDashaSystem(chart, vedic.activeMahadasha.lord, lang),
+    [chart, vedic.activeMahadasha.lord, lang]
+  );
+  const pushkaraSummary = React.useMemo(
+    () => detectPushkaraBlessings(chart, lang),
+    [chart, lang]
+  );
+  const bhriguBindu = React.useMemo(
+    () => computeBhriguBinduProfile(chart, chart, lang),
+    [chart, lang]
+  );
+  const isNatalShukla = norm360(moonPlanet.siderealLongitude - sunPlanet.siderealLongitude) < 180;
+  const natalPakshiBird = resolveNatalPakshiBird(moonPlanet.nakshatraIndex, isNatalShukla);
+  const birthUtc = chart.utcDate;
+  const samvatsaraPair = React.useMemo(
+    () =>
+      buildSamvatsaraPair(
+        birthUtc.getUTCFullYear(),
+        birthUtc.getUTCMonth() + 1,
+        birthUtc.getUTCDate(),
+        new Date(),
+        lang
+      ),
+    [birthUtc, lang]
+  );
   const activePlanetVit = planetVitalityMap[activePlanet.id];
+  const activePlanetPushkara = pushkaraSummary.byBodyId[activePlanet.id];
 
   const getBookLiveConcordance = (bookId: string): string => {
     const ak = vedic.charaKarakas.find((c) => c.karakaCode === 'AK');
@@ -192,6 +226,30 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
         return t(
           `Prashna Marga & Ashtanga Hridaya link your ${chart.ascendant.signName} Ascendant (${ascElement} element) and ${moonPlanet.signName} Moon (${moonElement} element) directly to daily constitutional balance and zero-cost Sattvic Upaya.`,
           `प्रश्नमार्ग र अष्टाङ्ग हृदयले तपाईंको ${trSign(chart.ascendant.signName, 'ne')} लग्न र ${trSign(moonPlanet.signName, 'ne')} चन्द्र राशिलाई दैनिक आयुर्वेदिक सन्तुलनसँग जोड्छ।`
+        );
+      case 'rudrayamala-yogini':
+        return t(
+          `Born under ${yoginiDasha.birthYoginiLabel}, your active 36-year Himalayan Yogini chapter right now is ${yoginiDasha.activePeriod.nameLabel} (${yoginiDasha.activePeriod.planetLordLabel}, ${yoginiDasha.activePeriod.startDate} → ${yoginiDasha.activePeriod.endDate}), sub-period ${yoginiDasha.activeAntar.nameLabel}.`,
+          `तपाईंको जन्म योगिनी ${yoginiDasha.birthYoginiLabel} हो र हाल ३६-वर्षे चक्रमा ${yoginiDasha.activePeriod.nameLabel} महादशा (${yoginiDasha.activeAntar.nameLabel} अन्तर्दशा, ${yoginiDasha.activePeriod.startDate} → ${yoginiDasha.activePeriod.endDate}) सक्रिय छ।`
+        );
+      case 'bhrigu-chandra-kala-nadi':
+        return t(
+          `Your Bhrigu Bindu (Rahu–Moon karmic midpoint) lands at ${bhriguBindu.signLabel} ${bhriguBindu.degreeDMS} in House ${bhriguBindu.houseFromLagna} (${bhriguBindu.nakshatraLabel} Pada ${bhriguBindu.pada}). ${pushkaraSummary.headline}.`,
+          `तपाईंको भृगु बिन्दु (राहु-चन्द्र मध्य-बिन्दु) भाव ${bhriguBindu.houseFromLagna} मा ${bhriguBindu.signLabel} ${bhriguBindu.degreeDMS} (${bhriguBindu.nakshatraLabel} चरण ${bhriguBindu.pada}) मा स्थित छ। ${pushkaraSummary.headline}।`
+        );
+      case 'tajika-neelakanthi': {
+        const completedAge = Math.max(0, new Date().getUTCFullYear() - birthUtc.getUTCFullYear());
+        const munthaSignIdx = (chart.ascendant.signIndex + completedAge) % 12;
+        const munthaSignName = ZODIAC_SIGNS[munthaSignIdx]?.name || 'Aries';
+        return t(
+          `At age ~${completedAge}, your progressed Tajika Muntha advances to ${munthaSignName} (Lord: ${ZODIAC_SIGNS[munthaSignIdx]?.ruler ?? 'Mars'}), working alongside your Solar Return Varsheshwara in Chapter 9 of your Personal Dossier.`,
+          `हालको उमेर (~${completedAge}) अनुसार तपाईंको प्रगतिशील ताजक मुन्था ${trSign(munthaSignName, 'ne')} राशिमा पुगेको छ।`
+        );
+      }
+      case 'panchapakshi-agastya':
+        return t(
+          `Born in ${isNatalShukla ? 'Shukla' : 'Krishna'} Paksha under ${janmaNakTreatise.name}, your lifelong Agastya Cosmic Bird (Janma Pakshi) is ${natalPakshiBird}, and your birth Jovian year is ${samvatsaraPair.birthSamvatsara.fullTitle} (${samvatsaraPair.birthSamvatsara.qualityLabel}).`,
+          `${isNatalShukla ? 'शुक्ल' : 'कृष्ण'} पक्ष र ${trNakshatra(janmaNakTreatise.name, 'ne')} नक्षत्रका आधारमा तपाईंको जन्म पक्षी "${natalPakshiBird}" र जन्म संवत्सर "${samvatsaraPair.birthSamvatsara.fullTitle}" हो।`
         );
       default:
         return t(
@@ -307,9 +365,14 @@ export const ClassicalBookLibrary: React.FC<Props> = ({
                   {trPlanet(activePlanet.nakshatraLord, lang)})
                 </p>
               </div>
-              {activePlanet.isRetrograde && (
-                <StatusBadge tone="mixed" label={t('Retrograde (Vakri)', 'वक्री')} />
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {activePlanetPushkara && (
+                  <StatusBadge tone="optimal" label={activePlanetPushkara.badgeLabel} />
+                )}
+                {activePlanet.isRetrograde && (
+                  <StatusBadge tone="mixed" label={t('Retrograde (Vakri)', 'वक्री')} />
+                )}
+              </div>
             </div>
 
             {/* Live BPHS Shadbala & Baladi Avastha Strip */}

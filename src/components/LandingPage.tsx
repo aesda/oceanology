@@ -544,8 +544,8 @@ export const LandingPage: React.FC<Props> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-[#EDC5FC] animate-pulse" />
                 <span>
                   {t(
-                    '14 Classical Canons • 24h Graha Horai • 19-Page Printable Dossier',
-                    '१४ शास्त्रीय ग्रन्थ • प्रत्यक्ष २४-घण्टा होरा • १९-पृष्ठ PDF जीवन दर्पण'
+                    '18 Classical Canons • 24h Graha Horai • 22-Page Printable Dossier',
+                    '१८ शास्त्रीय ग्रन्थ • प्रत्यक्ष २४-घण्टा होरा • २२-पृष्ठ PDF जीवन दर्पण'
                   )}
                 </span>
               </div>
@@ -1102,7 +1102,7 @@ export const LandingPage: React.FC<Props> = ({
                       <span>
                         {pdfDownloading
                           ? t('Building PDF…', 'PDF बन्दैछ…')
-                          : t('Download 17p PDF', '१७-पृष्ठ PDF डाउनलोड')}
+                          : t('Download 22p PDF', '२२-पृष्ठ PDF डाउनलोड')}
                       </span>
                     </button>
                     <button
@@ -1322,14 +1322,14 @@ export const LandingPage: React.FC<Props> = ({
                 },
                 {
                   step: '02',
-                  pill: t('8 Classical Canons', '८ प्रामाणिक ग्रन्थ'),
+                  pill: t('18 Classical Canons', '१८ प्रामाणिक ग्रन्थ'),
                   title: t(
-                    'Synthesized from 8 Classical & Modern Books',
-                    '८ प्राचीन र आधुनिक ग्रन्थबाट सरल संश्लेषण'
+                    'Synthesized from 18 Classical & Modern Books',
+                    '१८ प्राचीन र आधुनिक ग्रन्थबाट सरल संश्लेषण'
                   ),
                   desc: t(
-                    'Instead of generic one-liners, Oceanology cross-examines Brihat Parashara Hora Shastra, Phaladeepika, Saravali, Jaimini Sutras, Ayurvedic Prakriti, and Cheiro/Decoz numerology—with a 1-click Plain vs Classical toggle.',
-                    'बृहत् पाराशर होरा शास्त्र, फलदीपिका, सारावली, जैमिनी सूत्र, आयुर्वेदिक त्रिदोष र अंक ज्योतिषलाई जोडेर सामान्य पाठक र अध्येता दुवैका लागि स्पष्ट फलादेश प्रस्तुत गरिन्छ।'
+                    'Instead of generic one-liners, Oceanology cross-examines Brihat Parashara Hora Shastra, Rudrayamala Yogini, Bhrigu Nandi Nadi, Tajika Neelakanthi, Agastya Panchapakshi, and Vedic Lo Shu/Cheiro numerology—with a 1-click Plain vs Classical toggle.',
+                    'बृहत् पाराशर होरा शास्त्र, रुद्रयामल योगिनी, भृगु नन्दी नाडी, ताजिक नीलकण्ठी, अगस्त्य पञ्चपक्षी र वैदिक अंक-शास्त्रलाई जोडेर सामान्य पाठक र अध्येता दुवैका लागि स्पष्ट फलादेश प्रस्तुत गरिन्छ।'
                   ),
                   offset: true,
                   action: () => onNavigate('FULL_REPORT'),
@@ -1352,14 +1352,14 @@ export const LandingPage: React.FC<Props> = ({
                 },
                 {
                   step: '04',
-                  pill: t('17-Page Vector PDF', '१७-पृष्ठ PDF दर्पण'),
+                  pill: t('22-Page Vector PDF', '२२-पृष्ठ PDF दर्पण'),
                   title: t(
-                    'Keep or Share Your 17-Page Printable Life Dossier',
-                    '१७-पृष्ठको व्यावसायिक PDF रिपोर्ट सुरक्षित गर्नुहोस्'
+                    'Keep or Share Your 22-Page Printable Life Dossier',
+                    '२२-पृष्ठको व्यावसायिक PDF रिपोर्ट सुरक्षित गर्नुहोस्'
                   ),
                   desc: t(
-                    'Export a publication-grade 17-page vector PDF complete with North & South Indian Kundalis, 5-Domain Scorecard, Turning-Point Ages (16–48), Gochara transits, and Classical Remedies.',
-                    'उत्तर र दक्षिण भारतीय कुण्डली, ५-क्षेत्र स्कोरकार्ड, १६ देखि ४८ वर्षका निर्णायक मोड, शनि/गुरु गोचर र वैदिक उपायहरूसहितको १७-पृष्ठ PDF तुरुन्त डाउनलोड गर्नुहोस्।'
+                    'Export a publication-grade 22-page vector PDF complete with North & South Indian Kundalis, 5-Domain Scorecard, Varshaphala Solar Return, 36y Yogini Dasha, Lo Shu Grid, and Classical Remedies.',
+                    'उत्तर र दक्षिण भारतीय कुण्डली, ५-क्षेत्र स्कोरकार्ड, ताजिक वर्षफल, ३६-वर्षे योगिनी दशा, लो-शु वर्ग र वैदिक उपायहरूसहितको २२-पृष्ठ PDF तुरुन्त डाउनलोड गर्नुहोस्।'
                   ),
                   offset: true,
                   action: handleQuickPdf,
@@ -1687,7 +1687,7 @@ export const LandingPage: React.FC<Props> = ({
                     <span>
                       {pdfDownloading
                         ? t('Exporting PDF…', 'PDF बन्दैछ…')
-                        : t('Download 17-Page PDF', '१७-पृष्ठ PDF डाउनलोड')}
+                        : t('Download 22-Page PDF', '२२-पृष्ठ PDF डाउनलोड')}
                     </span>
                   </button>
                 </div>
@@ -1780,8 +1780,8 @@ export const LandingPage: React.FC<Props> = ({
 
                 <p className="text-sm sm:text-base text-white/70 leading-relaxed">
                   {t(
-                    'Switch effortlessly into the full sidebar Observatory to compare 36-Guna Ashtakoota partner compatibility, map your planetary lines across 80+ global cities, inspect 249 KP sub-lords, or read 9 classical treatises.',
-                    '३६-गुण अष्टकूट विवाह मिलान, ८०+ विश्व सहरहरूको एस्ट्रोकार्टोग्राफी नक्सा, २५-वर्षे अंक-कलर चार्ट, २४९ केपी सब-लर्ड र ९ शास्त्रीय ग्रन्थहरू एउटै कार्यशालामा अध्ययन गर्नुहोस्।'
+                    'Switch effortlessly into the full Observatory dock to compare 36-Guna Ashtakoota & 10-Porutham compatibility, map planetary lines across 80+ global cities, inspect 249 KP sub-lords, or explore 18 classical treatises.',
+                    '३६-गुण अष्टकूट र १०-पोरुत्तम मिलान, ८०+ विश्व सहरहरूको एस्ट्रोकार्टोग्राफी नक्सा, लो-शु अंक वर्ग, २४९ केपी सब-लर्ड र १८ शास्त्रीय ग्रन्थहरू एउटै कार्यशालामा अध्ययन गर्नुहोस्।'
                   )}
                 </p>
 
@@ -1839,8 +1839,8 @@ export const LandingPage: React.FC<Props> = ({
                   },
                   {
                     icon: <BookOpen className="w-4 h-4 text-[#EDC5FC]" />,
-                    title: t('9 Classical Astrology Books', '९ शास्त्रीय ज्योतिष ग्रन्थ'),
-                    sub: t('BPHS, Phaladeepika, Saravali & more', 'पाराशर, फलदीपिका र सारावली'),
+                    title: t('18 Classical Astrology Books', '१८ शास्त्रीय ज्योतिष ग्रन्थ'),
+                    sub: t('BPHS, Yogini, Bhrigu, Tajika & Agastya', 'पाराशर, योगिनी, भृगु, ताजक र अगस्त्य'),
                     onClick: () => onNavigate('CANON'),
                   },
                 ].map((tile) => (
@@ -1956,7 +1956,7 @@ export const LandingPage: React.FC<Props> = ({
               onClick={() => onNavigate('CANON')}
               className="hover:text-white transition"
             >
-              {t('9 Classical Books', '९ शास्त्रीय ग्रन्थ')}
+              {t('18 Classical Books', '१८ शास्त्रीय ग्रन्थ')}
             </button>
           </div>
 
@@ -1978,8 +1978,8 @@ export const LandingPage: React.FC<Props> = ({
             </span>
             <span>
               {t(
-                'Lahiri Sidereal • Tropical • Graha Horai • 8 Classical Canons',
-                'लाहिरी निरयन • सायन • ग्रह होरा • ८ शास्त्रीय ग्रन्थ'
+                'Lahiri Sidereal • Tropical • Graha Horai • 18 Classical Canons',
+                'लाहिरी निरयन • सायन • ग्रह होरा • १८ शास्त्रीय ग्रन्थ'
               )}
             </span>
           </div>

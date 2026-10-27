@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { PanchangReport } from '../engines/panchangEngine';
 import { formatCoordPair, gregorianToBikramSambat } from '../engines/locationAtlas';
+import { computeSamvatsaraFromBsYear } from '../data/yoginiNadiVarshaphalCodex';
 import {
   DayTimelineBar,
   KpiStatCard,
@@ -54,6 +55,7 @@ export const PanchangDashboard: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<PanchangTab>('HORAI_GOWRI');
   const [yr, mo, dy] = panchang.dateStr.split('-').map((n) => parseInt(n, 10));
   const bsDate = gregorianToBikramSambat(yr || 2026, mo || 10, dy || 25);
+  const todaySamvatsara = computeSamvatsaraFromBsYear(bsDate.bsYear, lang);
   const cityLabel = formatCityForLang(panchang.location.name, lang);
   const activeHoraiLoc = trHoraiDisplay(panchang.activeHorai, lang);
 
@@ -80,12 +82,13 @@ export const PanchangDashboard: React.FC<Props> = ({
               tone="info"
               label={lang === 'ne' ? bsDate.formattedNp : bsDate.formattedEn}
             />
+            <StatusBadge tone="optimal" label={todaySamvatsara.fullTitle} />
           </span>
         }
         subtitle={
           lang === 'ne'
-            ? `${trVara(panchang.vara.name, 'ne')} • इ.सं. ${panchang.dateStr} • सौर महिना: ${bsDate.bsMonthNp} • उचाइ ${panchang.location.elevationMeters}m`
-            : `${panchang.vara.name} • Gregorian ${panchang.dateStr} • Solar Month: ${panchang.bikramSambat.monthName} • Elevation ${panchang.location.elevationMeters}m`
+            ? `${trVara(panchang.vara.name, 'ne')} • इ.सं. ${panchang.dateStr} • सौर महिना: ${bsDate.bsMonthNp} • ${todaySamvatsara.vimsatiRuler} (${todaySamvatsara.qualityLabel}) • उचाइ ${panchang.location.elevationMeters}m`
+            : `${panchang.vara.name} • Gregorian ${panchang.dateStr} • Solar Month: ${panchang.bikramSambat.monthName} • ${todaySamvatsara.vimsatiRuler} (${todaySamvatsara.qualityLabel}) • Elevation ${panchang.location.elevationMeters}m`
         }
         actions={
           <>

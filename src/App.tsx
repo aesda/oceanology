@@ -32,7 +32,7 @@ import {
   NumerologySystem,
   PARTNER_DEFAULT_PROFILE,
 } from './types/oceanology';
-import { calculateNatalChart, ZODIAC_SIGNS } from './engines/astronomyEngine';
+import { calculateNatalChart, norm360, ZODIAC_SIGNS } from './engines/astronomyEngine';
 import { calculateVedicReport } from './engines/vedicEngine';
 import { calculatePanchang } from './engines/panchangEngine';
 import { calculateNumerology } from './engines/numerologyEngine';
@@ -40,6 +40,12 @@ import { generateCosmicSynthesis } from './engines/synthesisEngine';
 import { gregorianToBikramSambat } from './engines/locationAtlas';
 import { downloadDetailedPdfReport } from './engines/pdfReportGenerator';
 import { PLANET_TREATISES } from './data/classicalCompendium';
+import {
+  computeBhriguBinduProfile,
+  computeTajikaVarshaphala,
+  computeYoginiDashaSystem,
+  detectPushkaraBlessings,
+} from './data/yoginiNadiVarshaphalCodex';
 import {
   AppLanguage,
   buildLocalizedPersonalSummary,
@@ -118,8 +124,9 @@ function AppWorkspace() {
   >('OVERVIEW');
   const [westernSubTab, setWesternSubTab] = useState<'ASPECTS' | 'SABIAN'>('ASPECTS');
   const [vedicSubTab, setVedicSubTab] = useState<
-    'DASHA' | 'ASHTAKAVARGA_JAIMINI' | 'KP_SUBLORDS'
+    'DASHA' | 'YOGINI_BHRIGU' | 'ASHTAKAVARGA_JAIMINI' | 'KP_SUBLORDS'
   >('DASHA');
+  const [expandedYoginiKey, setExpandedYoginiKey] = useState<string | null>(null);
 
   // UI Shell, Floral Animations & Reading Comfort states
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
@@ -313,6 +320,35 @@ function AppWorkspace() {
 
   const sunPlanet = natalChart.planets.find((p) => p.id === 'Sun') || natalChart.planets[0];
   const moonPlanet = natalChart.planets.find((p) => p.id === 'Moon') || natalChart.planets[1];
+  const isNatalShuklaPaksha = norm360(moonPlanet.siderealLongitude - sunPlanet.siderealLongitude) < 180;
+
+  const yoginiDasha = useMemo(
+    () => computeYoginiDashaSystem(natalChart, vedicReport.activeMahadasha.lord, lang),
+    [natalChart, vedicReport.activeMahadasha.lord, lang]
+  );
+  const varshaphala = useMemo(
+    () => computeTajikaVarshaphala(profile, natalChart, ayanamsha, houseSystem, lang),
+    [profile, natalChart, ayanamsha, houseSystem, lang]
+  );
+  const liveTransitChart = useMemo(() => {
+    const nowP: BirthProfile = {
+      ...profile,
+      year: liveClockDate.getUTCFullYear(),
+      month: liveClockDate.getUTCMonth() + 1,
+      day: liveClockDate.getUTCDate(),
+      hour: liveClockDate.getUTCHours(),
+      minute: liveClockDate.getUTCMinutes(),
+    };
+    return calculateNatalChart(nowP, ayanamsha, houseSystem, 0);
+  }, [profile, liveClockDate, ayanamsha, houseSystem]);
+  const bhriguBindu = useMemo(
+    () => computeBhriguBinduProfile(natalChart, liveTransitChart, lang),
+    [natalChart, liveTransitChart, lang]
+  );
+  const pushkaraSummary = useMemo(
+    () => detectPushkaraBlessings(natalChart, lang),
+    [natalChart, lang]
+  );
   const atmakaraka = vedicReport.charaKarakas[0];
   const activeHoraiDisp = useMemo(
     () => trHoraiDisplay(panchangReport.activeHorai, lang),
@@ -910,6 +946,7 @@ function AppWorkspace() {
               location={profile.location}
               natalMoonNakshatraIdx={moonPlanet.nakshatraIndex}
               natalMoonSignIdx={moonPlanet.signIndex}
+              isNatalShuklaPaksha={isNatalShuklaPaksha}
               onOpenActionSimulator={(actId) =>
                 handleNavigate('WHAT_HAPPENS_IF', actId ? { actionId: actId } : undefined)
               }
@@ -1769,6 +1806,14 @@ function AppWorkspace() {
                             count: vedicReport.dashas.length,
                           },
                           {
+                            id: 'YOGINI_BHRIGU',
+                            label: t(
+                              '36y Yogini, Bhrigu & Varshaphala',
+                              '३६-वर्षे योगिनी, भृगु र वर्षफल'
+                            ),
+                            count: 8,
+                          },
+                          {
                             id: 'ASHTAKAVARGA_JAIMINI',
                             label: t(
                               'Planet-by-Planet Scores & Soul Roles',
@@ -1889,6 +1934,276 @@ function AppWorkspace() {
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+
+                    {vedicSubTab === 'YOGINI_BHRIGU' && (
+                      <div className="space-y-6">
+                        {/* 1. Tajika Neelakanthi Annual Solar Return (Varshaphala) */}
+                        <div className="rounded-xl border border-[var(--accent)]/40 bg-[var(--accent-bg)]/20 p-4 sm:p-5 space-y-4">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <div className="text-xs font-mono uppercase tracking-wider text-[var(--accent)] font-semibold">
+                                {t(
+                                  `Tajika Neelakanthi • Annual Solar Return (${varshaphala.solarReturnYear})`,
+                                  `ताजिक नीलकण्ठी • वार्षिक वर्षफल (${varshaphala.solarReturnYear})`
+                                )}
+                              </div>
+                              <h4 className="text-base sm:text-lg font-bold text-[var(--text)] mt-0.5">
+                                {varshaphala.munthaThemeHeadline}
+                              </h4>
+                            </div>
+                            <StatusBadge
+                              tone={varshaphala.munthaTone}
+                              label={t(
+                                `Varsha Pravesh: ${varshaphala.varshaPraveshDateIso} (${varshaphala.varshaPraveshUtcTime})`,
+                                `वर्षप्रवेश: ${varshaphala.varshaPraveshDateIso} (${varshaphala.varshaPraveshUtcTime})`
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+                            <div className="p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                              <div className="text-[var(--text-muted)]">
+                                {t('Varsha Lagna', 'वर्ष लग्न')}
+                              </div>
+                              <div className="font-bold text-sm text-[var(--text)] mt-0.5">
+                                {varshaphala.varshaLagnaSign}
+                              </div>
+                              <div className="text-[var(--text-secondary)]">
+                                {varshaphala.varshaLagnaLord}
+                              </div>
+                            </div>
+                            <div className="p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                              <div className="text-[var(--text-muted)]">
+                                {t('Progressed Muntha', 'प्रगतिशील मुन्था')}
+                              </div>
+                              <div className="font-bold text-sm text-[var(--text)] mt-0.5">
+                                {varshaphala.munthaSign} (H{varshaphala.munthaHouseFromVarshaLagna})
+                              </div>
+                              <div className="text-[var(--text-secondary)]">
+                                {varshaphala.munthaLord}
+                              </div>
+                            </div>
+                            <div className="p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                              <div className="text-[var(--text-muted)]">
+                                {t('Varsheshwara (Year Lord)', 'वर्षेश्वर')}
+                              </div>
+                              <div className="font-bold text-sm text-[var(--accent)] mt-0.5">
+                                {varshaphala.varsheshwaraLord}
+                              </div>
+                              <div className="text-[var(--text-secondary)]">
+                                {t(`Age ${varshaphala.completedAge}`, `उमेर ${varshaphala.completedAge}`)}
+                              </div>
+                            </div>
+                            <div className="p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                              <div className="text-[var(--text-muted)]">
+                                {t('Punya Saham (Fortune)', 'पुण्य सहम')}
+                              </div>
+                              <div className="font-bold text-sm text-[var(--text)] mt-0.5">
+                                {varshaphala.punyaSahamSign}
+                              </div>
+                              <div className="font-mono text-[var(--text-secondary)]">
+                                H{varshaphala.punyaSahamHouse} • {varshaphala.punyaSahamDegreeDMS}
+                              </div>
+                            </div>
+                            <div className="p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                              <div className="text-[var(--text-muted)]">
+                                {t('Rajya Saham (Career)', 'राज्य सहम')}
+                              </div>
+                              <div className="font-bold text-sm text-[var(--text)] mt-0.5">
+                                {varshaphala.rajyaSahamSign}
+                              </div>
+                              <div className="font-mono text-[var(--text-secondary)]">
+                                H{varshaphala.rajyaSahamHouse} • {varshaphala.rajyaSahamDegreeDMS}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm leading-relaxed">
+                            <p className="text-[var(--text)] bg-[var(--surface)] p-3.5 rounded-lg border border-[var(--border)]">
+                              {varshaphala.munthaAnnualForecast}
+                            </p>
+                            <p className="text-[var(--text-secondary)] bg-[var(--surface)] p-3.5 rounded-lg border border-[var(--border)]">
+                              {varshaphala.varsheshwaraGuidance}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 2. Bhrigu Bindu & Pushkara Navamsha 2-Column Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-4 sm:p-5 space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <div className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
+                                  {t(
+                                    'Bhrigu Nandi Nadi • Rahu–Moon Midpoint',
+                                    'भृगु नन्दी नाडी • राहु–चन्द्र मध्य-बिन्दु'
+                                  )}
+                                </div>
+                                <h4 className="text-base font-bold text-[var(--text)] mt-0.5">
+                                  {t('Bhrigu Bindu:', 'भृगु बिन्दु:')} {bhriguBindu.signLabel}{' '}
+                                  {bhriguBindu.degreeDMS} ({t(`House ${bhriguBindu.houseFromLagna}`, `भाव ${bhriguBindu.houseFromLagna}`)})
+                                </h4>
+                              </div>
+                              <StatusBadge
+                                tone={bhriguBindu.activationTone}
+                                label={bhriguBindu.activationBadge}
+                              />
+                            </div>
+                            <p className="text-sm text-[var(--text)] leading-relaxed">
+                              {bhriguBindu.destinyMeaning}
+                            </p>
+                            <p className="text-xs text-[var(--text-secondary)] bg-[var(--surface)] p-3 rounded-lg border border-[var(--border)] leading-relaxed">
+                              {bhriguBindu.liveTriggerNote}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-4 sm:p-5 space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <div className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
+                                  {t(
+                                    'Jataka Parijata & Chandra Kala Nadi',
+                                    'जातक पारिजात र चन्द्रकला नाडी'
+                                  )}
+                                </div>
+                                <h4 className="text-base font-bold text-[var(--text)] mt-0.5">
+                                  {pushkaraSummary.headline}
+                                </h4>
+                              </div>
+                              <StatusBadge
+                                tone={pushkaraSummary.blessedBodies.length > 0 ? 'optimal' : 'info'}
+                                label={t(
+                                  `${pushkaraSummary.blessedBodies.length} Lotus Zone${pushkaraSummary.blessedBodies.length === 1 ? '' : 's'}`,
+                                  `${pushkaraSummary.blessedBodies.length} पुष्कर योग`
+                                )}
+                              />
+                            </div>
+                            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                              {pushkaraSummary.overviewNarrative}
+                            </p>
+                            {pushkaraSummary.blessedBodies.length > 0 && (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {pushkaraSummary.blessedBodies.map((tag) => (
+                                  <span
+                                    key={tag.bodyId}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--accent-bg)] text-[var(--accent)] border border-[var(--accent)]/35"
+                                  >
+                                    <span>✦ {tag.bodyLabel}</span>
+                                    <span className="font-mono opacity-80">
+                                      ({tag.signLabel} {tag.degreeDMS})
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 3. 36-Year Nepali / Tantric Ashta-Yogini Dasha Accordion */}
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2 bg-[var(--bg-elevated)] p-4 rounded-xl border border-[var(--border)]">
+                            <div className="space-y-1">
+                              <div className="text-xs font-mono uppercase tracking-wider text-[var(--accent)] font-semibold">
+                                {t(
+                                  'Rudrayamala Tantra & Nepali Cheena • 36-Year Ashta-Yogini Cycle',
+                                  'रुद्रयामल तन्त्र र नेपाली चिना • ३६-वर्षे अष्ट-योगिनी दशा'
+                                )}
+                              </div>
+                              <p className="text-sm text-[var(--text)] leading-relaxed">
+                                {yoginiDasha.doubleLockNarrative}
+                              </p>
+                            </div>
+                            <StatusBadge
+                              tone={yoginiDasha.activePeriod.tone}
+                              label={`${yoginiDasha.activePeriod.nameLabel} → ${yoginiDasha.activeAntar.nameLabel}`}
+                            />
+                          </div>
+
+                          {yoginiDasha.periods.slice(0, 12).map((yp) => {
+                            const rowKey = `${yp.cycleNumber}-${yp.yoginiId}`;
+                            const isOpen =
+                              expandedYoginiKey === rowKey ||
+                              (expandedYoginiKey === null && yp.isCurrent);
+                            return (
+                              <div
+                                key={rowKey}
+                                className={`rounded-xl border transition ${
+                                  yp.isCurrent
+                                    ? 'border-[var(--accent)] bg-[var(--accent-bg)]/25'
+                                    : 'border-[var(--border)] bg-[var(--bg-elevated)]'
+                                }`}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedYoginiKey(isOpen ? 'NONE' : rowKey)}
+                                  className="w-full px-4 py-3.5 flex flex-wrap items-center justify-between gap-2 text-sm"
+                                >
+                                  <div className="flex flex-wrap items-center gap-2.5 text-left">
+                                    {isOpen ? (
+                                      <ChevronDown className="w-4 h-4 text-[var(--accent)]" />
+                                    ) : (
+                                      <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
+                                    )}
+                                    <span className="font-bold text-[var(--text)] text-base">
+                                      {yp.nameLabel} ({yp.planetLordLabel} • {yp.years}y)
+                                    </span>
+                                    <span className="text-[var(--text-secondary)]">
+                                      — {yp.natureLabel}
+                                    </span>
+                                    {yp.isCurrent && (
+                                      <StatusBadge
+                                        tone="optimal"
+                                        label={t(
+                                          `Active (${yp.progressPercent}%)`,
+                                          `सक्रिय (${yp.progressPercent}%)`
+                                        )}
+                                      />
+                                    )}
+                                  </div>
+                                  <span className="font-mono text-sm text-[var(--text-secondary)]">
+                                    {yp.startDate} → {yp.endDate}
+                                  </span>
+                                </button>
+
+                                {isOpen && (
+                                  <div className="px-4 pb-4 pt-3 border-t border-[var(--border)] space-y-3 text-sm">
+                                    <p className="bg-[var(--surface)] p-3.5 rounded-lg border border-[var(--border)] text-[var(--text)] leading-relaxed">
+                                      {yp.fruitSummary}
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                      {yp.antars.map((antar) => (
+                                        <div
+                                          key={antar.yoginiId}
+                                          className={`p-2.5 rounded-lg border ${
+                                            antar.isCurrent
+                                              ? 'border-[var(--accent)] bg-[var(--accent-bg)] text-[var(--accent)] font-semibold'
+                                              : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)]'
+                                          }`}
+                                        >
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span>
+                                              {yp.nameLabel} – {antar.nameLabel}
+                                            </span>
+                                            {antar.isCurrent && (
+                                              <span className="font-mono font-bold">
+                                                {t('NOW', 'सक्रिय')}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div className="text-[11px] font-mono opacity-85 mt-1">
+                                            {antar.startDate} → {antar.endDate}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
 
@@ -2164,8 +2479,8 @@ function AppWorkspace() {
             <div className="flex flex-wrap items-center gap-3 tabular-nums">
               <span>
                 {t(
-                  `14 Classical Canons • ${cityDisplay} Observatory`,
-                  `१४ शास्त्रीय ग्रन्थ • ${cityDisplay} वेधशाला`
+                  `18 Classical Canons • ${cityDisplay} Observatory`,
+                  `१८ शास्त्रीय ग्रन्थ • ${cityDisplay} वेधशाला`
                 )}
               </span>
               <button
@@ -2174,7 +2489,7 @@ function AppWorkspace() {
                 disabled={pdfExporting}
                 className="font-semibold text-[var(--accent)] hover:underline disabled:opacity-60"
               >
-                {t('19-Page PDF Dossier ↗', '१९-पृष्ठ PDF रिपोर्ट ↗')}
+                {t('22-Page PDF Dossier ↗', '२२-पृष्ठ PDF रिपोर्ट ↗')}
               </button>
             </div>
           </div>

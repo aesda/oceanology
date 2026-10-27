@@ -17,7 +17,7 @@ interface Props {
   onSystemChange: (sys: NumerologySystem) => void;
 }
 
-type NumSubView = 'CORE_CHEIRO' | 'COLORCHART' | 'PROPORTIONAL_TUNER';
+type NumSubView = 'CORE_CHEIRO' | 'LOSHU_VEDIC' | 'COLORCHART' | 'PROPORTIONAL_TUNER';
 
 export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChange }) => {
   const { lang, t } = useLanguage();
@@ -211,6 +211,11 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
                 count: 6,
               },
               {
+                id: 'LOSHU_VEDIC',
+                label: t('3×3 Lo Shu Vedic Grid', '३×३ लो-शु वैदिक वर्ग'),
+                count: 9,
+              },
+              {
                 id: 'COLORCHART',
                 label: t('25-Year ColorChart Matrix', '२५-वर्षे कलर-चार्ट तालिका'),
                 count: report.colorChartYears.length,
@@ -222,6 +227,131 @@ export const DecozColorChart: React.FC<Props> = ({ report, system, onSystemChang
             ]}
           />
         </div>
+
+        {/* SUB-VIEW 1B: 3x3 LO SHU / VEDIC ANK-YANTRA MAGIC SQUARE & 8 PLANES */}
+        {subView === 'LOSHU_VEDIC' && (() => {
+          const ls = lang === 'ne' ? report.loShuGridNe : report.loShuGridEn;
+          return (
+            <div className="space-y-5">
+              <div className="obs-panel p-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                    {t(
+                      'Navagraha Directional Magic Square (Every Row, Column & Diagonal = 15)',
+                      'नवग्रह अष्ट-दिशा ३×३ जादुई वर्ग (प्रत्येक पंक्ति र विकर्णको योग = १५)'
+                    )}
+                  </div>
+                  <h3 className="text-lg font-bold text-[var(--text)] mt-0.5">
+                    {t(
+                      `Mulank (Driver) #${ls.mulankDriver} • Bhagyank (Conductor) #${ls.bhagyankConductor}`,
+                      `मूलांक (चालक) #${ls.mulankDriver} • भाग्यांक (संचालक) #${ls.bhagyankConductor}`
+                    )}
+                  </h3>
+                </div>
+                <StatusBadge
+                  tone={ls.completedYogas.length > 0 ? 'optimal' : 'favorable'}
+                  label={
+                    ls.completedYogas.length > 0
+                      ? t(
+                          `${ls.completedYogas.length} Complete Raj Yoga / Plane(s)`,
+                          `${ls.completedYogas.length} पूर्ण राजयोग / स्तम्भ`
+                        )
+                      : t('Balanced Developing Grid', 'सन्तुलित विकासशील वर्ग')
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* 3x3 Grid */}
+                <div className="lg:col-span-5 grid grid-cols-3 gap-3">
+                  {ls.cellsIn3x3Order.map((cell) => {
+                    const active = cell.count > 0;
+                    const colorHex = DECOZ_COLORS[cell.digit]?.hex || '#9780FF';
+                    return (
+                      <div
+                        key={cell.digit}
+                        className={`rounded-2xl border p-4 text-center space-y-1 transition ${
+                          active
+                            ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45 shadow-sm'
+                            : 'border-[var(--border)] bg-[var(--surface-muted)] opacity-75'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
+                          <span>#{cell.digit}</span>
+                          <span>{cell.direction}</span>
+                        </div>
+                        <div
+                          className="text-2xl font-extrabold tracking-widest tabular-nums py-1"
+                          style={{ color: active ? colorHex : 'var(--text-muted)' }}
+                        >
+                          {cell.repeatedDigitsText}
+                        </div>
+                        <div className="text-xs font-bold text-[var(--text)] truncate">
+                          {cell.planetRuler}
+                        </div>
+                        <div className="text-[11px] text-[var(--text-secondary)] truncate">
+                          {cell.domainLabel}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* All 8 Planes / Arrows of Strength */}
+                <div className="lg:col-span-7 space-y-3">
+                  <h4 className="text-sm font-bold text-[var(--text)]">
+                    {t(
+                      '8 Planes & Diagonal Raj Yogas (4–5–6 Golden, 2–5–8 Silver, Horizontal & Vertical)',
+                      '८ स्तर र राजयोग विकर्णहरू (४–५–६ स्वर्ण योग, २–५–८ रजत योग, तेर्सो र ठाडो स्तम्भ)'
+                    )}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {ls.planes.map((pl) => (
+                      <div
+                        key={pl.id}
+                        className={`rounded-xl border p-3.5 space-y-1.5 ${
+                          pl.isComplete
+                            ? 'border-[var(--sage)] bg-[var(--sage-bg)]'
+                            : 'border-[var(--border)] bg-[var(--surface)]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-[var(--text)]">
+                            {pl.nameLabel}
+                          </span>
+                          <StatusBadge tone={pl.tone} label={`${pl.completionCount}/3`} />
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                          {pl.meaning}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {ls.missingDigits.length > 0 && (
+                <div className="obs-panel p-4 space-y-2">
+                  <div className="text-xs font-bold text-[var(--text)]">
+                    {t(
+                      'Practical Daily Habits for Unoccupied Lo Shu Cells',
+                      'लो-शु वर्गमा खाली रहेका कोठाको सरल दैनिक सन्तुलन बानी'
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-[var(--text-secondary)]">
+                    {ls.missingDigits.map((m) => (
+                      <div key={m.digit} className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-2.5">
+                        <strong className="text-[var(--accent)]">#{m.digit}:</strong> {m.remedyTip}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="text-xs text-[var(--text-muted)]">{ls.sourceCitation}</div>
+            </div>
+          );
+        })()}
 
         {/* SUB-VIEW 1: CORE NUMBERS & CHEIRO COMPOUND LORE */}
         {subView === 'CORE_CHEIRO' && (

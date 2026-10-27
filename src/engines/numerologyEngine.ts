@@ -1,4 +1,5 @@
 import { BirthProfile, NumerologySystem } from '../types/oceanology';
+import { computeLoShuVedicGrid, LoShuVedicGridResult } from '../data/yoginiNadiVarshaphalCodex';
 
 // Exact 9-color spectrum extracted from World Numerology's CanvasJS customColorSet1 (ev_683787d26715b399a0fd4e3ef3139ddfaae3b250ac13bef2ba9fc75e569ba0db)
 export const DECOZ_COLORS: Record<number, { hex: string; name: string; keyword: string; element: string }> = {
@@ -93,6 +94,8 @@ export interface NumerologyReport {
   colorChartYears: DecozYearCell[];
   proportionalBars: ProportionalBar[];
   letterBreakdown: { char: string; value: number; isVowel: boolean }[];
+  loShuGridEn: LoShuVedicGridResult;
+  loShuGridNe: LoShuVedicGridResult;
 }
 
 function sumDigits(n: number): number {
@@ -373,5 +376,7 @@ export function calculateNumerology(profile: BirthProfile, system: NumerologySys
     colorChartYears,
     proportionalBars,
     letterBreakdown,
+    loShuGridEn: computeLoShuVedicGrid(profile, lifePath.singleDigit, birthDay.singleDigit, 'en'),
+    loShuGridNe: computeLoShuVedicGrid(profile, lifePath.singleDigit, birthDay.singleDigit, 'ne'),
   };
 }

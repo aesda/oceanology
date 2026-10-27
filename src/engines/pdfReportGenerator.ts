@@ -538,6 +538,10 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     `7. Karmic Comfort Zone vs. Growth Edge (Ketu H${deepReport.identityAndSoul.ketuHouse} -> Rahu H${deepReport.identityAndSoul.rahuHouse})`,
     `Past Instinct & Natural Gift (Ketu): ${deepReport.identityAndSoul.ketuComfortGift}   |   Lifetime Growth Edge (Rahu): ${deepReport.identityAndSoul.rahuGrowthEdge}   |   Degree Symbols: Ascendant "${deepReport.identityAndSoul.ascendantSabian}"; Sun "${deepReport.identityAndSoul.sunSabian}".`
   );
+  drawParagraphBlock(
+    `8. Birth Samvatsara Epoch & Lifelong Cosmic Bird (Janma Pakshi)`,
+    `Birth Jovian Year: ${deepReport.birthSamvatsara.fullTitle} [${deepReport.birthSamvatsara.vimsatiRuler} - ${deepReport.birthSamvatsara.qualityLabel}]   |   Active Current Year: ${deepReport.currentSamvatsara.fullTitle}   |   Agastya Cosmic Bird: ${deepReport.panchapakshi.natalBirdLabel} (${deepReport.panchapakshi.natalPakshaLabel} - ${deepReport.panchapakshi.birdArchetypeNote}).`
+  );
   drawCitationNote(deepReport.identityAndSoul.sourceCitation);
 
   // ==================== SECTION 2 OF 10: CAREER, CALLING & D10 DASHAMSHA BLUEPRINT ====================
@@ -850,7 +854,7 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     const shadbalaMeta = `Shadbala: ${pc.shadbalaRupas} Rupas (${pc.shadbalaRatioPercent}% of ${pc.minRequiredRupas} min - ${pc.shadbalaTierLabel}) | State: ${pc.avasthaLabel} (${pc.avasthaDeliveryNote})`;
     const vargaBadges = `D9 Navamsha: ${pc.d9SignLabel} | D10 Career: ${pc.d10SignLabel} | D24 Learning: ${pc.d24SignLabel}${
       pc.isVargottama ? ' | VARGOTTAMA (Double-Reinforced)' : ''
-    }${pc.isRetrograde ? ' | Retrograde' : ''}${pc.isCombust ? ' | Solar Proximity (Astangata)' : ''}`;
+    }${pc.pushkaraBadge ? ` | ${pc.pushkaraBadge.replace('★', '*')}` : ''}${pc.isRetrograde ? ' | Retrograde' : ''}${pc.isCombust ? ' | Solar Proximity (Astangata)' : ''}`;
     const combustExtra = pc.combustNote ? `  ${pc.combustNote}` : '';
     const bodyText = `[${shadbalaMeta}]  ${pc.laymanSynthesis}${combustExtra}  [${vargaBadges}]  Classical BPHS House Ruling: ${pc.classicalBphsRuling}  Growth Lesson: ${pc.growthLesson}`;
     drawParagraphBlock(
@@ -961,6 +965,18 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     .join('  |  ');
   drawParagraphBlock('Seven Jaimini Soul Significators (Chara Karakas)', jaiminiSummary, false);
 
+  drawParagraphBlock(
+    `Bhrigu Bindu Destiny Midpoint (Bhrigu Samhita & Bhrigu Nandi Nadi): ${deepReport.bhriguBindu.signLabel} ${deepReport.bhriguBindu.degreeDMS} (House ${deepReport.bhriguBindu.houseFromLagna})`,
+    `${deepReport.bhriguBindu.destinyMeaning}   |   Live Transit Status [${deepReport.bhriguBindu.activationBadge}]: ${deepReport.bhriguBindu.liveTriggerNote}`,
+    true,
+    deepReport.bhriguBindu.isActivatedNow ? [5, 150, 105] : [79, 70, 229]
+  );
+
+  drawParagraphBlock(
+    `Chandra Kala Nadi Pushkara Navamsha & Pushkara Bhaga Reservoir: ${deepReport.pushkaraSummary.headline}`,
+    deepReport.pushkaraSummary.overviewNarrative
+  );
+
   // ==================== SECTION 9 OF 10: MATURITY AGES (16-48), LIVE GOCHARA, ANTARDASHAS & 12-YR HORIZON ====================
   drawSectionHeader(
     'Section 9 of 10',
@@ -1053,6 +1069,20 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
     `${deepReport.liveSkyAndSubPeriods.nodalTransitNote}   |   ${deepReport.liveSkyAndSubPeriods.moorthiExplanation}`
   );
   drawCitationNote(deepReport.liveSkyAndSubPeriods.sourceCitation);
+
+  // 9B-2: Tajika Neelakanthi Annual Solar Return (Varshaphala) + 36-Year Nepali Yogini Dasha
+  drawParagraphBlock(
+    `Tajika Neelakanthi ${deepReport.varshaphala.solarReturnYear}-${deepReport.varshaphala.solarReturnYear + 1} Annual Solar Return (Varshaphala): ${deepReport.varshaphala.munthaThemeHeadline}`,
+    `Exact Varsha Pravesh: ${deepReport.varshaphala.varshaPraveshDateIso} (${deepReport.varshaphala.varshaPraveshUtcTime}) | Annual Lagna: ${deepReport.varshaphala.varshaLagnaSign} (${deepReport.varshaphala.varshaLagnaLord}) | Progressed Muntha: ${deepReport.varshaphala.munthaSign} (Annual H${deepReport.varshaphala.munthaHouseFromVarshaLagna}) | Year Lord (Varsheshwara): ${deepReport.varshaphala.varsheshwaraLord} | Punya Saham: ${deepReport.varshaphala.punyaSahamSign} (H${deepReport.varshaphala.punyaSahamHouse}) | Rajya Saham: ${deepReport.varshaphala.rajyaSahamSign} (H${deepReport.varshaphala.rajyaSahamHouse}).  ${deepReport.varshaphala.munthaAnnualForecast}  ${deepReport.varshaphala.varsheshwaraGuidance}`,
+    true,
+    deepReport.varshaphala.munthaTone === 'optimal' ? [5, 150, 105] : [79, 70, 229]
+  );
+
+  drawParagraphBlock(
+    `36-Year Himalayan / Nepali Ashta-Yogini Dasha: Active ${deepReport.yoginiDasha.activePeriod.nameLabel} (${deepReport.yoginiDasha.activePeriod.planetLordLabel}) - Sub ${deepReport.yoginiDasha.activeAntar.nameLabel}`,
+    `Birth Yogini: ${deepReport.yoginiDasha.birthYoginiLabel} | Active Span: ${deepReport.yoginiDasha.activePeriod.startDate} to ${deepReport.yoginiDasha.activePeriod.endDate}.  ${deepReport.yoginiDasha.doubleLockNarrative}  ${deepReport.yoginiDasha.activePeriod.fruitSummary}   |   Prashna Marga 64th Navamsha (${deepReport.kharaAwareness.khara64FromMoonSign}) & 22nd Drekkana (${deepReport.kharaAwareness.drekkana22Sign}): ${deepReport.kharaAwareness.mindfulPacingAdvice}`
+  );
+  drawCitationNote(`${deepReport.varshaphala.sourceCitation}  |  ${deepReport.yoginiDasha.sourceCitation}`);
 
   // 9C: Active Mahadasha's 9 Antardasha Sub-Periods
   ensureSpace(24);
@@ -1259,11 +1289,28 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   }
   drawCitationNote(deepReport.deepNumerology.sourceCitation);
 
+  // Vedic Ank-Yantra 3x3 Lo Shu Magic Square & 8 Planes
+  const lsCells = deepReport.loShuGrid.cellsIn3x3Order;
+  const row1Str = `[ ${lsCells[0].repeatedDigitsText} | ${lsCells[1].repeatedDigitsText} | ${lsCells[2].repeatedDigitsText} ]`;
+  const row2Str = `[ ${lsCells[3].repeatedDigitsText} | ${lsCells[4].repeatedDigitsText} | ${lsCells[5].repeatedDigitsText} ]`;
+  const row3Str = `[ ${lsCells[6].repeatedDigitsText} | ${lsCells[7].repeatedDigitsText} | ${lsCells[8].repeatedDigitsText} ]`;
+  const planesSummary = deepReport.loShuGrid.planes
+    .map((pl) => `${pl.nameLabel} [${pl.completionCount}/3${pl.isComplete ? ' COMPLETE' : ''}]`)
+    .join('  |  ');
+  const missingLoShuText =
+    deepReport.loShuGrid.missingDigits.length > 0
+      ? `  Missing-Grid Habits: ${deepReport.loShuGrid.missingDigits.slice(0, 3).map((m) => `#${m.digit}: ${m.remedyTip}`).join(' | ')}`
+      : '  All 9 digits active in your Vedic Ank-Yantra!';
+  drawParagraphBlock(
+    `3x3 Lo Shu / Vedic Numerology Magic Square (Mulank #${deepReport.loShuGrid.mulankDriver} | Bhagyank #${deepReport.loShuGrid.bhagyankConductor})`,
+    `Matrix (4-9-2 / 3-5-7 / 8-1-6):  Top ${row1Str}  Middle ${row2Str}  Bottom ${row3Str}.  Planes & Raj Yogas: ${planesSummary}.${missingLoShuText}`
+  );
+
   // Daily Panchang, 12 Horais & 10-Decision Matrix
   const nallaSummary = panchangReport.nallaNeram
     .map((nn) => `${nn.periodLabel}: ${nn.startTime}-${nn.endTime} (${nn.gowriName})`)
     .join('  |  ');
-  const panchangOverview = `Computed for ${cleanCityName(profile.location.name)} on ${panchangReport.dateStr} (${panchangReport.vara.name}), Sunrise ${panchangReport.sunriseTime} - Sunset ${panchangReport.sunsetTime}. Lunar Day (Tithi): ${panchangReport.tithi.name} (${panchangReport.tithi.paksha}). Transit Star: ${panchangReport.nakshatra.name} (Pada ${panchangReport.nakshatra.pada}). Yoga: ${panchangReport.yoga.name}. Karana: ${panchangReport.karana.name}. Active Horai: ${panchangReport.activeHorai.horaiName} (${panchangReport.activeHorai.startTime}-${panchangReport.activeHorai.endTime}). ${nallaSummary}. Personal Star Harmony (Tarabala): Tara #${panchangReport.personalTarabala.taraNumber} (${panchangReport.personalTarabala.taraName}).`;
+  const panchangOverview = `Computed for ${cleanCityName(profile.location.name)} on ${panchangReport.dateStr} (${panchangReport.vara.name}), Sunrise ${panchangReport.sunriseTime} - Sunset ${panchangReport.sunsetTime}. Lunar Day (Tithi): ${panchangReport.tithi.name} (${panchangReport.tithi.paksha}). Transit Star: ${panchangReport.nakshatra.name} (Pada ${panchangReport.nakshatra.pada}). Yoga: ${panchangReport.yoga.name}. Karana: ${panchangReport.karana.name}. Active Horai: ${panchangReport.activeHorai.horaiName} (${panchangReport.activeHorai.startTime}-${panchangReport.activeHorai.endTime}). ${nallaSummary}. Personal Star Harmony (Tarabala): Tara #${panchangReport.personalTarabala.taraNumber} (${panchangReport.personalTarabala.taraName}). Agastya Cosmic Bird (${deepReport.panchapakshi.natalBirdLabel}): Currently ${deepReport.panchapakshi.activeSlot.activityLabel} (${deepReport.panchapakshi.activeSlot.powerPercent}%) | Peak Bird Windows Today: ${deepReport.panchapakshi.bestSlotsTodaySummary || 'Daytime Ruling/Eating Yamas'}.`;
   drawParagraphBlock('Today’s Local Panchang, Horai & Nalla Neram Summary', panchangOverview);
 
   ensureSpace(46);

@@ -50,22 +50,25 @@ import {
   LotusVineDivider,
   SacredFlowerIcon,
 } from './ui/FloralAnimations';
+import { computePanchapakshiSchedule } from '../data/yoginiNadiVarshaphalCodex';
 
 interface HoraiAndTimeStudioProps {
   location: CityLocation;
   natalMoonNakshatraIdx: number;
   natalMoonSignIdx: number;
+  isNatalShuklaPaksha?: boolean;
   onOpenActionSimulator?: (actionId?: string) => void;
   onInspectNakshatra?: (nakIdx: number) => void;
 }
 
-type StudioDetailTab = 'HORAI_24' | 'GOWRI_NALLA' | 'MUHURAT_KALAM' | 'SEVEN_LORDS';
+type StudioDetailTab = 'HORAI_24' | 'PANCHAPAKSHI' | 'GOWRI_NALLA' | 'MUHURAT_KALAM' | 'SEVEN_LORDS';
 type HoraiFilter = 'ALL' | 'WEALTH' | 'CONTRACTS' | 'HEALING' | 'DEBT';
 
 export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
   location,
   natalMoonNakshatraIdx,
   natalMoonSignIdx,
+  isNatalShuklaPaksha = true,
   onOpenActionSimulator,
   onInspectNakshatra,
 }) => {
@@ -112,6 +115,16 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
   }, [nowTick, location]);
 
   const activeHorai = livePanchang.activeHorai;
+  const panchapakshi = useMemo(
+    () =>
+      computePanchapakshiSchedule(
+        natalMoonNakshatraIdx,
+        isNatalShuklaPaksha,
+        livePanchang,
+        lang
+      ),
+    [natalMoonNakshatraIdx, isNatalShuklaPaksha, livePanchang, lang]
+  );
   const activeHoraiDisp = trHoraiDisplay(activeHorai, lang);
   const nextShubhaDisp = trHoraiDisplay(livePanchang.nextShubhaHorai, lang);
   const cityDisplay = formatCityForLang(location.name, lang);
@@ -651,6 +664,40 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
 
       {/* ==================== COMPLETE HORAI, GOWRI, MUHURAT & LORDS TABS ==================== */}
       <div className="obs-card p-5 sm:p-6 space-y-6">
+        {/* Live Agastya Panchapakshi Cosmic Bird Strip */}
+        <div className="obs-panel p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="text-xs font-semibold text-[var(--accent)]">
+              {t(
+                'Siddhar Agastya Panchapakshi • Your Lifelong Cosmic Bird (Janma Pakshi)',
+                'महर्षि अगस्त्य पञ्चपक्षी शास्त्र • तपाईंको जन्म पक्षी जैविक-ऊर्जा'
+              )}
+            </div>
+            <div className="text-sm sm:text-base font-bold text-[var(--text)]">
+              {panchapakshi.natalBirdLabel}{' '}
+              <span className="text-xs font-normal text-[var(--text-muted)]">
+                ({panchapakshi.natalBirdSanskrit} • {panchapakshi.natalPakshaLabel})
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge
+              tone={panchapakshi.activeSlot.tone}
+              label={`${panchapakshi.activeSlot.activityLabel} • ${panchapakshi.activeSlot.powerPercent}% (${panchapakshi.activeSlot.startTime}–${panchapakshi.activeSlot.endTime})`}
+            />
+            {detailTab !== 'PANCHAPAKSHI' && (
+              <button
+                type="button"
+                onClick={() => setDetailTab('PANCHAPAKSHI')}
+                className="btn-editorial-secondary text-xs py-1.5 px-3"
+              >
+                {t('Open 5-Bird Yama Table →', '५-याम पक्षी तालिका →')}
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
           <SegmentedTabs
             ariaLabel="Sacred time schedules"
@@ -661,6 +708,11 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
                 id: 'HORAI_24',
                 label: t('24-Hour Horai Table', '२४-घण्टा होरा तालिका'),
                 count: 24,
+              },
+              {
+                id: 'PANCHAPAKSHI',
+                label: t('5-Bird Panchapakshi', 'पञ्चपक्षी ५-याम'),
+                count: 10,
               },
               {
                 id: 'GOWRI_NALLA',
@@ -680,6 +732,139 @@ export const HoraiAndTimeStudio: React.FC<HoraiAndTimeStudioProps> = ({
             ]}
           />
         </div>
+
+        {/* TAB 1B: AGASTYA PANCHAPAKSHI 5-BIRD BIORHYTHM (5 DAY + 5 NIGHT YAMAS) */}
+        {detailTab === 'PANCHAPAKSHI' && (
+          <div className="space-y-5">
+            <div className="obs-panel p-5 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-lg font-bold text-[var(--text)]">
+                  {panchapakshi.natalBirdLabel} — {panchapakshi.natalBirdTamil}
+                </h3>
+                <StatusBadge
+                  tone="optimal"
+                  label={t(
+                    `Peak Today: ${panchapakshi.bestSlotsTodaySummary || 'Ruling & Eating Yamas'}`,
+                    `आजको शिखर समय: ${panchapakshi.bestSlotsTodaySummary || 'राज्य र भोजन याम'}`
+                  )}
+                />
+              </div>
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                {panchapakshi.birdArchetypeNote} •{' '}
+                <strong className="text-[var(--text)]">{panchapakshi.activeSlot.guidance}</strong>
+              </p>
+              <div className="text-xs text-[var(--text-muted)]">{panchapakshi.sourceCitation}</div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 5 Day Yamas */}
+              <div className="space-y-3">
+                <h4 className="text-base font-bold text-[var(--text)] inline-flex items-center gap-2">
+                  <Sun className="w-4 h-4 text-amber-500" />
+                  <span>
+                    {t(
+                      `5 Daytime Yamas (${livePanchang.sunriseTime} – ${livePanchang.sunsetTime})`,
+                      `दिनका ५ याम (${livePanchang.sunriseTime} – ${livePanchang.sunsetTime})`
+                    )}
+                  </span>
+                </h4>
+                <div className="space-y-2.5">
+                  {panchapakshi.daySlots.map((slot) => (
+                    <div
+                      key={`pk-day-${slot.yamaIndex}`}
+                      className={`p-4 rounded-xl border space-y-2 ${
+                        slot.isCurrent
+                          ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45 ring-1 ring-[var(--accent)]'
+                          : 'border-[var(--border)] bg-[var(--surface-muted)]'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-[var(--accent)]">
+                            Yama #{slot.yamaIndex}
+                          </span>
+                          <span className="text-sm font-bold text-[var(--text)]">
+                            {slot.activityLabel}
+                          </span>
+                          <StatusBadge tone={slot.tone} label={`${slot.powerPercent}%`} />
+                        </div>
+                        <span className="font-mono text-xs font-bold text-[var(--text)]">
+                          {slot.startTime}–{slot.endTime}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[var(--surface)] overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            slot.powerPercent >= 80
+                              ? 'bg-[var(--sage)]'
+                              : slot.powerPercent >= 50
+                              ? 'bg-[var(--accent)]'
+                              : 'bg-[var(--amber)]'
+                          }`}
+                          style={{ width: `${slot.powerPercent}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)]">{slot.guidance}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5 Night Yamas */}
+              <div className="space-y-3">
+                <h4 className="text-base font-bold text-[var(--text)] inline-flex items-center gap-2">
+                  <Moon className="w-4 h-4 text-indigo-400" />
+                  <span>
+                    {t(
+                      `5 Nighttime Yamas (${livePanchang.sunsetTime} – Next Sunrise)`,
+                      `रात्रिका ५ याम (${livePanchang.sunsetTime} – भोलि सूर्योदय)`
+                    )}
+                  </span>
+                </h4>
+                <div className="space-y-2.5">
+                  {panchapakshi.nightSlots.map((slot) => (
+                    <div
+                      key={`pk-night-${slot.yamaIndex}`}
+                      className={`p-4 rounded-xl border space-y-2 ${
+                        slot.isCurrent
+                          ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45 ring-1 ring-[var(--accent)]'
+                          : 'border-[var(--border)] bg-[var(--surface-muted)]'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-[var(--accent)]">
+                            Yama #{slot.yamaIndex}
+                          </span>
+                          <span className="text-sm font-bold text-[var(--text)]">
+                            {slot.activityLabel}
+                          </span>
+                          <StatusBadge tone={slot.tone} label={`${slot.powerPercent}%`} />
+                        </div>
+                        <span className="font-mono text-xs font-bold text-[var(--text)]">
+                          {slot.startTime}–{slot.endTime}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[var(--surface)] overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            slot.powerPercent >= 80
+                              ? 'bg-[var(--sage)]'
+                              : slot.powerPercent >= 50
+                              ? 'bg-[var(--accent)]'
+                              : 'bg-[var(--amber)]'
+                          }`}
+                          style={{ width: `${slot.powerPercent}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)]">{slot.guidance}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: FULL 24-HOUR DAY & NIGHT HORAI SCHEDULE */}
         {detailTab === 'HORAI_24' && (

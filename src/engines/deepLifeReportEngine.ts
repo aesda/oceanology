@@ -45,6 +45,24 @@ import {
   SaravaliConjunctionPortrait,
   VargaHarmonicLifeMirror,
 } from '../data/shadbalaVargaAndUpayaCodex';
+import {
+  BhriguBinduProfile,
+  buildSamvatsaraPair,
+  computeBhriguBinduProfile,
+  computeKharaAndChhidraAwareness,
+  computeLoShuVedicGrid,
+  computePanchapakshiSchedule,
+  computeTajikaVarshaphala,
+  computeYoginiDashaSystem,
+  detectPushkaraBlessings,
+  KharaChhidraAwareness,
+  LoShuVedicGridResult,
+  PanchapakshiSchedule,
+  PushkaraChartSummary,
+  SamvatsaraEntry,
+  TajikaVarshaphalaProfile,
+  YoginiDashaSystemResult,
+} from '../data/yoginiNadiVarshaphalCodex';
 
 export interface LifeDomainScorecardItem {
   id: 'CAREER' | 'WEALTH' | 'RELATIONSHIPS' | 'VITALITY' | 'WISDOM';
@@ -110,6 +128,9 @@ export interface DeepPlanetReadingCard {
   combustNote: string | null;
   inPlanetaryWar: boolean;
   warPartner: string | null;
+  isPushkaraNavamsha: boolean;
+  isPushkaraBhaga: boolean;
+  pushkaraBadge: string | null;
   roleSubtitle: string;
   laymanSynthesis: string;
   classicalBphsRuling: string;
@@ -248,6 +269,17 @@ export interface DeepLifeReport {
 
   // 8C. Trikona-Safe Gemstone, Sattvic Dana & Brihat Samhita Vastu Compass
   upayaArchitecture: PersonalizedUpayaArchitecture;
+
+  // 8D. Phase 5 — Multi-Tradition Tantric, Nadi, Tajika, Samvatsara, Panchapakshi & Lo Shu Extensions
+  birthSamvatsara: SamvatsaraEntry;
+  currentSamvatsara: SamvatsaraEntry;
+  yoginiDasha: YoginiDashaSystemResult;
+  bhriguBindu: BhriguBinduProfile;
+  pushkaraSummary: PushkaraChartSummary;
+  kharaAwareness: KharaChhidraAwareness;
+  varshaphala: TajikaVarshaphalaProfile;
+  panchapakshi: PanchapakshiSchedule;
+  loShuGrid: LoShuVedicGridResult;
 
   // 9. Deep Numerology (Cheiro Compound + Decoz Pinnacles & Karmic Lessons)
   deepNumerology: {
@@ -852,6 +884,44 @@ export function generateDeepLifeReport(
     lowestSavHouse,
     lang
   );
+  const pushkaraSummary = detectPushkaraBlessings(natalChart, lang);
+  const samvatsaraPair = buildSamvatsaraPair(
+    profile.year,
+    profile.month,
+    profile.day,
+    referenceDate,
+    lang
+  );
+  const yoginiDasha = computeYoginiDashaSystem(
+    natalChart,
+    vedicReport.activeMahadasha.lord,
+    lang,
+    referenceDate
+  );
+  const bhriguBindu = computeBhriguBinduProfile(natalChart, liveSkyChart, lang);
+  const kharaAwareness = computeKharaAndChhidraAwareness(natalChart, liveSkyChart, lang);
+  const varshaphala = computeTajikaVarshaphala(
+    profile,
+    natalChart,
+    natalChart.ayanamshaMode,
+    natalChart.houseSystem,
+    lang,
+    referenceDate
+  );
+  const moonPForPakshi = natalChart.planets.find((pl) => pl.id === 'Moon') || sunPlanet;
+  const isNatalShuklaPaksha = norm360(moonPForPakshi.siderealLongitude - sunPlanet.siderealLongitude) < 180;
+  const panchapakshi = computePanchapakshiSchedule(
+    moonPForPakshi.nakshatraIndex,
+    isNatalShuklaPaksha,
+    panchangReport,
+    lang
+  );
+  const loShuGrid = computeLoShuVedicGrid(
+    profile,
+    numerologyReport.lifePath.singleDigit,
+    numerologyReport.birthDay.singleDigit,
+    lang
+  );
 
   const deepPlanetCards: DeepPlanetReadingCard[] = coreNinePlanets.map((p) => {
     const baseId = p.name.includes('Rahu')
@@ -924,6 +994,9 @@ export function generateDeepLifeReport(
       combustNote: vit?.combustNote ?? null,
       inPlanetaryWar: Boolean(vit?.inPlanetaryWar),
       warPartner: vit?.warPartner ?? null,
+      isPushkaraNavamsha: Boolean(pushkaraSummary.byBodyId[baseId]?.isPushkaraNavamsha),
+      isPushkaraBhaga: Boolean(pushkaraSummary.byBodyId[baseId]?.isPushkaraBhaga),
+      pushkaraBadge: pushkaraSummary.byBodyId[baseId]?.badgeLabel ?? null,
       roleSubtitle: trPlanetRole(baseId, lang),
       laymanSynthesis,
       classicalBphsRuling: bphsRuling,
@@ -1198,6 +1271,15 @@ export function generateDeepLifeReport(
     vargaHarmonics,
     saravaliConjunctions,
     upayaArchitecture,
+    birthSamvatsara: samvatsaraPair.birthSamvatsara,
+    currentSamvatsara: samvatsaraPair.currentSamvatsara,
+    yoginiDasha,
+    bhriguBindu,
+    pushkaraSummary,
+    kharaAwareness,
+    varshaphala,
+    panchapakshi,
+    loShuGrid,
     deepNumerology: {
       lifePathHeadline: `Life Path #${lpFinal} (${numerologyReport.lifePath.trail}) — ${
         isNe ? lpGuide.titleNe : lpGuide.titleEn

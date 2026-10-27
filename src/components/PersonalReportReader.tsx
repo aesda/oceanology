@@ -267,8 +267,8 @@ export const PersonalReportReader: React.FC<Props> = ({
               <SeedOfLifeMark size={15} tone="adaptive" />
               <span>
                 {t(
-                  'Comprehensive Personal Life Dossier • 14 Classical Canons + Numerology',
-                  'बृहत् व्यक्तिगत जीवन फलादेश • १४ शास्त्रीय ग्रन्थ र अंक विज्ञान'
+                  'Comprehensive Personal Life Dossier • 18 Classical Canons + Numerology',
+                  'बृहत् व्यक्तिगत जीवन फलादेश • १८ शास्त्रीय ग्रन्थ र अंक विज्ञान'
                 )}
               </span>
             </div>
@@ -298,8 +298,9 @@ export const PersonalReportReader: React.FC<Props> = ({
                       : `${pad2(profile.hour)}:${pad2(profile.minute)}`}
                   </strong>{' '}
                   • स्थान: <strong className="text-[var(--text)]">{cityDisplay}</strong>,{' '}
-                  {countryDisplay} ({bsBirth.formattedNp}) • उमेर:{' '}
-                  <strong className="text-[var(--text)]">{deepReport.currentAge} वर्ष</strong>
+                  {countryDisplay} ({bsBirth.formattedNp} • {deepReport.birthSamvatsara.fullTitle}) • उमेर:{' '}
+                  <strong className="text-[var(--text)]">{deepReport.currentAge} वर्ष</strong> • जन्म पक्षी:{' '}
+                  <strong className="text-[var(--accent)]">{deepReport.panchapakshi.natalBirdLabel}</strong>
                 </>
               ) : (
                 <>
@@ -314,8 +315,9 @@ export const PersonalReportReader: React.FC<Props> = ({
                       : `${pad2(profile.hour)}:${pad2(profile.minute)}`}
                   </strong>{' '}
                   in <strong className="text-[var(--text)]">{cityDisplay}</strong>, {countryDisplay}{' '}
-                  ({bsBirth.formattedEn}) • Age{' '}
-                  <strong className="text-[var(--text)]">{deepReport.currentAge}</strong>
+                  ({bsBirth.formattedEn} • {deepReport.birthSamvatsara.fullTitle}) • Age{' '}
+                  <strong className="text-[var(--text)]">{deepReport.currentAge}</strong> • Janma Pakshi:{' '}
+                  <strong className="text-[var(--accent)]">{deepReport.panchapakshi.natalBirdLabel}</strong>
                 </>
               )}
             </p>
@@ -1161,6 +1163,9 @@ export const PersonalReportReader: React.FC<Props> = ({
                         label={t('Vargottama (Extra Strong)', 'वर्गोत्तम (विशेष बली)')}
                       />
                     )}
+                    {card.pushkaraBadge && (
+                      <StatusBadge size="md" tone="optimal" label={card.pushkaraBadge} />
+                    )}
                     {card.isRetrograde && (
                       <StatusBadge
                         size="md"
@@ -1495,6 +1500,66 @@ export const PersonalReportReader: React.FC<Props> = ({
               </div>
             </div>
           )}
+
+          {/* Phase 5 — Bhrigu Bindu Destiny Midpoint & Pushkara Navamsha Reservoir */}
+          <div className="pt-4 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="obs-panel p-5 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                  {t('Bhrigu Nandi Nadi • Rahu–Moon Midpoint', 'भृगु नन्दी नाडी • भृगु बिन्दु')}
+                </span>
+                <StatusBadge
+                  tone={deepReport.bhriguBindu.activationTone}
+                  label={deepReport.bhriguBindu.activationBadge}
+                />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-[var(--text)]">
+                {t(
+                  `Bhrigu Bindu at ${deepReport.bhriguBindu.signLabel} ${deepReport.bhriguBindu.degreeDMS} (House ${deepReport.bhriguBindu.houseFromLagna})`,
+                  `भृगु बिन्दु: ${deepReport.bhriguBindu.signLabel} ${deepReport.bhriguBindu.degreeDMS} (भाव ${deepReport.bhriguBindu.houseFromLagna})`
+                )}
+              </h3>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.bhriguBindu.destinyMeaning}
+              </p>
+              <p className="text-xs text-[var(--accent)] font-medium border-t border-[var(--border)] pt-2">
+                {deepReport.bhriguBindu.liveTriggerNote}
+              </p>
+            </div>
+
+            <div className="obs-panel p-5 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--sage)]">
+                  {t('Chandra Kala Nadi • Pushkara Lotus Zones', 'चन्द्रकला नाडी • पुष्कर नवांश')}
+                </span>
+                <StatusBadge
+                  tone={deepReport.pushkaraSummary.blessedBodies.length > 0 ? 'optimal' : 'info'}
+                  label={
+                    deepReport.pushkaraSummary.blessedBodies.length > 0
+                      ? `${deepReport.pushkaraSummary.blessedBodies.length} Pushkara`
+                      : t('Varga Supported', 'वर्ग समर्थित')
+                  }
+                />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-[var(--text)]">
+                {deepReport.pushkaraSummary.headline}
+              </h3>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                {deepReport.pushkaraSummary.overviewNarrative}
+              </p>
+              {deepReport.pushkaraSummary.blessedBodies.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {deepReport.pushkaraSummary.blessedBodies.map((b) => (
+                    <StatusBadge
+                      key={b.bodyId}
+                      tone="optimal"
+                      label={`${b.bodyLabel}: ${b.signLabel} ${b.degreeDMS}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       )}
 
@@ -1591,6 +1656,133 @@ export const PersonalReportReader: React.FC<Props> = ({
             {deepReport.liveSkyAndSubPeriods.nodalTransitNote}
           </p>
         </div>
+
+        {/* Phase 5 — Tajika Neelakanthi Annual Solar Return (Varshaphala) */}
+        {isFull && (
+          <div className="obs-panel p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                  {t(
+                    `Tajika Neelakanthi • ${deepReport.varshaphala.solarReturnYear}–${deepReport.varshaphala.solarReturnYear + 1} Solar Return (Varshaphala)`,
+                    `ताजक नीलकण्ठी • ${deepReport.varshaphala.solarReturnYear}–${deepReport.varshaphala.solarReturnYear + 1} वार्षिक वर्षफल`
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-[var(--text)] mt-0.5">
+                  {deepReport.varshaphala.munthaThemeHeadline}
+                </h3>
+              </div>
+              <StatusBadge
+                tone={deepReport.varshaphala.munthaTone}
+                label={t(
+                  `Varsha Pravesh: ${deepReport.varshaphala.varshaPraveshDateIso} (${deepReport.varshaphala.varshaPraveshUtcTime})`,
+                  `वर्षप्रवेश: ${deepReport.varshaphala.varshaPraveshDateIso} (${deepReport.varshaphala.varshaPraveshUtcTime})`
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 space-y-0.5">
+                <div className="text-[var(--text-muted)]">{t('Annual Varsha Lagna', 'वार्षिक लग्न')}</div>
+                <div className="text-sm font-bold text-[var(--text)]">
+                  {deepReport.varshaphala.varshaLagnaSign} ({deepReport.varshaphala.varshaLagnaLord})
+                </div>
+              </div>
+              <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 space-y-0.5">
+                <div className="text-[var(--text-muted)]">{t('Progressed Muntha', 'प्रगतिशील मुन्था')}</div>
+                <div className="text-sm font-bold text-[var(--accent)]">
+                  {deepReport.varshaphala.munthaSign} (H{deepReport.varshaphala.munthaHouseFromVarshaLagna})
+                </div>
+              </div>
+              <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 space-y-0.5">
+                <div className="text-[var(--text-muted)]">{t('Year Lord (Varsheshwara)', 'वर्षेश्वर')}</div>
+                <div className="text-sm font-bold text-[var(--sage)]">
+                  {deepReport.varshaphala.varsheshwaraLord}
+                </div>
+              </div>
+              <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 space-y-0.5">
+                <div className="text-[var(--text-muted)]">{t('Punya & Rajya Sahams', 'पुण्य र राज्य सहम')}</div>
+                <div className="text-xs font-bold text-[var(--text)]">
+                  {deepReport.varshaphala.punyaSahamSign} (H{deepReport.varshaphala.punyaSahamHouse}) •{' '}
+                  {deepReport.varshaphala.rajyaSahamSign} (H{deepReport.varshaphala.rajyaSahamHouse})
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              {deepReport.varshaphala.munthaAnnualForecast}{' '}
+              {deepReport.varshaphala.varsheshwaraGuidance}
+            </p>
+          </div>
+        )}
+
+        {/* Phase 5 — 36-Year Nepali / Tantric Ashta-Yogini Dasha + 64th Navamsha Check */}
+        {isFull && (
+          <div className="obs-panel p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                  {t(
+                    'Rudrayamala Tantra & Nepali Cheena • 36-Year Ashta-Yogini Dasha',
+                    'रुद्रयामल तन्त्र एवं नेपाली चिना • ३६-वर्षे अष्ट-योगिनी दशा'
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-[var(--text)] mt-0.5">
+                  {t(
+                    `Active Yogini: ${deepReport.yoginiDasha.activePeriod.nameLabel} (${deepReport.yoginiDasha.activePeriod.planetLordLabel}) — Sub: ${deepReport.yoginiDasha.activeAntar.nameLabel}`,
+                    `सक्रिय योगिनी: ${deepReport.yoginiDasha.activePeriod.nameLabel} (${deepReport.yoginiDasha.activePeriod.planetLordLabel}) — अन्तर्दशा: ${deepReport.yoginiDasha.activeAntar.nameLabel}`
+                  )}
+                </h3>
+              </div>
+              <StatusBadge
+                tone={deepReport.yoginiDasha.activePeriod.tone}
+                label={`${deepReport.yoginiDasha.activePeriod.startDate} → ${deepReport.yoginiDasha.activePeriod.endDate}`}
+              />
+            </div>
+
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              {deepReport.yoginiDasha.doubleLockNarrative}{' '}
+              <strong className="text-[var(--text)]">{deepReport.yoginiDasha.activePeriod.fruitSummary}</strong>
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {deepReport.yoginiDasha.periods
+                .filter((p) => p.cycleNumber === deepReport.yoginiDasha.activePeriod.cycleNumber)
+                .map((yp) => (
+                  <div
+                    key={`${yp.cycleNumber}-${yp.yoginiId}`}
+                    className={`rounded-lg border p-2.5 space-y-1 text-xs ${
+                      yp.isCurrent
+                        ? 'border-[var(--accent)] bg-[var(--accent-bg)]/45'
+                        : 'border-[var(--border)] bg-[var(--surface)]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-bold text-[var(--text)]">
+                        {yp.nameLabel} ({yp.years}y)
+                      </span>
+                      <span className="text-[11px] text-[var(--accent)] font-semibold">
+                        {yp.planetLordLabel}
+                      </span>
+                    </div>
+                    <div className="text-[11px] tabular-nums text-[var(--text-muted)]">
+                      {yp.startDate.slice(0, 7)} → {yp.endDate.slice(0, 7)}
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              <strong className="text-[var(--text)]">
+                {t(
+                  `Prashna Marga 64th Navamsha (${deepReport.kharaAwareness.khara64FromMoonSign}) & 22nd Drekkana (${deepReport.kharaAwareness.drekkana22Sign}) Pacing:`,
+                  `प्रश्नमार्ग ६४औँ नवांश (${deepReport.kharaAwareness.khara64FromMoonSign}) र २२औँ द्रेष्काण (${deepReport.kharaAwareness.drekkana22Sign}) सजगता:`
+                )}
+              </strong>{' '}
+              {deepReport.kharaAwareness.mindfulPacingAdvice}
+            </div>
+          </div>
+        )}
 
         {/* Planetary Maturity Ages (16..48) */}
         <div className="space-y-3 pt-2">
@@ -1852,6 +2044,111 @@ export const PersonalReportReader: React.FC<Props> = ({
           </div>
         )}
 
+        {/* Phase 5 — 3x3 Lo Shu / Vedic Numerology Magic Square & 8 Planes */}
+        {isFull && (
+          <div className="obs-panel p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                  {t(
+                    'Vedic Ank-Yantra • 3×3 Lo Shu Magic Square (4–9–2 / 3–5–7 / 8–1–6)',
+                    'वैदिक अंक-यन्त्र • ३×३ लो-शु जादुई वर्ग (४–९–२ / ३–५–७ / ८–१–६)'
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-[var(--text)] mt-0.5">
+                  {t(
+                    `Mulank (Driver) #${deepReport.loShuGrid.mulankDriver} • Bhagyank (Conductor) #${deepReport.loShuGrid.bhagyankConductor}`,
+                    `मूलांक (चालक) #${deepReport.loShuGrid.mulankDriver} • भाग्यांक (संचालक) #${deepReport.loShuGrid.bhagyankConductor}`
+                  )}
+                </h3>
+              </div>
+              <StatusBadge
+                tone={deepReport.loShuGrid.completedYogas.length > 0 ? 'optimal' : 'favorable'}
+                label={
+                  deepReport.loShuGrid.completedYogas.length > 0
+                    ? t(
+                        `${deepReport.loShuGrid.completedYogas.length} Complete Plane(s)`,
+                        `${deepReport.loShuGrid.completedYogas.length} पूर्ण राजयोग/स्तम्भ`
+                      )
+                    : t('Developing Planes', 'विकासशील स्तम्भ')
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* 3x3 Grid */}
+              <div className="lg:col-span-5 grid grid-cols-3 gap-2.5">
+                {deepReport.loShuGrid.cellsIn3x3Order.map((cell) => {
+                  const active = cell.count > 0;
+                  return (
+                    <div
+                      key={cell.digit}
+                      className={`rounded-xl border p-3 text-center space-y-0.5 ${
+                        active
+                          ? 'border-[var(--accent)]/60 bg-[var(--accent-bg)]/35'
+                          : 'border-[var(--border)] bg-[var(--surface)] opacity-75'
+                      }`}
+                    >
+                      <div className="text-[10px] font-mono text-[var(--text-muted)]">
+                        #{cell.digit} • {cell.planetRuler.split(' ')[0]}
+                      </div>
+                      <div
+                        className={`text-lg font-bold tracking-widest tabular-nums ${
+                          active ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
+                        }`}
+                      >
+                        {cell.repeatedDigitsText}
+                      </div>
+                      <div className="text-[10px] text-[var(--text-secondary)] truncate">
+                        {cell.direction}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 8 Planes & Missing Number Remedies */}
+              <div className="lg:col-span-7 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {deepReport.loShuGrid.planes.slice(0, 6).map((pl) => (
+                    <div
+                      key={pl.id}
+                      className={`rounded-lg border p-2.5 space-y-1 text-xs ${
+                        pl.isComplete
+                          ? 'border-[var(--sage)]/50 bg-[var(--sage-bg)]'
+                          : 'border-[var(--border)] bg-[var(--surface)]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-bold text-[var(--text)]">{pl.nameLabel}</span>
+                        <StatusBadge
+                          tone={pl.tone}
+                          label={`${pl.completionCount}/3`}
+                        />
+                      </div>
+                      <p className="text-[11px] text-[var(--text-secondary)] leading-snug">
+                        {pl.meaning}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {deepReport.loShuGrid.missingDigits.length > 0 && (
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                    <strong className="text-[var(--text)]">
+                      {t('Missing Grid Habit Focus:', 'अनुपस्थित अंक सन्तुलन बानी:')}
+                    </strong>{' '}
+                    {deepReport.loShuGrid.missingDigits
+                      .slice(0, 2)
+                      .map((m) => `#${m.digit}: ${m.remedyTip}`)
+                      .join(' • ')}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Today's Horai, Gowri & Nalla Neram Box */}
         <div className="obs-panel floral-banner-glow p-5 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1890,6 +2187,13 @@ export const PersonalReportReader: React.FC<Props> = ({
               .slice(0, 4)
               .map((h) => `${trHoraiDisplay(h, lang).horaiName} (${h.startTime}–${h.endTime})`)
               .join(', ')}
+            .{' '}
+            <strong>{t('Agastya Cosmic Bird (Janma Pakshi):', 'अगस्त्य जन्म पक्षी समय:')}</strong>{' '}
+            {deepReport.panchapakshi.natalBirdLabel} — {deepReport.panchapakshi.activeSlot.activityLabel} (
+            {deepReport.panchapakshi.activeSlot.powerPercent}%){' '}
+            {deepReport.panchapakshi.bestSlotsTodaySummary
+              ? `• ${t('Peak Bird Windows:', 'शिखर याम:')} ${deepReport.panchapakshi.bestSlotsTodaySummary}`
+              : ''}
             .
           </p>
         </div>

@@ -1178,4 +1178,32 @@ export const REPORT_BOOK_BIBLIOGRAPHY: ReportBibliographyEntry[] = [
     usedForEn: 'KP Cusp 10/7 Sub-Lords, Vata-Pitta-Kapha wellness guide, 10–52 Compound Numbers, 4 Pinnacles & Karmic Lessons.',
     usedForNe: 'केपी सब-लर्ड, वात-पित्त-कफ स्वास्थ्य सन्तुलन, चेइरो संयुक्त अंक र जीवनका ४ शिखर चक्र।',
   },
+  {
+    id: 'rudrayamala-yogini',
+    title: 'Rudrayamala Tantra & Nepali Cheena Tradition (Ashta-Yogini Dasha)',
+    authorAndEra: 'Himalayan Tantric Lineage & Nepali Daivajna Parampara',
+    usedForEn: '36-year Ashta-Yogini Dasha (Mangala 1y through Sankata 8y), Antar-Yoginis, and Vimshottari Double-Lock convergence.',
+    usedForNe: '३६-वर्षे अष्ट-योगिनी दशा (मङ्गलादेखि सङ्कटा), अन्तर्योगिनी र विंशोत्तरी द्वैध-दशा समन्वय।',
+  },
+  {
+    id: 'bhrigu-chandra-kala-nadi',
+    title: 'Bhrigu Samhita, Bhrigu Nandi Nadi & Chandra Kala Nadi',
+    authorAndEra: 'Maharishi Bhrigu & Achyuta of Kerala (16th Century CE)',
+    usedForEn: 'Bhrigu Bindu (Rahu–Moon midpoint), Jupiter/Saturn live transit triggers, 24 Pushkara Navamshas, Pushkara Bhaga & 64th Navamsha pacing.',
+    usedForNe: 'भृगु बिन्दु (राहु-चन्द्र मध्य-बिन्दु), गोचर सक्रियता, २४ पुष्कर नवांश, पुष्कर भाग र ६४औँ नवांश सजगता।',
+  },
+  {
+    id: 'tajika-neelakanthi',
+    title: 'Tajika Neelakanthi (Varshaphala Solar Return Canon)',
+    authorAndEra: 'Acharya Neelakantha Daivajna • 1587 CE (Saka 1509)',
+    usedForEn: 'Exact astronomical Solar Return (Varsha Pravesh UTC), Annual Varsha Lagna, progressed Muntha, Year Lord (Varsheshwara) & Punya/Rajya Sahams.',
+    usedForNe: 'वार्षिक सूर्य-प्रवेश (वर्षप्रवेश), वर्ष लग्न, प्रगतिशील मुन्था, वर्षेश्वर र पुण्य/राज्य सहम गणना।',
+  },
+  {
+    id: 'panchapakshi-samvatsara-loshu',
+    title: 'Agastya Panchapakshi Shastra, 60-Samvatsara Kalpa & Vedic Lo Shu Ank-Yantra',
+    authorAndEra: 'Siddhar Agastya • Surya Siddhanta • Vedic Numerology',
+    usedForEn: '5 Cosmic Birds (Janma Pakshi) 5-Yama biorhythm windows, all 60 Jovian Samvatsara year archetypes, and 3×3 Lo Shu Magic Square 8-Plane Yogas.',
+    usedForNe: 'महर्षि अगस्त्य पञ्चपक्षी ५-याम तालिका, ६० संवत्सर चक्र र ३×३ लो-शु स्वर्ण/रजत राजयोग वर्ग।',
+  },
 ];

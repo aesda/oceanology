@@ -16,7 +16,13 @@ export interface ClassicalCanonBook {
   sanskritOrOriginal: string;
   author: string;
   eraAndLineage: string;
-  tradition: 'Vedic Shruti & Jyotish' | 'Muhurta & Samhita' | 'Stellar KP' | 'Hellenistic & Depth' | 'Chaldean & Pythagorean';
+  tradition:
+    | 'Vedic Shruti & Jyotish'
+    | 'Muhurta & Samhita'
+    | 'Stellar KP'
+    | 'Hellenistic & Depth'
+    | 'Chaldean & Pythagorean'
+    | 'Tantric, Nadi & Tajika';
   thesis: string;
   engineIntegration: string;
   sutras: CanonChapterSutra[];
@@ -538,6 +544,154 @@ export const CLASSICAL_CANON_BOOKS: ClassicalCanonBook[] = [
         title: 'Directional Ecology for Study, Work & Restorative Sleep',
         aphorism: '"प्राक्शिरः शयनं विद्यादक्षिणशिरः सुखायुषे..."',
         commentary: 'Aligns work desks toward East/North-East and sleep headboards toward East/South to harmonize human bio-magnetism with terrestrial currents.',
+      },
+    ],
+  },
+  {
+    id: 'rudrayamala-yogini',
+    number: 'XV',
+    title: 'Rudrayamala Tantra & Nepali Cheena (Ashta-Yogini Dasha)',
+    sanskritOrOriginal: 'रुद्रयामल तन्त्रम् एवं नेपाली जन्मपत्रिका (अष्ट-योगिनी दशा)',
+    author: 'Bhairava–Bhairavi Tantric Dialogue & Himalayan Daivajna Lineage',
+    eraAndLineage: 'c. 8th–11th Century CE • Himalayan, Nepali & Tantric Jyotish Canon',
+    tradition: 'Tantric, Nadi & Tajika',
+    thesis: 'Unveils the rapid 36-year Ashta-Yogini Dasha cycle (Mangala 1y through Sankata 8y)—revered across Nepal, Mithila, Kashi, and Kashmir as Lord Shiva’s direct timing key for reading immediate practical turning points alongside the 120-year Vimshottari macro-arc.',
+    engineIntegration: 'Powers our 36-Year Nepali Ashta-Yogini & Antar-Yogini Dasha Engine in Chapter 9 and the Vedic Studio, including Double-Lock convergence checks with Vimshottari Mahadasha.',
+    sutras: [
+      {
+        chapterRef: 'Yogini Dasha Prakarana, Sutra 1–3',
+        title: 'Nakshatra-Plus-Three Modulo Eight Birth Rule',
+        aphorism: '"जन्मर्क्षं त्रियुतं कृत्वा वसुभिर्भागमाहरेत् । शेषादियोगिनी ज्ञेया मङ्गलाद्याः क्रमेण तु ॥"',
+        commentary: 'Adds 3 to the birth Nakshatra number (Ashwini = 1) and divides by 8; the remainder (1..8) reveals the exact starting Yogini from Mangala (Moon, 1 yr) to Sankata (Rahu, 8 yrs).',
+      },
+      {
+        chapterRef: 'Yogini Phala Adhyaya',
+        title: 'Dhanya, Bhadrika & Siddha — The Three Crown Prosperity Yoginis',
+        aphorism: '"धान्या धनप्रदा नित्यं भद्रिका राज्यसौख्यदा । सिद्धा सर्वार्थसिद्धिः स्यात्..."',
+        commentary: 'Celebrates Dhanya (Jupiter, 3 yrs), Bhadrika (Mercury, 5 yrs), and Siddha (Venus, 7 yrs) as golden harvests of treasury, intellect, marriage, and fulfilled life purpose.',
+      },
+      {
+        chapterRef: 'Yogini Antar-Dasha Vidhi',
+        title: 'Proportional 36-Year Sub-Period Harmony (Antar-Yogini)',
+        aphorism: '"स्वस्वमानगुणा कार्या षट्त्रिंशद्भाजिता फलम्..."',
+        commentary: 'Multiplies major and sub-Yogini spans and divides by 36, pinpointing crisp month-by-month shifts inside every multi-year chapter.',
+      },
+      {
+        chapterRef: 'Himalayan Cheena Parampara',
+        title: 'Dual-Dasha Lock (Vimshottari + Yogini Synthesis)',
+        aphorism: '"विंशोत्तरी महामार्गे योगिनी त्वरितं फलम्..."',
+        commentary: 'When both Vimshottari and Yogini Dashas fall under the same planetary ruler simultaneously, Nepali Jyotishis declare an unmistakable "Double-Lock" manifestation window.',
+      },
+    ],
+  },
+  {
+    id: 'bhrigu-chandra-kala-nadi',
+    number: 'XVI',
+    title: 'Bhrigu Samhita & Chandra Kala Nadi (Deva Keralam)',
+    sanskritOrOriginal: 'भृगु संहिता एवं चन्द्रकला नाडी (देवकेरलम्)',
+    author: 'Maharishi Bhrigu & Achyuta of Kerala',
+    eraAndLineage: 'Ancient Nadi Lineage & 16th Century CE Kerala Nadi Compendium',
+    tradition: 'Tantric, Nadi & Tajika',
+    thesis: 'Reveals ultra-sensitive mathematical destiny degrees inside the zodiac—most notably the Bhrigu Bindu (Rahu–Moon karmic midpoint) and the 24 Pushkara Navamsha / 4 Pushkara Bhaga lotus zones of self-healing fortune.',
+    engineIntegration: 'Drives our Bhrigu Bindu Destiny Midpoint & Live Jupiter/Saturn Transit Trigger detector plus Pushkara Navamsha & Pushkara Bhaga badges across Chapters 6 & 8.',
+    sutras: [
+      {
+        chapterRef: 'Bhrigu Nandi Nadi — Rahu-Chandra Madhya Sutra',
+        title: 'Bhrigu Bindu — The Karmic Midpoint of Manifestation',
+        aphorism: '"राहुचन्द्रान्तरं स्पष्टं द्विभक्तं राहुसंयुतम् । भृगुबिन्दुरिति ख्यातं गोचरे फलनिश्चयः ॥"',
+        commentary: 'Halves the zodiacal arc from Rahu forward to the Moon; whenever transiting Jupiter or Saturn aspects or crosses this exact degree, dormant life promises materialize.',
+      },
+      {
+        chapterRef: 'Deva Keralam & Jataka Parijata Ch. 1',
+        title: 'Chaturvimshati Pushkara Navamsha — 24 Sacred Lotus Zones',
+        aphorism: '"पुष्करांशे स्थितो खेटो दशायां राजयोगदः । नीचस्थोऽपि शुभं कुर्यात्..."',
+        commentary: 'Identifies two 3°20′ benefic Navamsha slices per sign where planets draw inexhaustible nourishment, turning ordinary Dasha periods into resilient, flourishing chapters.',
+      },
+      {
+        chapterRef: 'Jataka Parijata Ch. 1, Shloka 58',
+        title: 'Pushkara Bhaga — Supreme 21° / 14° / 24° / 7° Degrees',
+        aphorism: '"मेषादिषु क्रमाज्ज्ञेया एकविंशचतुर्दश । चतुर्विंशतिसप्तांशाः पुष्कराः सर्वसिद्धिदाः ॥"',
+        commentary: 'Pinpoints the exact degree peaks (21° in Fire, 14° in Earth, 24° in Air, 7° in Water signs) capable of uplifting an entire birth chart when occupied by Lagna or key planets.',
+      },
+      {
+        chapterRef: 'Prashna Marga Ch. 14 Concordance',
+        title: '64th Navamsha & 22nd Drekkana Preventive Checkpoints',
+        aphorism: '"चतुःषष्टितमेऽशके द्वाविंशे द्रेष्काणकेऽपि च संयमात् स्वस्तिमाप्नोति..."',
+        commentary: 'Pairs Pushkara grace with non-alarmist awareness of the 4th D9 sign and 8th D3 sign so strenuous transits are met with calm sleep, checkups, and mindful pacing.',
+      },
+    ],
+  },
+  {
+    id: 'tajika-neelakanthi',
+    number: 'XVII',
+    title: 'Tajika Neelakanthi (Varshaphala Tantra)',
+    sanskritOrOriginal: 'ताजिकनीलकण्ठी (संज्ञा एवं वर्षतन्त्रम्)',
+    author: 'Acharya Neelakantha Daivajna of Vidarbha / Kashi',
+    eraAndLineage: '1587 CE (Saka 1509) • Indo-Persian-Sanskrit Solar Return Masterpiece',
+    tradition: 'Tantric, Nadi & Tajika',
+    thesis: 'Establishes the mathematical and interpretive canon of Varshaphala (Annual Solar Return horoscopy): casting the exact second the transiting sidereal Sun returns to its natal longitude each birthday year, alongside progressed Muntha, Pancha-Vargiya Varsheshwara (Year Lord), and Arabic-Sanskrit Sahams.',
+    engineIntegration: 'Computes your live Astronomical Solar Return (Varsha Pravesh UTC), Annual Varsha Lagna, Progressed Muntha House Forecast, Year Lord (Varsheshwara), Punya Saham, and Rajya Saham in Chapter 9.',
+    sutras: [
+      {
+        chapterRef: 'Varsha Tantra, Adhyaya 1',
+        title: 'Varsha Pravesh — Exact Sidereal Solar Return Moment',
+        aphorism: '"जन्मार्कलिप्तिकातुल्यं यदा सूर्यः प्रपद्यते । तदा वर्षप्रवेशः स्यात्..."',
+        commentary: 'Defines the true astrological New Year for an individual at the exact astronomical instant the Sun re-enters its birth arc-minute and arc-second.',
+      },
+      {
+        chapterRef: 'Sanjna Tantra — Muntha Vidhi',
+        title: 'Progressed Muntha — One Sign Per Completed Year of Life',
+        aphorism: '"जन्मलग्नाद् गताब्दाढ्याद्राशिर्मुन्था प्रकीर्तिता । नवैकादशधीसौख्ये पराक्रमगता शुभा ॥"',
+        commentary: 'Advances the natal Ascendant by one zodiac sign each birthday; Muntha landing in the 9th, 10th, 11th, 1st, 3rd, or 5th of the annual chart heralds peak yearly momentum.',
+      },
+      {
+        chapterRef: 'Varsha Tantra — Varsheshwara Nirnaya',
+        title: 'Pancha-Adhikari & Varsheshwara — Selecting the Sovereign of the Year',
+        aphorism: '"जन्मेशो मुन्थपाधीशो वर्षेशस्त्रिविधो रविः । पञ्चाधिकारिणां मध्ये बली वर्षेश्वरो भवेत् ॥"',
+        commentary: 'Weighs the five office-holders (Natal Lagna Lord, Muntha Lord, Annual Lagna Lord, Tri-Rashi Lord, and Day/Night Luminary Lord) to crown the strongest planet as ruler of the year.',
+      },
+      {
+        chapterRef: 'Saham Adhyaya',
+        title: 'Punya Saham & Rajya Saham — Sensitive Degrees of Grace & Authority',
+        aphorism: '"चन्द्रादर्कं विशोध्यथ लग्नयुक्तं दिवा भवेत् पुण्यं..."',
+        commentary: 'Projects the Moon–Sun and Saturn–Sun arcs from the Solar Return Ascendant (reversing by night) to pinpoint where fortune (Punya) and career stature (Rajya) crystallize.',
+      },
+    ],
+  },
+  {
+    id: 'panchapakshi-agastya',
+    number: 'XVIII',
+    title: 'Panchapakshi Shastra & Surya Siddhanta Samvatsara Kalpa',
+    sanskritOrOriginal: 'पञ्चपक्षी शास्त्रम् (अगस्त्य सिद्ध) एवं षष्टिसंवत्सर कल्पः',
+    author: 'Siddhar Agastya (Tamil Siddha Lineage) & Surya Siddhanta Astronomers',
+    eraAndLineage: 'Classical Tamil Siddha & Pan-Indian Panchanga Time-Science',
+    tradition: 'Muhurta & Samhita',
+    thesis: 'Harmonizes micro-time and macro-time: mapping every person’s birth star and lunar Paksha to one of Five Cosmic Birds (Vulture, Owl, Crow, Cock, Peacock) cycling through five daily/nightly biorhythm states (Ruling, Eating, Walking, Sleeping, Dying), framed within the 60-year Jovian Samvatsara epoch.',
+    engineIntegration: 'Drives our Live 5-Yama Panchapakshi Biorhythm Scheduler in the Horai Studio, 60-Samvatsara Birth & Current Year Archetypes in Panchang, and 3×3 Lo Shu Vedic Ank-Yantra.',
+    sutras: [
+      {
+        chapterRef: 'Agastya Panchapakshi — Pakshi Nirnaya',
+        title: 'Five Sacred Bio-Cosmic Birds by Nakshatra & Paksha',
+        aphorism: '"गृध्रोलूकौ तथा काकः कुक्कुटो मयूरस्तथा । शुक्लकृष्णे विभज्यन्ते सप्तविंशति तारकाः ॥"',
+        commentary: 'Assigns every native a lifelong Cosmic Bird totem (Janma Pakshi) from the exact combination of birth Nakshatra (1–27) and waxing vs. waning lunar phase.',
+      },
+      {
+        chapterRef: 'Yama Kriya Krama',
+        title: 'Five Daily & Nightly States — Rajya, Bhojana, Gamana, Nidra & Marana',
+        aphorism: '"राज्ये सर्वार्थसिद्धिः स्याद् भोजने धनसम्पदः । गमने मध्यमा सिद्धिर्निद्रामरणयोः शमः ॥"',
+        commentary: 'Divides sunrise-to-sunset and sunset-to-sunrise into five equal Yamas (~2h 24m each), identifying 100% Ruling and 80% Eating windows for decisive action.',
+      },
+      {
+        chapterRef: 'Surya Siddhanta & Brihat Samhita Ch. 8',
+        title: 'Shashti-Samvatsara — The 60-Year Jupiter–Saturn Epoch Wheel',
+        aphorism: '"प्रभवाद्याः षष्ट्यब्दाः ब्रह्मविष्णुशिवात्मकाः..."',
+        commentary: 'Groups sixty named solar-Jovian years (Prabhava #1 through Akshaya #60) into three 20-year Vimsatis ruled by Brahma (creation), Vishnu (sustenance), and Rudra-Shiva (renewal).',
+      },
+      {
+        chapterRef: 'Vedic Ank-Yantra & Lo Shu Concordance',
+        title: 'Navagraha 3×3 Magic Square (4–9–2 / 3–5–7 / 8–1–6)',
+        aphorism: '"चतुर्नवद्विकं प्रक्तं त्रिपञ्चसप्तमध्यमम् । अष्टैकषट्कसंयुक्तं सर्वतः पञ्चदशकम् ॥"',
+        commentary: 'Arranges numbers 1–9 so every row, column, and diagonal sums to 15, revealing Golden Raj Yoga (4-5-6), Silver Stability Yoga (2-5-8), and balanced Navagraha directions.',
       },
     ],
   },
