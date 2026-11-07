@@ -72,6 +72,10 @@ import {
   TajikaVarshaphalaProfile,
   YoginiDashaSystemResult,
 } from '../data/yoginiNadiVarshaphalCodex';
+import {
+  computePersonalRelocationReport,
+  PersonalRelocationReport,
+} from './relocationEngine';
 
 export interface LifeDomainScorecardItem {
   id: 'CAREER' | 'WEALTH' | 'RELATIONSHIPS' | 'VITALITY' | 'WISDOM';
@@ -289,6 +293,9 @@ export interface DeepLifeReport {
   varshaphala: TajikaVarshaphalaProfile;
   panchapakshi: PanchapakshiSchedule;
   loShuGrid: LoShuVedicGridResult;
+
+  // 8E. Country-Based Astrocartography, Best Domestic Cities & Global Relocation Atlas
+  relocationBlueprint: PersonalRelocationReport;
 
   // 9. Deep Numerology (Cheiro Compound + Decoz Pinnacles & Karmic Lessons)
   deepNumerology: {
@@ -1318,6 +1325,7 @@ export function generateDeepLifeReport(
     varshaphala,
     panchapakshi,
     loShuGrid,
+    relocationBlueprint: computePersonalRelocationReport(profile, natalChart, vedicReport, lang),
     deepNumerology: {
       lifePathHeadline: isNe
         ? `जीवन मार्ग अंक #${lpFinal} (${numerologyReport.lifePath.trail

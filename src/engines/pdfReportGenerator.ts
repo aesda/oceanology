@@ -1519,6 +1519,58 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   );
   drawCitationNote(deepReport.upayaArchitecture.sourceCitation);
 
+  // Country-Based Relocation, Best Domestic Cities & Global Astrocartography
+  {
+    const reloc = deepReport.relocationBlueprint;
+    drawSectionHeader(
+      `Country & World Relocation (${reloc.countryNameLabel})`,
+      `Best Cities in ${reloc.countryNameLabel}, Current Location Score & World Astrocartography`,
+      reloc.countrySummaryNarrative
+    );
+
+    const nearLinesText =
+      reloc.currentLocation.influences.length > 0
+        ? reloc.currentLocation.influences
+            .slice(0, 3)
+            .map(
+              (inf) =>
+                `${inf.title} (${inf.distanceKm} km ${inf.direction}): ${inf.summary}`
+            )
+            .join('   ||   ')
+        : reloc.currentLocation.headlineVerdict;
+
+    drawParagraphBlock(
+      `Selected / Birth Location Score: ${reloc.currentLocation.cityLabel}, ${reloc.currentLocation.countryLabel} (${reloc.currentLocation.overallScore}% Overall — ${reloc.currentLocation.primaryTag})`,
+      `Domain Scores -> Career: ${reloc.currentLocation.careerScore}% | Home & Peace: ${reloc.currentLocation.sanctuaryScore}% | Love & Partnership: ${reloc.currentLocation.loveScore}% (Elevation: ${reloc.currentLocation.city.elevationMeters}m). Nearest Planetary Lines: ${nearLinesText}`
+    );
+
+    drawParagraphBlock(
+      `Top Ranked Cities Inside ${reloc.countryNameLabel} (Career Peak: ${reloc.bestCareerInCountry.cityLabel} | Sanctuary Peak: ${reloc.bestSanctuaryInCountry.cityLabel} | Love Peak: ${reloc.bestLoveInCountry.cityLabel})`,
+      reloc.rankedCountryCities
+        .map((ev, idx) => {
+          const topInf = ev.influences[0];
+          const lineTag = topInf ? `${topInf.title} (${topInf.distanceKm} km)` : ev.primaryTag;
+          return `#${idx + 1} ${ev.cityLabel}, ${ev.stateLabel}: ${ev.overallScore}% Overall (Career ${ev.careerScore}%, Home ${ev.sanctuaryScore}%, Love ${ev.loveScore}% — ${lineTag})`;
+        })
+        .join('   ||   '),
+      true,
+      [5, 150, 105]
+    );
+
+    drawParagraphBlock(
+      `${reloc.vedicDirectionHeadline}  |  ${reloc.foreignYogaBadge}`,
+      `${reloc.vedicDirectionNarrative}   ||   ${reloc.foreignYogaNarrative}`
+    );
+
+    drawParagraphBlock(
+      'Top Worldwide Planetary Power Hubs & International Recommendations',
+      `Global Career Hub (MC): ${reloc.topGlobalCareer.cityLabel}, ${reloc.topGlobalCareer.countryLabel} (${reloc.topGlobalCareer.careerScore}%)   |   Global Sanctuary Hub (IC): ${reloc.topGlobalSanctuary.cityLabel}, ${reloc.topGlobalSanctuary.countryLabel} (${reloc.topGlobalSanctuary.sanctuaryScore}%)   |   Global Partnership Hub (DSC): ${reloc.topGlobalLove.cityLabel}, ${reloc.topGlobalLove.countryLabel} (${reloc.topGlobalLove.loveScore}%). Top International Cities Outside ${reloc.countryNameLabel}: ${reloc.topInternationalCities
+        .map((ic) => `${ic.cityLabel}, ${ic.countryLabel} (${ic.overallScore}%)`)
+        .join(', ')}.`
+    );
+    drawCitationNote(reloc.sourceCitation);
+  }
+
   // Synthesis Q&A + Authoritative Bibliography Appendix
   if (synthesisReport.aiCopilotPrompts.length > 0) {
     drawSectionHeader(

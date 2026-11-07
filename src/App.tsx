@@ -939,6 +939,9 @@ function AppWorkspace() {
                 handleNavigate('WHAT_HAPPENS_IF', actId ? { actionId: actId } : undefined)
               }
               onOpenHoraiStudio={() => handleNavigate('HORAI')}
+              onOpenRelocationMap={() =>
+                handleNavigate('OBSERVATORY', { studioTab: 'ASTROCARTOGRAPHY' })
+              }
               onInspectNakshatra={(idx) => handleNavigate('NAKSHATRAS', { nakIdx: idx })}
             />
           )}

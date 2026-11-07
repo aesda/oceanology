@@ -530,6 +530,79 @@ export function buildNepaliPdfSections(input: PdfReportBundleInput): NepaliPdfDo
       ],
     },
     {
+      chapterBadge: `स्थान-ज्योतिष • ${deepNe.relocationBlueprint.countryNameLabel} र विश्व भाग्योदय नक्सा`,
+      heading: `${deepNe.relocationBlueprint.countryNameLabel} भित्रका सर्वोत्तम सहर, हालको स्थान स्कोर, भाग्योदय दिशा र विश्व ग्रह-रेखा फल`,
+      subheading: `हालको स्थान: ${deepNe.relocationBlueprint.currentLocation.cityLabel} (${toNepaliDigits(
+        deepNe.relocationBlueprint.currentLocation.overallScore
+      )}%) • ${deepNe.relocationBlueprint.countryNameLabel} मा सर्वोत्कृष्ट: ${
+        deepNe.relocationBlueprint.bestOverallInCountry.cityLabel
+      } (${toNepaliDigits(deepNe.relocationBlueprint.bestOverallInCountry.overallScore)}%)`,
+      blocks: [
+        {
+          title: `हालको / जन्म स्थान मूल्याङ्कन: ${deepNe.relocationBlueprint.currentLocation.cityLabel}, ${deepNe.relocationBlueprint.currentLocation.countryLabel} (${toNepaliDigits(
+            deepNe.relocationBlueprint.currentLocation.overallScore
+          )}% — ${deepNe.relocationBlueprint.currentLocation.primaryTag})`,
+          body:
+            `${deepNe.relocationBlueprint.countrySummaryNarrative} हालको स्थान (${
+              deepNe.relocationBlueprint.currentLocation.cityLabel
+            }, उचाइ ${toNepaliDigits(
+              deepNe.relocationBlueprint.currentLocation.city.elevationMeters
+            )} मिटर) का नजिकका प्रमुख ग्रह रेखाहरू: ` +
+            (deepNe.relocationBlueprint.currentLocation.influences.length > 0
+              ? deepNe.relocationBlueprint.currentLocation.influences
+                  .slice(0, 3)
+                  .map(
+                    (inf) =>
+                      `${inf.title} (${toNepaliDigits(inf.distanceKm)} कि.मि. ${inf.directionLabel}): ${inf.summary}`
+                  )
+                  .join('  ')
+              : deepNe.relocationBlueprint.currentLocation.headlineVerdict),
+        },
+        {
+          title: `${deepNe.relocationBlueprint.countryNameLabel} भित्रका शीर्ष अनुकूल सहरहरूको श्रेणीक्रम (करियर, आवास शान्ति र सम्बन्ध)`,
+          body: deepNe.relocationBlueprint.rankedCountryCities
+            .map((ev, idx) => {
+              const topInf = ev.influences[0];
+              const lineNote = topInf
+                ? `${topInf.title} (${toNepaliDigits(topInf.distanceKm)} कि.मि.)`
+                : ev.primaryTag;
+              return `#${toNepaliDigits(idx + 1)} ${ev.cityLabel} (${ev.stateLabel}): समग्र ${toNepaliDigits(
+                ev.overallScore
+              )}% (करियर ${toNepaliDigits(ev.careerScore)}%, आवास ${toNepaliDigits(
+                ev.sanctuaryScore
+              )}%, प्रेम ${toNepaliDigits(ev.loveScore)}% — ${lineNote})`;
+            })
+            .join('  •  '),
+        },
+        {
+          title: `${deepNe.relocationBlueprint.vedicDirectionHeadline} • ${deepNe.relocationBlueprint.foreignYogaBadge}`,
+          body: `${deepNe.relocationBlueprint.vedicDirectionNarrative}  ${deepNe.relocationBlueprint.foreignYogaNarrative}`,
+        },
+        {
+          title: 'विश्वभरका शीर्ष ३ ग्रह-शक्ति केन्द्र र अन्तर्राष्ट्रिय अनुकूल सहरहरू',
+          body: `विश्व करियर केन्द्र: ${deepNe.relocationBlueprint.topGlobalCareer.cityLabel}, ${
+            deepNe.relocationBlueprint.topGlobalCareer.countryLabel
+          } (${toNepaliDigits(
+            deepNe.relocationBlueprint.topGlobalCareer.careerScore
+          )}%) • विश्व आवास शान्ति केन्द्र: ${deepNe.relocationBlueprint.topGlobalSanctuary.cityLabel}, ${
+            deepNe.relocationBlueprint.topGlobalSanctuary.countryLabel
+          } (${toNepaliDigits(
+            deepNe.relocationBlueprint.topGlobalSanctuary.sanctuaryScore
+          )}%) • विश्व सम्बन्ध/प्रेम केन्द्र: ${deepNe.relocationBlueprint.topGlobalLove.cityLabel}, ${
+            deepNe.relocationBlueprint.topGlobalLove.countryLabel
+          } (${toNepaliDigits(
+            deepNe.relocationBlueprint.topGlobalLove.loveScore
+          )}%)। ${deepNe.relocationBlueprint.countryNameLabel} बाहिरका प्रमुख अनुकूल सहरहरू: ${deepNe.relocationBlueprint.topInternationalCities
+            .map(
+              (ic) =>
+                `${ic.cityLabel}, ${ic.countryLabel} (${toNepaliDigits(ic.overallScore)}%)`
+            )
+            .join(' • ')}।`,
+          citation: deepNe.relocationBlueprint.sourceCitation,
+        },
+      ],
+    },
+    {
       chapterBadge: 'अध्याय १० • अंक ज्योतिष, शुभ साइत, रत्न-वास्तु उपाय र ग्रन्थसूची',
       heading: 'चेइरो संयुक्त अंक, ३×३ लो-शु वर्ग, आगामी शुभ मिति, सुरक्षित रत्न र १४ शास्त्रीय ग्रन्थ',
       subheading: `मूलांक #${toNepaliDigits(deepNe.loShuGrid.mulankDriver)} • भाग्यांक #${toNepaliDigits(deepNe.loShuGrid.bhagyankConductor)} • आजको सक्रिय होरा: ${activeHoraiNe.horaiName}`,

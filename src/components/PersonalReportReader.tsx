@@ -19,6 +19,9 @@ import {
   Award,
   Layers,
   Clock,
+  Globe,
+  MapPin,
+  Home,
 } from 'lucide-react';
 import { AyanamshaMode, BirthProfile, HouseSystem } from '../types/oceanology';
 import { NatalChartResult } from '../engines/astronomyEngine';
@@ -41,11 +44,13 @@ import {
   scanUpcomingBestWindows,
 } from '../data/karmaAndMuhurtaCodex';
 import { generateDeepLifeReport } from '../engines/deepLifeReportEngine';
+import { normalizeCountryKey } from '../engines/relocationEngine';
 import {
   buildLocalizedPersonalSummary,
   formatCityForLang,
   formatCountryForLang,
   formatDisplayDate,
+  toNepaliDigits,
   trActionTitle,
   trDashaGuide,
   trDignity,
@@ -80,6 +85,7 @@ interface Props {
   onEditProfile: () => void;
   onOpenActionTiming: (actionId?: string) => void;
   onOpenHoraiStudio?: () => void;
+  onOpenRelocationMap?: () => void;
   onInspectNakshatra: (nakIdx: number) => void;
 }
 
@@ -106,9 +112,10 @@ export const PersonalReportReader: React.FC<Props> = ({
   onEditProfile,
   onOpenActionTiming,
   onOpenHoraiStudio,
+  onOpenRelocationMap,
   onInspectNakshatra,
 }) => {
-  const { lang, t } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const [pdfBusy, setPdfBusy] = useState<'NONE' | 'DOWNLOAD' | 'PREVIEW'>('NONE');
   const [pdfStatusMsg, setPdfStatusMsg] = useState<string | null>(null);
   const [readingMode, setReadingMode] = useState<'FULL' | 'SUMMARY'>('FULL');
@@ -346,6 +353,25 @@ export const PersonalReportReader: React.FC<Props> = ({
           </button>
         </div>
 
+        {normalizeCountryKey(profile.location.country) === 'nepal' && lang === 'en' && (
+          <div className="no-print flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl bg-[var(--accent-bg)] border border-[var(--border-strong)] text-sm">
+            <div className="flex items-center gap-2 text-[var(--text)]">
+              <Globe className="w-4 h-4 text-[var(--accent)] shrink-0" />
+              <span>
+                Nepal location (<strong>{cityDisplay}</strong>) selected — read this entire report &amp; download your Cheena PDF in authentic <strong>नेपाली</strong>:
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setLang('ne')}
+              className="btn-editorial-primary text-xs px-3.5 py-1.5 inline-flex items-center gap-1.5 shrink-0"
+            >
+              <span>नेपाली भाषामा पढ्नुहोस्</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {deepReport.unknownBirthTimeNote && (
           <div className="p-4 rounded-xl bg-[var(--amber-bg)] border border-[var(--amber)]/30 text-sm text-[var(--text)] leading-relaxed">
             <strong className="text-[var(--amber)]">
@@ -523,6 +549,14 @@ export const PersonalReportReader: React.FC<Props> = ({
             { href: '#rep-birthstar', label: t('7. Birth Star', '७. जन्म नक्षत्र'), show: isFull },
             { href: '#rep-houses', label: t('8. 12 Houses & Yogas', '८. १२ भाव र राजयोग'), show: isFull },
             { href: '#rep-maturity-transits', label: t('9. Ages 16–48 & Live Transits', '९. उमेर मोड र गोचर'), show: true },
+            {
+              href: '#rep-relocation',
+              label: t(
+                `📍 ${deepReport.relocationBlueprint.countryNameLabel} & World Map`,
+                `📍 ${deepReport.relocationBlueprint.countryNameLabel} र विश्व स्थान फल`
+              ),
+              show: true,
+            },
             { href: '#rep-numerology-timing', label: t('10. Numerology, Dates & Books', '१०. अंक, साइत र ग्रन्थ'), show: true },
           ]
             .filter((c) => c.show)
@@ -2018,6 +2052,429 @@ export const PersonalReportReader: React.FC<Props> = ({
           'गहन अंक विज्ञान, शुभ मिति, व्यावहारिक उपाय र शास्त्रीय ग्रन्थसूची'
         )}
       />
+
+      {/* ==================== COUNTRY ASTROCARTOGRAPHY, BEST DOMESTIC CITIES & GLOBAL RELOCATION ==================== */}
+      {(() => {
+        const reloc = deepReport.relocationBlueprint;
+        const fmtNum = (val: string | number) => (lang === 'ne' ? toNepaliDigits(val) : String(val));
+        return (
+          <section id="rep-relocation" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-1 max-w-3xl">
+                <div className="text-sm font-semibold text-[var(--accent)]">
+                  {t(
+                    `Country Relocation & World Astrocartography • Personalized to ${reloc.countryNameLabel}`,
+                    `देश र विश्व स्थान-ज्योतिष • ${reloc.countryNameLabel} तथा अन्तर्राष्ट्रिय भाग्योदय नक्सा`
+                  )}
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
+                  {t(
+                    `Best Cities in ${reloc.countryNameLabel}, Current Location Score & Global Planetary Hubs`,
+                    `${reloc.countryNameLabel} भित्रका सर्वोत्तम सहर, हालको स्थान स्कोर र विश्व ग्रह-रेखा फल`
+                  )}
+                </h2>
+                <p className="text-base text-[var(--text-secondary)] leading-relaxed">
+                  {reloc.countrySummaryNarrative}
+                </p>
+              </div>
+
+              {onOpenRelocationMap && (
+                <button
+                  type="button"
+                  onClick={onOpenRelocationMap}
+                  className="btn-editorial-primary text-sm inline-flex items-center gap-1.5 no-print shrink-0"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>
+                    {t('Open Interactive World Map', 'अन्तरक्रियात्मक विश्व नक्सा खोल्नुहोस्')}
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* 4 Country-Contextual Relocation KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {/* 1. Selected / Current Location Score */}
+              <div className="obs-panel p-4 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[var(--text-secondary)]">
+                    <span>{t('Selected Location Score', 'हालको / जन्म स्थान स्कोर')}</span>
+                    <MapPin className="w-4 h-4 text-[var(--accent)] shrink-0" />
+                  </div>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="font-scDisplay text-2xl font-bold text-[var(--text)] tabular-nums">
+                      {fmtNum(reloc.currentLocation.overallScore)}%
+                    </span>
+                    <span className="text-base font-semibold text-[var(--text)] truncate">
+                      {reloc.currentLocation.cityLabel}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                  <StatusBadge tone="optimal" label={reloc.currentLocation.countryLabel} />
+                  <span className="text-xs text-[var(--text-muted)] truncate">
+                    {reloc.currentLocation.primaryTag}
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. Top Career City in User's Country */}
+              <div className="obs-panel p-4 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[var(--text-secondary)]">
+                    <span>
+                      {t(
+                        `Top Career in ${reloc.countryNameLabel}`,
+                        `${reloc.countryNameLabel} मा शीर्ष करियर सहर`
+                      )}
+                    </span>
+                    <Briefcase className="w-4 h-4 text-[var(--accent)] shrink-0" />
+                  </div>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="font-scDisplay text-xl font-bold text-[var(--text)] truncate">
+                      {reloc.bestCareerInCountry.cityLabel}
+                    </span>
+                    <span className="text-sm font-bold text-[var(--accent)] tabular-nums">
+                      {fmtNum(reloc.bestCareerInCountry.careerScore)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                  <StatusBadge tone="optimal" label={t('Career Peak', 'करियर शिखर')} />
+                  <span className="text-xs text-[var(--text-muted)] truncate">
+                    {reloc.bestCareerInCountry.stateLabel}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Top Home & Sanctuary City in User's Country */}
+              <div className="obs-panel p-4 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[var(--text-secondary)]">
+                    <span>
+                      {t(
+                        `Top Sanctuary in ${reloc.countryNameLabel}`,
+                        `${reloc.countryNameLabel} मा शीर्ष आवास शान्ति`
+                      )}
+                    </span>
+                    <Home className="w-4 h-4 text-[var(--sage)] shrink-0" />
+                  </div>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="font-scDisplay text-xl font-bold text-[var(--text)] truncate">
+                      {reloc.bestSanctuaryInCountry.cityLabel}
+                    </span>
+                    <span className="text-sm font-bold text-[var(--sage)] tabular-nums">
+                      {fmtNum(reloc.bestSanctuaryInCountry.sanctuaryScore)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                  <StatusBadge tone="optimal" label={t('Home & Peace', 'सुख र शान्ति')} />
+                  <span className="text-xs text-[var(--text-muted)] truncate">
+                    {reloc.bestSanctuaryInCountry.stateLabel}
+                  </span>
+                </div>
+              </div>
+
+              {/* 4. Top Partnership & Love City in User's Country */}
+              <div className="obs-panel p-4 space-y-2.5 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[var(--text-secondary)]">
+                    <span>
+                      {t(
+                        `Top Love Hub in ${reloc.countryNameLabel}`,
+                        `${reloc.countryNameLabel} मा शीर्ष सम्बन्ध सहर`
+                      )}
+                    </span>
+                    <Heart className="w-4 h-4 text-[#EC4899] shrink-0" />
+                  </div>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="font-scDisplay text-xl font-bold text-[var(--text)] truncate">
+                      {reloc.bestLoveInCountry.cityLabel}
+                    </span>
+                    <span className="text-sm font-bold text-[#EC4899] tabular-nums">
+                      {fmtNum(reloc.bestLoveInCountry.loveScore)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                  <StatusBadge tone="favorable" label={t('Love & Union', 'प्रेम र सहकार्य')} />
+                  <span className="text-xs text-[var(--text-muted)] truncate">
+                    {reloc.bestLoveInCountry.stateLabel}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Current Location Detailed Breakdown + Ranked Cities in User's Country */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* Left 5 cols: Current Location Career/Home/Love + Nearest Planetary Lines */}
+              <div className="lg:col-span-5 obs-panel p-5 space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <StatusBadge tone="favorable" label={reloc.currentLocation.primaryTag} />
+                    <h3 className="text-xl font-bold text-[var(--text)] pt-1">
+                      {reloc.currentLocation.cityLabel}
+                    </h3>
+                    <div className="text-xs text-[var(--text-muted)]">
+                      {reloc.currentLocation.stateLabel} • {reloc.currentLocation.countryLabel} •{' '}
+                      {fmtNum(reloc.currentLocation.city.elevationMeters)}
+                      {t('m', ' मिटर')}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-[var(--text-muted)]">
+                      {t('Overall', 'समग्र')}
+                    </div>
+                    <div className="font-scDisplay text-3xl font-bold text-[var(--accent)] tabular-nums">
+                      {fmtNum(reloc.currentLocation.overallScore)}%
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2.5 text-center">
+                  <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3">
+                    <div className="text-xs text-[var(--text-muted)]">{t('Career', 'करियर')}</div>
+                    <div className="text-lg font-bold text-[var(--accent)] tabular-nums">
+                      {fmtNum(reloc.currentLocation.careerScore)}%
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3">
+                    <div className="text-xs text-[var(--text-muted)]">{t('Home', 'आवास')}</div>
+                    <div className="text-lg font-bold text-[var(--sage)] tabular-nums">
+                      {fmtNum(reloc.currentLocation.sanctuaryScore)}%
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3">
+                    <div className="text-xs text-[var(--text-muted)]">{t('Love', 'प्रेम')}</div>
+                    <div className="text-lg font-bold text-[#EC4899] tabular-nums">
+                      {fmtNum(reloc.currentLocation.loveScore)}%
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    {t(
+                      'Nearest Planetary Lines (±9.5° Orb)',
+                      'नजिकका प्रमुख ग्रह रेखाहरू (±९.५° प्रभाव क्षेत्र)'
+                    )}
+                  </div>
+                  {reloc.currentLocation.influences.length > 0 ? (
+                    <div className="space-y-2">
+                      {reloc.currentLocation.influences.slice(0, 3).map((inf) => (
+                        <div
+                          key={`${inf.planet}-${inf.angle}`}
+                          className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3 space-y-1"
+                        >
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <span className="font-bold text-[var(--text)]">
+                              <span style={{ color: inf.color }}>{inf.symbol}</span> {inf.title}
+                            </span>
+                            <span className="font-semibold text-[var(--accent)] tabular-nums shrink-0">
+                              {fmtNum(inf.distanceKm)} {t('km', 'कि.मि.')} ({inf.directionLabel})
+                            </span>
+                          </div>
+                          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                            {inf.summary}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3">
+                      {reloc.currentLocation.headlineVerdict}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Right 7 cols: Top 6 Ranked Cities Inside User's Country */}
+              <div className="lg:col-span-7 obs-panel p-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                      {t(
+                        `Domestic Ranking • Inside ${reloc.countryNameLabel}`,
+                        `स्वदेशी श्रेणीक्रम • ${reloc.countryNameLabel} भित्रका शीर्ष सहरहरू`
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-[var(--text)]">
+                      {t(
+                        `Top ${reloc.rankedCountryCities.length} Most Aligned Cities in ${reloc.countryNameLabel}`,
+                        `तपाईंको कुण्डली अनुसार ${reloc.countryNameLabel} का सर्वोत्तम ${fmtNum(
+                          reloc.rankedCountryCities.length
+                        )} सहर`
+                      )}
+                    </h3>
+                  </div>
+                  <StatusBadge
+                    tone="optimal"
+                    label={t(
+                      `Best Overall: ${reloc.bestOverallInCountry.cityLabel}`,
+                      `सर्वोत्कृष्ट: ${reloc.bestOverallInCountry.cityLabel}`
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {reloc.rankedCountryCities.map((ev, idx) => {
+                    const topLine = ev.influences[0];
+                    return (
+                      <div
+                        key={ev.city.id}
+                        className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3.5 space-y-2 flex flex-col justify-between"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="text-sm font-bold text-[var(--text)] truncate">
+                                <span className="text-[var(--accent)] mr-1">
+                                  #{fmtNum(idx + 1)}
+                                </span>
+                                {ev.cityLabel}
+                              </div>
+                              <div className="text-[11px] text-[var(--text-muted)] truncate">
+                                {ev.stateLabel} • {ev.primaryTag}
+                              </div>
+                            </div>
+                            <span className="font-scDisplay text-lg font-bold text-[var(--accent)] tabular-nums shrink-0">
+                              {fmtNum(ev.overallScore)}%
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--text-secondary)] pt-0.5 tabular-nums">
+                            <span>
+                              {t('Career', 'करियर')}: <strong>{fmtNum(ev.careerScore)}%</strong>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {t('Home', 'आवास')}: <strong>{fmtNum(ev.sanctuaryScore)}%</strong>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {t('Love', 'प्रेम')}: <strong>{fmtNum(ev.loveScore)}%</strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-[11px] text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 truncate">
+                          {topLine ? (
+                            <>
+                              <span style={{ color: topLine.color }}>{topLine.symbol}</span>{' '}
+                              {topLine.title} ({fmtNum(topLine.distanceKm)} {t('km', 'कि.मि.')})
+                            </>
+                          ) : (
+                            ev.primaryTag
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Classical Vedic Bhagyodaya Compass Direction + Videsha Yoga + Worldwide Hubs */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="obs-panel p-5 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                    {t(
+                      'Classical Vedic Compass & Foreign Mobility',
+                      'शास्त्रीय भाग्योदय दिशा र विदेश योग (विदेश यात्रा)'
+                    )}
+                  </span>
+                  <StatusBadge tone={reloc.foreignYogaTone} label={reloc.foreignYogaBadge} />
+                </div>
+                <h3 className="text-base font-bold text-[var(--text)]">
+                  {reloc.vedicDirectionHeadline}
+                </h3>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                  {reloc.vedicDirectionNarrative}
+                </p>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed border-t border-[var(--border)] pt-2.5">
+                  {reloc.foreignYogaNarrative}
+                </p>
+              </div>
+
+              <div className="obs-panel p-5 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
+                    {t(
+                      'Top Worldwide Planetary Power Hubs',
+                      'विश्वभरका शीर्ष ३ ग्रह-शक्ति केन्द्र र अन्तर्राष्ट्रिय सहर'
+                    )}
+                  </span>
+                  <Compass className="w-4 h-4 text-[var(--accent)]" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3 space-y-1">
+                    <div className="text-[11px] text-[var(--text-muted)]">
+                      {t('Global Career Hub', 'विश्व करियर केन्द्र')}
+                    </div>
+                    <div className="text-sm font-bold text-[var(--text)] truncate">
+                      {reloc.topGlobalCareer.cityLabel}
+                    </div>
+                    <div className="text-xs text-[var(--accent)] font-semibold tabular-nums">
+                      {reloc.topGlobalCareer.countryLabel} • {fmtNum(reloc.topGlobalCareer.careerScore)}%
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3 space-y-1">
+                    <div className="text-[11px] text-[var(--text-muted)]">
+                      {t('Global Sanctuary Hub', 'विश्व शान्ति केन्द्र')}
+                    </div>
+                    <div className="text-sm font-bold text-[var(--text)] truncate">
+                      {reloc.topGlobalSanctuary.cityLabel}
+                    </div>
+                    <div className="text-xs text-[var(--sage)] font-semibold tabular-nums">
+                      {reloc.topGlobalSanctuary.countryLabel} •{' '}
+                      {fmtNum(reloc.topGlobalSanctuary.sanctuaryScore)}%
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-3 space-y-1">
+                    <div className="text-[11px] text-[var(--text-muted)]">
+                      {t('Global Love Hub', 'विश्व सम्बन्ध केन्द्र')}
+                    </div>
+                    <div className="text-sm font-bold text-[var(--text)] truncate">
+                      {reloc.topGlobalLove.cityLabel}
+                    </div>
+                    <div className="text-xs text-[#EC4899] font-semibold tabular-nums">
+                      {reloc.topGlobalLove.countryLabel} • {fmtNum(reloc.topGlobalLove.loveScore)}%
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-xs font-semibold text-[var(--text)]">
+                    {t(
+                      `Top International Cities Outside ${reloc.countryNameLabel}:`,
+                      `${reloc.countryNameLabel} बाहिरका प्रमुख अनुकूल अन्तर्राष्ट्रिय सहरहरू:`
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {reloc.topInternationalCities.map((ic) => (
+                      <span
+                        key={ic.city.id}
+                        className="px-2.5 py-1 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-xs text-[var(--text-secondary)] tabular-nums"
+                      >
+                        <strong className="text-[var(--text)]">{ic.cityLabel}</strong>,{' '}
+                        {ic.countryLabel} ({fmtNum(ic.overallScore)}%)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-xs text-[var(--text-muted)] italic">{reloc.sourceCitation}</div>
+          </section>
+        );
+      })()}
 
       {/* ==================== CHAPTER 10: DEEP NUMEROLOGY, DECISION TIMING, REMEDIES & BIBLIOGRAPHY ==================== */}
       <section id="rep-numerology-timing" className="obs-card p-5 sm:p-8 space-y-6 scroll-mt-24">
