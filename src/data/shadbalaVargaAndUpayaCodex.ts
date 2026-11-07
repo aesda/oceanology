@@ -803,9 +803,9 @@ const GEM_CATALOG: Record<
 > = {
   Sun: {
     gemEn: 'Natural Ruby (Manikya)',
-    gemNe: 'माणिक्य (Ruby)',
+    gemNe: 'माणिक्य रत्न',
     upaEn: 'Red Garnet or Sunstone',
-    upaNe: 'रातो गार्नेट वा सनस्टोन',
+    upaNe: 'रातो गार्नेट वा सूर्यमणि',
     fingerEn: 'Gold or Copper • Ring Finger',
     fingerNe: 'सुन वा तामा • अनामिका (साइँली औँला)',
     windowEn: 'Sunday morning during Surya Horai (Shukla Paksha)',
@@ -813,9 +813,9 @@ const GEM_CATALOG: Record<
   },
   Moon: {
     gemEn: 'Natural Pearl (Mukta)',
-    gemNe: 'मोती (Pearl)',
+    gemNe: 'मुक्ता (मोती) रत्न',
     upaEn: 'Natural Moonstone (Chandrakanta)',
-    upaNe: 'चन्द्रकान्त मणि (Moonstone)',
+    upaNe: 'चन्द्रकान्त मणि',
     fingerEn: 'Silver • Little Finger',
     fingerNe: 'चाँदी • कान्छी औँला',
     windowEn: 'Monday morning during Chandra Horai (Shukla Paksha)',
@@ -823,7 +823,7 @@ const GEM_CATALOG: Record<
   },
   Mars: {
     gemEn: 'Red Coral (Moonga)',
-    gemNe: 'मुगा (Red Coral)',
+    gemNe: 'मुगा (प्रवाल) रत्न',
     upaEn: 'Carnelian or Red Jasper',
     upaNe: 'कार्नेलियन (रातो उपरत्न)',
     fingerEn: 'Copper or Gold • Ring Finger',
@@ -833,7 +833,7 @@ const GEM_CATALOG: Record<
   },
   Mercury: {
     gemEn: 'Natural Emerald (Panna)',
-    gemNe: 'पन्ना (Emerald)',
+    gemNe: 'पन्ना रत्न',
     upaEn: 'Peridot or Green Tourmaline',
     upaNe: 'पेरिडोट वा हरियो टुर्मलिन',
     fingerEn: 'Gold or Silver • Little Finger',
@@ -843,9 +843,9 @@ const GEM_CATALOG: Record<
   },
   Jupiter: {
     gemEn: 'Yellow Sapphire (Pukhraj)',
-    gemNe: 'पुखराज (Yellow Sapphire)',
+    gemNe: 'पुखराज रत्न',
     upaEn: 'Natural Citrine (Sunela)',
-    upaNe: 'सुनेला / सिट्रिन (Citrine)',
+    upaNe: 'सुनेला (सिट्रिन उपरत्न)',
     fingerEn: 'Gold or Brass • Index Finger',
     fingerNe: 'सुन वा पित्तल • तर्जनी (चोर औँला)',
     windowEn: 'Thursday morning during Guru Horai (Shukla Paksha)',
@@ -865,7 +865,7 @@ const GEM_CATALOG: Record<
     gemEn: 'Blue Sapphire (Neelam — trial 3 days first)',
     gemNe: 'नीलम (पहिले ३ दिन परीक्षण गरेर मात्र)',
     upaEn: 'Amethyst (Jamuniya) or Lapis Lazuli',
-    upaNe: 'कटेला / एमेथिस्ट (Amethyst)',
+    upaNe: 'कटेला (जमुनिया उपरत्न)',
     fingerEn: 'Silver or Panchadhatu • Middle Finger',
     fingerNe: 'चाँदी वा पञ्चधातु • माझी औँला',
     windowEn: 'Saturday evening during Shani Horai (Shukla Paksha)',

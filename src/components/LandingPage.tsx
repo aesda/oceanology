@@ -263,9 +263,11 @@ export const LandingPage: React.FC<Props> = ({
         natalChart,
         vedicReport,
         panchangReport,
-        numerologyReport
+        numerologyReport,
+        new Date(),
+        lang
       ),
-    [synthesisReport, profile, natalChart, vedicReport, panchangReport, numerologyReport]
+    [synthesisReport, profile, natalChart, vedicReport, panchangReport, numerologyReport, lang]
   );
 
   const deepReport = useMemo(

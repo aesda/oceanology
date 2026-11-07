@@ -268,9 +268,11 @@ function AppWorkspace() {
         natalChart,
         vedicReport,
         panchangReport,
-        numerologyReport
+        numerologyReport,
+        liveClockDate,
+        lang
       ),
-    [profile, natalChart, vedicReport, panchangReport, numerologyReport]
+    [profile, natalChart, vedicReport, panchangReport, numerologyReport, liveClockDate, lang]
   );
 
   const plainSummary = useMemo(
@@ -384,6 +386,7 @@ function AppWorkspace() {
         synthesisReport,
         ayanamsha,
         houseSystem,
+        lang,
       });
     } finally {
       setPdfExporting(false);
@@ -843,7 +846,7 @@ function AppWorkspace() {
               type="button"
               disabled={pdfExporting}
               onClick={handleGlobalDownloadPdf}
-              aria-label="Download PDF Report"
+              aria-label={t('Download PDF Report', 'PDF रिपोर्ट डाउनलोड')}
               className="ui-toolbar-cta h-[34px] rounded-xl px-2.5 sm:px-3.5 disabled:opacity-60"
             >
               <Download className="w-3.5 h-3.5" />
@@ -1240,7 +1243,7 @@ function AppWorkspace() {
                             <div className="space-y-2">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-sm font-semibold text-[var(--text-muted)]">
-                                  {p.domain}
+                                  {p.domainLabel || p.domain}
                                 </span>
                                 <StatusBadge
                                   tone={p.score >= 75 ? 'optimal' : 'info'}

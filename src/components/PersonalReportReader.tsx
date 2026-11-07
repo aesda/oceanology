@@ -29,6 +29,13 @@ import { CosmicSynthesisReport } from '../engines/synthesisEngine';
 import { gregorianToBikramSambat } from '../engines/locationAtlas';
 import { getNakshatraTreatiseByIndex } from '../data/nakshatraCodex';
 import {
+  buildNepaliPadaExpression,
+  getNepaliNakshatraEntry,
+  localizeAyanamshaNe,
+  localizeGowriNatureNe,
+  localizeVedicYoga,
+} from '../data/nepaliReportCodex';
+import {
   evaluateActionConsequence,
   LIFE_ACTIONS,
   scanUpcomingBestWindows,
@@ -157,6 +164,10 @@ export const PersonalReportReader: React.FC<Props> = ({
     () => getNakshatraTreatiseByIndex(moonPlanet.nakshatraIndex),
     [moonPlanet.nakshatraIndex]
   );
+  const birthNakNe = useMemo(
+    () => getNepaliNakshatraEntry(moonPlanet.nakshatraIndex),
+    [moonPlanet.nakshatraIndex]
+  );
   const birthPadaObj =
     birthNak.padas.find((pd) => pd.pada === moonPlanet.nakshatraPada) || birthNak.padas[0];
 
@@ -206,11 +217,12 @@ export const PersonalReportReader: React.FC<Props> = ({
         synthesisReport,
         ayanamsha,
         houseSystem,
+        lang,
       });
       setPdfStatusMsg(
         t(
-          `Downloaded ${buildPdfFileName(profile)}`,
-          `${buildPdfFileName(profile)} सफलतापूर्वक डाउनलोड भयो।`
+          `Downloaded ${buildPdfFileName(profile, 'en')}`,
+          `${buildPdfFileName(profile, 'ne')} सफलतापूर्वक डाउनलोड भयो।`
         )
       );
     } finally {
@@ -231,11 +243,12 @@ export const PersonalReportReader: React.FC<Props> = ({
         synthesisReport,
         ayanamsha,
         houseSystem,
+        lang,
       });
       setPdfStatusMsg(
         t(
           'Opened full multi-page PDF dossier in a new tab.',
-          'नयाँ ट्याबमा बहु-पृष्ठ PDF रिपोर्ट खोलियो।'
+          'नयाँ ट्याबमा बहु-पृष्ठ नेपाली PDF रिपोर्ट खोलियो।'
         )
       );
     } finally {
@@ -412,7 +425,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               <p className="text-sm text-[var(--text-secondary)]">
                 {t(
                   'Includes all 10 chapters: Career & D10 Dikpala, Indu Lagna Wealth, Upapada Marriage & Spouse Portrait, Ayurvedic Constitution, Turning-Point Ages (16–48), Live Sade Sati / Guru Transits, Cheiro Numerology, and Vector Kundali Charts.',
-                  'करियर र D10, इन्दु लग्न धन योग, विवाह र दाराकारक, आयुर्वेदिक प्रकृति, उमेर १६–४८ का मोडहरू, साढेसाती/गुरु गोचर र कुण्डली चार्टसहित पूर्ण प्रतिवेदन।'
+                  'करियर र दशमांश, इन्दु लग्न धन योग, विवाह र दाराकारक, आयुर्वेदिक प्रकृति, उमेर १६–४८ का मोडहरू, साढेसाती/गुरु गोचर र कुण्डली चार्टसहित पूर्ण नेपाली प्रतिवेदन।'
                 )}
               </p>
             </div>
@@ -645,7 +658,11 @@ export const PersonalReportReader: React.FC<Props> = ({
             </div>
             <StatusBadge
               tone="info"
-              label={`AL: ${deepReport.identityAndSoul.arudhaLagnaSign} • AK: ${deepReport.identityAndSoul.atmakarakaPlanet}`}
+              label={
+                lang === 'ne'
+                  ? `आरूढ: ${deepReport.identityAndSoul.arudhaLagnaSign} • आत्मकारक: ${deepReport.identityAndSoul.atmakarakaPlanet}`
+                  : `AL: ${deepReport.identityAndSoul.arudhaLagnaSign} • AK: ${deepReport.identityAndSoul.atmakarakaPlanet}`
+              }
             />
           </div>
 
@@ -735,7 +752,7 @@ export const PersonalReportReader: React.FC<Props> = ({
           <p className="text-base text-[var(--text-secondary)]">
             {t(
               'Combines your 10th House Career Ruler, D10 Dashamsha Directional Guardian, KP Cusp 10 Sub-Lord, Kalidasa’s Indu Lagna (Wealth Ascendant), and D2 Hora earning style.',
-              'दशमेश, दशमांश (D10) दिक्पाल, केपी दशम सब-लर्ड, कालिदासको इन्दु लग्न र होरा (D2) कुण्डलीको संयुक्त व्यावहारिक विश्लेषण।'
+              'दशमेश, दशमांश दिक्पाल, केपी दशम सब-लर्ड, कालिदासको इन्दु लग्न र होरा कुण्डलीको संयुक्त व्यावहारिक विश्लेषण।'
             )}
           </p>
         </div>
@@ -751,7 +768,11 @@ export const PersonalReportReader: React.FC<Props> = ({
                 </div>
                 <StatusBadge
                   tone="optimal"
-                  label={`${deepReport.careerBlueprint.tenthLordPlanet} → H${deepReport.careerBlueprint.tenthLordHouse}`}
+                  label={
+                    lang === 'ne'
+                      ? `${deepReport.careerBlueprint.tenthLordPlanet} → भाव ${deepReport.careerBlueprint.tenthLordHouse}`
+                      : `${deepReport.careerBlueprint.tenthLordPlanet} → H${deepReport.careerBlueprint.tenthLordHouse}`
+                  }
                 />
               </div>
 
@@ -765,7 +786,7 @@ export const PersonalReportReader: React.FC<Props> = ({
 
               <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 space-y-1.5 text-sm">
                 <div className="font-semibold text-[var(--text)]">
-                  {t('D10 Career Guardian (Dikpala):', 'दशमांश (D10) दिक्पाल:')}{' '}
+                  {t('D10 Career Guardian (Dikpala):', 'दशमांश दिक्पाल:')}{' '}
                   <span className="text-[var(--accent)]">
                     {deepReport.careerBlueprint.dikpalaDeity} (
                     {deepReport.careerBlueprint.dikpalaDirection}) —{' '}
@@ -814,7 +835,11 @@ export const PersonalReportReader: React.FC<Props> = ({
                 </div>
                 <StatusBadge
                   tone="optimal"
-                  label={`Indu Lagna: ${deepReport.wealthBlueprint.induLagnaSign}`}
+                  label={
+                    lang === 'ne'
+                      ? `इन्दु लग्न: ${deepReport.wealthBlueprint.induLagnaSign}`
+                      : `Indu Lagna: ${deepReport.wealthBlueprint.induLagnaSign}`
+                  }
                 />
               </div>
 
@@ -895,7 +920,11 @@ export const PersonalReportReader: React.FC<Props> = ({
                 </div>
                 <StatusBadge
                   tone="info"
-                  label={`UL: ${deepReport.relationshipBlueprint.upapadaLagnaSign} • DK: ${deepReport.relationshipBlueprint.darakarakaPlanet}`}
+                  label={
+                    lang === 'ne'
+                      ? `उपपद: ${deepReport.relationshipBlueprint.upapadaLagnaSign} • दाराकारक: ${deepReport.relationshipBlueprint.darakarakaPlanet}`
+                      : `UL: ${deepReport.relationshipBlueprint.upapadaLagnaSign} • DK: ${deepReport.relationshipBlueprint.darakarakaPlanet}`
+                  }
                 />
               </div>
 
@@ -1028,13 +1057,13 @@ export const PersonalReportReader: React.FC<Props> = ({
             <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">
               {t(
                 'Your Visual Birth Charts (Vedic Kundali & 360° Sky Wheel)',
-                'तपाईंको दृश्य जन्म कुण्डली (D1/D9) र ३६०° खगोलीय ग्रह चक्र'
+                'तपाईंको दृश्य जन्म कुण्डली (लग्न र नवांश) तथा ३६०° खगोलीय ग्रह चक्र'
               )}
             </h2>
             <p className="text-base text-[var(--text-secondary)]">
               {t(
                 'Left: Switch across your D1 Rashi, D9 Marriage, D10 Career, D24 Higher Learning, and Shodashvarga charts. Right: Your exact 360° ecliptic wheel.',
-                'बायाँ: जन्म लग्न (D1), नवांश (D9), दशमांश (D10), चतुर्विंशांश विद्या (D24) र षोडशवर्ग कुण्डली। दायाँ: ३६०° क्रान्तिवृत्त राशि चक्र।'
+                'बायाँ: जन्म लग्न, नवांश, दशमांश, चतुर्विंशांश विद्या र षोडशवर्ग कुण्डली। दायाँ: ३६०° क्रान्तिवृत्त राशि चक्र।'
               )}
             </p>
           </div>
@@ -1042,14 +1071,17 @@ export const PersonalReportReader: React.FC<Props> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <div className="obs-panel p-4 space-y-3">
               <h3 className="text-base font-bold text-[var(--text)]">
-                {t('Vedic Divisional Kundali (D1–D60 + D24 Vidya)', 'वैदिक षोडशवर्ग कुण्डली (D1–D60 + D24 विद्या)')}
+                {t('Vedic Divisional Kundali (D1–D60 + D24 Vidya)', 'वैदिक षोडशवर्ग कुण्डली (जन्म लग्नदेखि षष्ट्यंशसम्म)')}
               </h3>
               <VedicKundliSvg divisionalTable={vedicReport.divisionalTable} />
             </div>
 
             <div className="obs-panel p-4 space-y-3">
               <h3 className="text-base font-bold text-[var(--text)]">
-                {t(`360° Ecliptic Sky Wheel (${ayanamsha})`, `३६०° क्रान्तिवृत्त ग्रह चक्र (${ayanamsha})`)}
+                {t(
+                  `360° Ecliptic Sky Wheel (${ayanamsha})`,
+                  `३६०° क्रान्तिवृत्त ग्रह चक्र (${localizeAyanamshaNe(ayanamsha)})`
+                )}
               </h3>
               <NatalWheelSvg chart={natalChart} />
             </div>
@@ -1067,7 +1099,7 @@ export const PersonalReportReader: React.FC<Props> = ({
               <p className="text-sm text-[var(--text-secondary)]">
                 {t(
                   'While your D1 Birth Chart shows physical circumstances, these 7 divisional harmonics zoom into courage, property, legacy, marriage, career, lineage, and higher education.',
-                  'जन्म कुण्डली (D1) ले बाह्य परिस्थिति देखाउँछ भने यी ७ सूक्ष्म वर्ग चार्टले साहस, भूमि, सन्तान, विवाह, करियर, कुल-वंश र उच्च शिक्षाको भित्री बल देखाउँछन्।'
+                  'जन्म कुण्डलीले बाह्य परिस्थिति देखाउँछ भने यी ७ सूक्ष्म वर्ग चार्टले साहस, भूमि, सन्तान, विवाह, करियर, कुल-वंश र उच्च शिक्षाको भित्री बल देखाउँछन्।'
                 )}
               </p>
             </div>
@@ -1117,7 +1149,7 @@ export const PersonalReportReader: React.FC<Props> = ({
             <p className="text-base text-[var(--text-secondary)]">
               {t(
                 'Every card pairs everyday meaning with BPHS Ch. 27 Six-Fold Strength (Shadbala in Rupas), Baladi Avastha delivery capacity, Surya Siddhanta combustion checks, and D9/D10/D24 confirmation.',
-                'प्रत्येक ग्रहको दैनिक प्रभावसँगै बृहत् पाराशर होरा शास्त्र अ. २७ को षड्बल (रूपा बल), बाल्यादि अवस्था, अस्त परीक्षण र D9/D10/D24 स्थितिको पूर्ण विवरण।'
+                'प्रत्येक ग्रहको दैनिक प्रभावसँगै बृहत् पाराशर होरा शास्त्र अ. २७ को षड्बल (रूपा बल), बाल्यादि अवस्था, अस्त परीक्षण र नवांश/दशमांश/विद्यांश स्थितिको पूर्ण विवरण।'
               )}
             </p>
           </div>
@@ -1224,12 +1256,12 @@ export const PersonalReportReader: React.FC<Props> = ({
                   </div>
                 )}
 
-                {lang === 'en' && (
-                  <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 text-sm text-[var(--text-secondary)] leading-relaxed">
-                    <strong className="text-[var(--text)]">Classical BPHS / Phaladeepika Ruling:</strong>{' '}
-                    {card.classicalBphsRuling}
-                  </div>
-                )}
+                <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3.5 text-sm text-[var(--text-secondary)] leading-relaxed">
+                  <strong className="text-[var(--text)]">
+                    {t('Classical BPHS / Phaladeepika Ruling:', 'पाराशर / फलदीपिका शास्त्रीय सूत्र:')}
+                  </strong>{' '}
+                  {card.classicalBphsRuling}
+                </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-[var(--text-muted)]">
                   <div className="flex flex-wrap items-center gap-3">
@@ -1244,14 +1276,24 @@ export const PersonalReportReader: React.FC<Props> = ({
                       )}
                     </button>
                     <span>
-                      D9: <strong>{card.d9SignLabel}</strong> • D10:{' '}
-                      <strong>{card.d10SignLabel}</strong> • D24 ({t('Vidya', 'विद्या')}):{' '}
-                      <strong>{card.d24SignLabel}</strong>
+                      {lang === 'ne' ? (
+                        <>
+                          नवांश: <strong>{card.d9SignLabel}</strong> • दशमांश:{' '}
+                          <strong>{card.d10SignLabel}</strong> • विद्यांश:{' '}
+                          <strong>{card.d24SignLabel}</strong>
+                        </>
+                      ) : (
+                        <>
+                          D9: <strong>{card.d9SignLabel}</strong> • D10:{' '}
+                          <strong>{card.d10SignLabel}</strong> • D24 (Vidya):{' '}
+                          <strong>{card.d24SignLabel}</strong>
+                        </>
+                      )}
                     </span>
                   </div>
-                  {lang === 'en' && (
-                    <span className="italic">Soul lesson: {card.growthLesson}</span>
-                  )}
+                  <span className="italic">
+                    {t('Soul lesson:', 'आत्मिक सन्देश:')} {card.growthLesson}
+                  </span>
                 </div>
               </div>
             ))}
@@ -1275,9 +1317,12 @@ export const PersonalReportReader: React.FC<Props> = ({
               </h2>
               <p className="text-base text-[var(--text-secondary)]">
                 {t('Ruled by', 'नक्षत्र स्वामी:')} <strong>{trPlanet(birthNak.ruler, lang)}</strong> •{' '}
-                {t('Presiding Deity:', 'अधिष्ठातृ देवता:')} <strong>{birthNak.deity}</strong> •{' '}
-                {t('Symbol:', 'प्रतीक:')} <strong>{birthNak.symbol}</strong> •{' '}
-                {t('Shakti Power:', 'निहित शक्ति:')} <strong>{birthNak.shaktiTranslation}</strong>
+                {t('Presiding Deity:', 'अधिष्ठातृ देवता:')}{' '}
+                <strong>{lang === 'ne' ? birthNakNe.deityNe : birthNak.deity}</strong> •{' '}
+                {t('Symbol:', 'प्रतीक:')}{' '}
+                <strong>{lang === 'ne' ? birthNakNe.symbolNe : birthNak.symbol}</strong> •{' '}
+                {t('Shakti Power:', 'निहित शक्ति:')}{' '}
+                <strong>{lang === 'ne' ? birthNakNe.shaktiNe : birthNak.shaktiTranslation}</strong>
               </p>
             </div>
 
@@ -1296,17 +1341,29 @@ export const PersonalReportReader: React.FC<Props> = ({
               <h3 className="text-base font-bold text-[var(--text)]">
                 {t('Inner Nature & Emotional Style', 'आन्तरिक स्वभाव र भावनात्मक शैली')}
               </h3>
-              <p className="text-[var(--text-secondary)]">{birthNak.moonPortrait}</p>
+              <p className="text-[var(--text-secondary)]">
+                {lang === 'ne' ? birthNakNe.moonPortraitNe : birthNak.moonPortrait}
+              </p>
             </div>
 
             <div className="obs-panel p-5 space-y-2">
               <h3 className="text-base font-bold text-[var(--text)]">
                 {t(
                   `Your Exact Quarter — Pada ${birthPadaObj.pada} (${birthPadaObj.navamshaSign} Navamsha, Sound "${birthPadaObj.bijaSound}")`,
-                  `तपाईंको जन्म चरण — चरण ${birthPadaObj.pada} (${trSign(birthPadaObj.navamshaSign, 'ne')} नवांश, नामाक्षर "${birthPadaObj.bijaSound}")`
+                  `तपाईंको जन्म चरण — चरण ${birthPadaObj.pada} (${trSign(birthPadaObj.navamshaSign, 'ne')} नवांश, नामाक्षर "${birthPadaObj.bijaSound.split('(')[0].trim()}")`
                 )}
               </h3>
-              <p className="text-[var(--text-secondary)]">{birthPadaObj.expression}</p>
+              <p className="text-[var(--text-secondary)]">
+                {lang === 'ne'
+                  ? buildNepaliPadaExpression(
+                      moonPlanet.nakshatraIndex,
+                      birthPadaObj.pada,
+                      birthPadaObj.navamshaSign,
+                      birthPadaObj.navamshaRuler,
+                      birthPadaObj.specialTag
+                    )
+                  : birthPadaObj.expression}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1315,10 +1372,12 @@ export const PersonalReportReader: React.FC<Props> = ({
                   {t('Best Career & Activity Fit', 'अनुकूल पेशा र शुभ कार्यहरू')}
                 </h3>
                 <p className="text-sm font-semibold text-[var(--text)]">
-                  {t('Careers:', 'उपयुक्त क्षेत्र:')} {birthNak.vocations.join(' • ')}
+                  {t('Careers:', 'उपयुक्त क्षेत्र:')}{' '}
+                  {(lang === 'ne' ? birthNakNe.vocationsNe : birthNak.vocations).join(' • ')}
                 </p>
                 <p className="text-sm text-[var(--text-secondary)]">
-                  {t('Favorable activities:', 'शुभ कार्य:')} {birthNak.auspiciousWorks.join(', ')}.
+                  {t('Favorable activities:', 'शुभ कार्य:')}{' '}
+                  {(lang === 'ne' ? birthNakNe.auspiciousWorksNe : birthNak.auspiciousWorks).join(', ')}।
                 </p>
               </div>
 
@@ -1326,10 +1385,12 @@ export const PersonalReportReader: React.FC<Props> = ({
                 <h3 className="text-base font-bold text-[var(--crimson)]">
                   {t('Blind Spot & Activities to Pace Carefully', 'सजग रहनुपर्ने पक्ष र सावधानी')}
                 </h3>
-                <p className="text-sm text-[var(--text-secondary)]">{birthNak.shadowTrap}</p>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  {lang === 'ne' ? birthNakNe.shadowTrapNe : birthNak.shadowTrap}
+                </p>
                 <p className="text-sm text-[var(--text-muted)]">
                   {t('Avoid under this star:', 'यस नक्षत्रमा वर्जित कार्य:')}{' '}
-                  {birthNak.inauspiciousWorks.join(', ')}.
+                  {(lang === 'ne' ? birthNakNe.inauspiciousWorksNe : birthNak.inauspiciousWorks).join(', ')}।
                 </p>
               </div>
             </div>
@@ -1426,25 +1487,28 @@ export const PersonalReportReader: React.FC<Props> = ({
                 </span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {vedicReport.yogas.map((yg) => (
-                  <div key={yg.name} className="obs-panel p-4 space-y-1.5">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <span className="text-sm font-bold text-[var(--text)]">{yg.name}</span>
-                      <StatusBadge
-                        tone={yg.strength === 'High' ? 'optimal' : 'favorable'}
-                        label={`${yg.category} • ${yg.strength}`}
-                      />
-                    </div>
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-                      {yg.description}
-                    </p>
-                    {yg.sourceText && (
-                      <div className="text-[11px] text-[var(--text-muted)]">
-                        {t('Source:', 'स्रोत:')} {yg.sourceText}
+                {vedicReport.yogas.map((yg) => {
+                  const locYg = localizeVedicYoga(yg, lang);
+                  return (
+                    <div key={yg.name} className="obs-panel p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="text-sm font-bold text-[var(--text)]">{locYg.name}</span>
+                        <StatusBadge
+                          tone={yg.strength === 'High' ? 'optimal' : 'favorable'}
+                          label={`${locYg.category} • ${locYg.strength}`}
+                        />
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                        {locYg.description}
+                      </p>
+                      {locYg.sourceText && (
+                        <div className="text-[11px] text-[var(--text-muted)]">
+                          {t('Source:', 'स्रोत:')} {locYg.sourceText}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1536,7 +1600,10 @@ export const PersonalReportReader: React.FC<Props> = ({
                   tone={deepReport.pushkaraSummary.blessedBodies.length > 0 ? 'optimal' : 'info'}
                   label={
                     deepReport.pushkaraSummary.blessedBodies.length > 0
-                      ? `${deepReport.pushkaraSummary.blessedBodies.length} Pushkara`
+                      ? t(
+                          `${deepReport.pushkaraSummary.blessedBodies.length} Pushkara`,
+                          `${deepReport.pushkaraSummary.blessedBodies.length} पुष्कर योग`
+                        )
                       : t('Varga Supported', 'वर्ग समर्थित')
                   }
                 />
@@ -1691,7 +1758,12 @@ export const PersonalReportReader: React.FC<Props> = ({
               <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 space-y-0.5">
                 <div className="text-[var(--text-muted)]">{t('Progressed Muntha', 'प्रगतिशील मुन्था')}</div>
                 <div className="text-sm font-bold text-[var(--accent)]">
-                  {deepReport.varshaphala.munthaSign} (H{deepReport.varshaphala.munthaHouseFromVarshaLagna})
+                  {deepReport.varshaphala.munthaSign} (
+                  {t(
+                    `H${deepReport.varshaphala.munthaHouseFromVarshaLagna}`,
+                    `भाव ${deepReport.varshaphala.munthaHouseFromVarshaLagna}`
+                  )}
+                  )
                 </div>
               </div>
               <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 space-y-0.5">
@@ -1703,8 +1775,17 @@ export const PersonalReportReader: React.FC<Props> = ({
               <div className="rounded-lg bg-[var(--surface)] border border-[var(--border)] p-3 space-y-0.5">
                 <div className="text-[var(--text-muted)]">{t('Punya & Rajya Sahams', 'पुण्य र राज्य सहम')}</div>
                 <div className="text-xs font-bold text-[var(--text)]">
-                  {deepReport.varshaphala.punyaSahamSign} (H{deepReport.varshaphala.punyaSahamHouse}) •{' '}
-                  {deepReport.varshaphala.rajyaSahamSign} (H{deepReport.varshaphala.rajyaSahamHouse})
+                  {deepReport.varshaphala.punyaSahamSign} (
+                  {t(
+                    `H${deepReport.varshaphala.punyaSahamHouse}`,
+                    `भाव ${deepReport.varshaphala.punyaSahamHouse}`
+                  )}
+                  ) • {deepReport.varshaphala.rajyaSahamSign} (
+                  {t(
+                    `H${deepReport.varshaphala.rajyaSahamHouse}`,
+                    `भाव ${deepReport.varshaphala.rajyaSahamHouse}`
+                  )}
+                  )
                 </div>
               </div>
             </div>
@@ -1759,7 +1840,7 @@ export const PersonalReportReader: React.FC<Props> = ({
                   >
                     <div className="flex items-center justify-between gap-1">
                       <span className="font-bold text-[var(--text)]">
-                        {yp.nameLabel} ({yp.years}y)
+                        {yp.nameLabel} ({t(`${yp.years}y`, `${yp.years} वर्ष`)})
                       </span>
                       <span className="text-[11px] text-[var(--accent)] font-semibold">
                         {yp.planetLordLabel}
@@ -2032,7 +2113,7 @@ export const PersonalReportReader: React.FC<Props> = ({
                   </span>
                   <StatusBadge
                     tone={pin.isCurrent ? 'optimal' : 'info'}
-                    label={`#${pin.number} / Ch ${pin.challenge}`}
+                    label={`#${pin.number} / ${t('Ch', 'चुनौती')} ${pin.challenge}`}
                   />
                 </div>
                 <div className="text-xs font-bold text-[var(--text)]">{pin.label}</div>
@@ -2172,7 +2253,10 @@ export const PersonalReportReader: React.FC<Props> = ({
             <span className="text-xs tabular-nums text-[var(--text-secondary)]">
               {t('Active Gowri:', 'सक्रिय गौरी:')}{' '}
               {trGowriName(panchangReport.activeGowri.name, lang)} (
-              {panchangReport.activeGowri.nature})
+              {lang === 'ne'
+                ? localizeGowriNatureNe(panchangReport.activeGowri.nature)
+                : panchangReport.activeGowri.nature}
+              )
             </span>
           </div>
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
@@ -2388,7 +2472,9 @@ export const PersonalReportReader: React.FC<Props> = ({
                   `जन्म नक्षत्र सन्तुलन (${trNakshatra(birthNak.name, 'ne')}):`
                 )}
               </strong>{' '}
-              {birthNak.behavioralUpaya} ({t('Sacred tree:', 'पवित्र वृक्ष:')} {birthNak.sacredTree}).
+              {lang === 'ne' ? birthNakNe.behavioralUpayaNe : birthNak.behavioralUpaya} (
+              {t('Sacred tree:', 'पवित्र वृक्ष:')}{' '}
+              {lang === 'ne' ? birthNakNe.sacredTreeNe : birthNak.sacredTree})।
             </li>
             <li>
               <strong className="text-[var(--text)]">
@@ -2400,7 +2486,9 @@ export const PersonalReportReader: React.FC<Props> = ({
               <strong className="text-[var(--text)]">
                 {t('Classical Mantra Support:', 'शास्त्रीय वैदिक मन्त्र:')}
               </strong>{' '}
-              <span className="text-sm font-medium">{birthNak.vedicMantra}</span>
+              <span className="text-sm font-medium">
+                {lang === 'ne' ? birthNakNe.vedicMantraNe : birthNak.vedicMantra}
+              </span>
             </li>
           </ul>
         </div>
@@ -2423,8 +2511,12 @@ export const PersonalReportReader: React.FC<Props> = ({
                   key={bk.id}
                   className="rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] p-3.5 space-y-1"
                 >
-                  <div className="text-sm font-bold text-[var(--text)]">{bk.title}</div>
-                  <div className="text-xs text-[var(--accent)] font-medium">{bk.authorAndEra}</div>
+                  <div className="text-sm font-bold text-[var(--text)]">
+                    {lang === 'ne' ? bk.titleNe : bk.title}
+                  </div>
+                  <div className="text-xs text-[var(--accent)] font-medium">
+                    {lang === 'ne' ? bk.authorAndEraNe : bk.authorAndEra}
+                  </div>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     {lang === 'ne' ? bk.usedForNe : bk.usedForEn}
                   </p>

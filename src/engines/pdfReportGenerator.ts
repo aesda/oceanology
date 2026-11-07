@@ -19,6 +19,10 @@ import {
   HOUSE_PLAIN_GUIDE,
 } from '../data/plainEnglishGuide';
 import { generateDeepLifeReport } from './deepLifeReportEngine';
+import { AppLanguage } from '../i18n/i18n';
+import { buildNepaliPdfSections, generateNepaliPdfBytes } from './nepaliPdfGenerator';
+
+export { buildNepaliPdfSections };
 
 export interface PdfReportBundleInput {
   profile: BirthProfile;
@@ -29,6 +33,7 @@ export interface PdfReportBundleInput {
   synthesisReport: CosmicSynthesisReport;
   ayanamsha: AyanamshaMode;
   houseSystem: HouseSystem;
+  lang?: AppLanguage;
 }
 
 /**
@@ -87,6 +92,9 @@ const NORTH_KUNDLI_COORDS = [
 ];
 
 export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Promise<Uint8Array> {
+  if (input.lang === 'ne') {
+    return generateNepaliPdfBytes(input);
+  }
   const { jsPDF } = await import('jspdf');
   const {
     profile,
@@ -1574,10 +1582,20 @@ export async function generateDetailedPdfBytes(input: PdfReportBundleInput): Pro
   return new Uint8Array(arrayBuf);
 }
 
-export function buildPdfFileName(profile: BirthProfile): string {
-  const safeFirst = (profile.firstName || 'Personal').replace(/[^a-zA-Z0-9_-]/g, '_');
-  const safeLast = (profile.lastName || 'Report').replace(/[^a-zA-Z0-9_-]/g, '_');
-  return `Oceanology_Detailed_Report_${safeFirst}_${safeLast}.pdf`;
+export function buildPdfFileName(profile: BirthProfile, lang: AppLanguage = 'en'): string {
+  const sanitizePart = (val: string | undefined, fallback: string) => {
+    const cleaned = (val || '')
+      .trim()
+      .replace(/[^a-zA-Z0-9\u0900-\u097F_-]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
+    return cleaned || fallback;
+  };
+  const safeFirst = sanitizePart(profile.firstName, 'Personal');
+  const safeLast = sanitizePart(profile.lastName, 'Report');
+  return lang === 'ne'
+    ? `Oceanology_Nepali_Report_${safeFirst}_${safeLast}.pdf`
+    : `Oceanology_Detailed_Report_${safeFirst}_${safeLast}.pdf`;
 }
 
 export async function downloadDetailedPdfReport(input: PdfReportBundleInput): Promise<void> {
@@ -1586,7 +1604,7 @@ export async function downloadDetailedPdfReport(input: PdfReportBundleInput): Pr
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = buildPdfFileName(input.profile);
+  link.download = buildPdfFileName(input.profile, input.lang || 'en');
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -1601,7 +1619,7 @@ export async function openDetailedPdfInNewTab(input: PdfReportBundleInput): Prom
   if (!win) {
     const link = document.createElement('a');
     link.href = url;
-    link.download = buildPdfFileName(input.profile);
+    link.download = buildPdfFileName(input.profile, input.lang || 'en');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

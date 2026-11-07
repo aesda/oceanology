@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NatalChartResult, PlanetPosition, ZODIAC_SIGNS } from '../engines/astronomyEngine';
+import { buildNepaliSunDegreeSymbol, localizeAyanamshaNe } from '../data/nepaliReportCodex';
 import { trNakshatra, trPlanet, trSign, useLanguage } from '../i18n/i18n';
 
 interface Props {
@@ -313,7 +314,11 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
                 {hoveredPlanet.nakshatraPada})
               </span>
             </div>
-            <p className="text-[var(--text-secondary)] mt-1 italic">{hoveredPlanet.sabianSymbol}</p>
+            <p className="text-[var(--text-secondary)] mt-1 italic">
+              {lang === 'ne'
+                ? buildNepaliSunDegreeSymbol(hoveredPlanet.signIndex, hoveredPlanet.degreeInSign)
+                : hoveredPlanet.sabianSymbol}
+            </p>
           </div>
         ) : (
           <div className="text-[var(--text-secondary)] flex flex-wrap items-center justify-between w-full gap-2">
@@ -324,7 +329,9 @@ export const NatalWheelSvg: React.FC<Props> = ({ chart, partnerChart, showBiWhee
               )}
             </span>
             <span className="tabular-nums text-[var(--brass)] font-medium">
-              {t('Ayanamsha:', 'अयनांश:')} {chart.ayanamshaMode} ({chart.ayanamshaDegrees.toFixed(4)}°)
+              {t('Ayanamsha:', 'अयनांश:')}{' '}
+              {lang === 'ne' ? localizeAyanamshaNe(chart.ayanamshaMode) : chart.ayanamshaMode} (
+              {chart.ayanamshaDegrees.toFixed(4)}°)
             </span>
           </div>
         )}

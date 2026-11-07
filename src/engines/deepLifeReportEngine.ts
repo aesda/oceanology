@@ -10,6 +10,15 @@ import { PanchangReport } from './panchangEngine';
 import { DECOZ_COLORS, NumerologyReport } from './numerologyEngine';
 import { CosmicSynthesisReport } from './synthesisEngine';
 import { getNakshatraTreatiseByIndex } from '../data/nakshatraCodex';
+import {
+  buildNepaliPlanetBphsRuling,
+  buildNepaliPlanetSoulLesson,
+  buildNepaliSunDegreeSymbol,
+  getNepaliNakshatraEntry,
+  localizeCheiroCompoundTitleNe,
+  localizeDikpalaDeityNe,
+  localizePinnacleLabelNe,
+} from '../data/nepaliReportCodex';
 import { PLANET_TREATISES } from '../data/classicalCompendium';
 import { PLANET_IN_BHAVA_RULINGS } from '../data/canonAnthology';
 import {
@@ -464,10 +473,11 @@ export function generateDeepLifeReport(
         );
 
   const birthNak = getNakshatraTreatiseByIndex(moonPlanet.nakshatraIndex);
+  const birthNakNe = getNepaliNakshatraEntry(moonPlanet.nakshatraIndex);
   const mergedCareers = Array.from(
     new Set([
       ...(isNe ? tenthLordGuide.modernCareersNe : tenthLordGuide.modernCareersEn),
-      ...(isNe ? [] : birthNak.vocations.slice(0, 2)),
+      ...(isNe ? birthNakNe.vocationsNe.slice(0, 2) : birthNak.vocations.slice(0, 2)),
     ])
   ).slice(0, 6);
 
@@ -999,8 +1009,12 @@ export function generateDeepLifeReport(
       pushkaraBadge: pushkaraSummary.byBodyId[baseId]?.badgeLabel ?? null,
       roleSubtitle: trPlanetRole(baseId, lang),
       laymanSynthesis,
-      classicalBphsRuling: bphsRuling,
-      growthLesson: treatise?.vedicSoulLesson || hGuide.whenStrong,
+      classicalBphsRuling: isNe
+        ? buildNepaliPlanetBphsRuling(baseId, houseNum, trSign(p.signName, 'ne'), p.dignity)
+        : bphsRuling,
+      growthLesson: isNe
+        ? buildNepaliPlanetSoulLesson(baseId)
+        : treatise?.vedicSoulLesson || hGuide.whenStrong,
     };
   });
 
@@ -1062,7 +1076,7 @@ export function generateDeepLifeReport(
         ? t(`Age ${pin.startAge}+`, `उमेर ${pin.startAge}+`)
         : t(`Ages ${pin.startAge}–${pin.endAge}`, `उमेर ${pin.startAge}–${pin.endAge}`);
     return {
-      label: pin.label,
+      label: isNe ? localizePinnacleLabelNe(pin.label, idx) : pin.label,
       ageSpan,
       number: pin.number,
       challenge: ch?.number ?? 0,
@@ -1102,7 +1116,7 @@ export function generateDeepLifeReport(
       tone: scoreBadge(careerScore).tone,
       summary: isNe ? tenthLordGuide.headlineNe : tenthLordGuide.headlineEn,
       classicalDriver: isNe
-        ? `दशमेश ${trPlanet(tenthLordId, 'ne')} भाव ${tenthLordHouse} • D10 ${dikpala.deity} • दशम ${h10Bindus} अंक`
+        ? `दशमेश ${trPlanet(tenthLordId, 'ne')} भाव ${tenthLordHouse} • दशमांश ${localizeDikpalaDeityNe(dikpala.deity)} • दशम ${h10Bindus} अंक`
         : `10th Lord ${trPlanet(tenthLordId, lang)} in H${tenthLordHouse} • D10 ${dikpala.deity} • H10 ${h10Bindus} pts`,
     },
     {
@@ -1170,9 +1184,21 @@ export function generateDeepLifeReport(
       ketuHouse,
       ketuComfortGift: isNe ? axisGuide.ketuGiftNe : axisGuide.ketuGiftEn,
       rahuGrowthEdge: isNe ? axisGuide.rahuGrowthNe : axisGuide.rahuGrowthEn,
-      ascendantSabian: ascSabianPlanet.sabianSymbol,
-      sunSabian: sunPlanet.sabianSymbol,
-      sourceCitation: 'Jaimini Upadesha Sutras (Adhyaya 1) • BPHS Ch. 29 & 32 • Dane Rudhyar Sabian Mandala',
+      ascendantSabian: isNe
+        ? buildNepaliSunDegreeSymbol(
+            natalChart.ascendant.signIndex,
+            norm360(natalChart.ascendant.longitude) % 30
+          )
+        : ascSabianPlanet.sabianSymbol,
+      sunSabian: isNe
+        ? buildNepaliSunDegreeSymbol(
+            Math.floor(norm360(sunPlanet.siderealLongitude) / 30),
+            norm360(sunPlanet.siderealLongitude) % 30
+          )
+        : sunPlanet.sabianSymbol,
+      sourceCitation: isNe
+        ? 'जैमिनी उपदेश सूत्र (अध्याय १) • बृहत् पाराशर होरा शास्त्र (अ. २९ र ३२) • सूर्य अंश प्रतीक'
+        : 'Jaimini Upadesha Sutras (Adhyaya 1) • BPHS Ch. 29 & 32 • Dane Rudhyar Sabian Mandala',
     },
     careerBlueprint: {
       tenthHouseSign: trSign(ZODIAC_SIGNS[tenthSignIdx].name, lang),
@@ -1185,7 +1211,7 @@ export function generateDeepLifeReport(
       amatyakarakaNote: isNe
         ? `जैमिनी अमात्यकारक ग्रह ${trPlanet(amkBaseId, 'ne')} ले पेशागत निर्णयमा ${trPlanetRole(amkBaseId, 'ne')} जोड्दा छिटो पदोन्नति र विश्वास दिलाउँछ।`
         : `Your Jaimini Career Minister (Amatyakaraka) is ${amkBaseId}, adding ${trPlanetRole(amkBaseId, 'en').toLowerCase()} to how you win professional trust.`,
-      dikpalaDeity: dikpala.deity,
+      dikpalaDeity: isNe ? localizeDikpalaDeityNe(dikpala.deity) : dikpala.deity,
       dikpalaDirection: isNe ? dikpala.directionNe : dikpala.directionEn,
       dikpalaArchetype: isNe ? dikpala.archetypeNe : dikpala.archetypeEn,
       dikpalaStyle: isNe ? dikpala.laymanCareerStyleNe : dikpala.laymanCareerStyleEn,
@@ -1197,12 +1223,16 @@ export function generateDeepLifeReport(
       careerActionTip: isNe
         ? `आफ्नो मुख्य कार्यक्षेत्रमा ${trHouseGuide(tenthLordHouse, 'ne').shortTitle} सँग जोडिएको सीपलाई प्राथमिकता दिनुहोस् र महत्त्वपूर्ण करियर सम्झौता ${synthesisReport.bestWindowToday} भित्र अघि बढाउनुहोस्।`
         : `Lean deliberately into roles combining ${tenthLordGuide.modernCareersEn[0]} and ${tenthLordGuide.modernCareersEn[1]}—your chart rewards depth of ownership over generic job-hopping.`,
-      sourceCitation: `${tenthLordGuide.sourceRef} • BPHS Ch. 7 (Dashamsha Dikpalas) • KP Reader IV`,
+      sourceCitation: isNe
+        ? 'बृहत् पाराशर होरा शास्त्र (अ. २४ र अ. ७ दशमांश दिक्पाल) • कृष्णमूर्ति केपी पद्धति'
+        : `${tenthLordGuide.sourceRef} • BPHS Ch. 7 (Dashamsha Dikpalas) • KP Reader IV`,
     },
     wealthBlueprint: {
       induLagnaSign: induSignLabel,
       induHouseFromLagna,
-      induKalasTrail: `${ninthLagnaLord} (${kalaA}) + ${ninthMoonLord} (${kalaB}) = ${totalKalas} -> #${remKalas} from Moon`,
+      induKalasTrail: isNe
+        ? `${trPlanet(ninthLagnaLord, 'ne')} (${kalaA}) + ${trPlanet(ninthMoonLord, 'ne')} (${kalaB}) = ${totalKalas} → चन्द्रबाट #${remKalas}`
+        : `${ninthLagnaLord} (${kalaA}) + ${ninthMoonLord} (${kalaB}) = ${totalKalas} -> #${remKalas} from Moon`,
       induStrengthTier,
       induNarrative,
       suryaHoraPercent,
@@ -1213,7 +1243,9 @@ export function generateDeepLifeReport(
       gainsBindusH11,
       expenseBindusH12,
       cashflowVsRetentionAdvice,
-      sourceCitation: 'Kalidasa’s Uttara Kalamrita (Khanda 4, Shloka 27) • BPHS Ch. 7 (D2 Hora) & Ch. 66 (Ashtakavarga)',
+      sourceCitation: isNe
+        ? 'महाकवि कालिदासकृत उत्तर कालामृत (खण्ड ४, श्लोक २७) • बृहत् पाराशर अ. ७ (होरा) र अ. ६६ (अष्टकवर्ग)'
+        : 'Kalidasa’s Uttara Kalamrita (Khanda 4, Shloka 27) • BPHS Ch. 7 (D2 Hora) & Ch. 66 (Ashtakavarga)',
     },
     relationshipBlueprint: {
       seventhHouseSign: trSign(ZODIAC_SIGNS[seventhSignIdx].name, lang),
@@ -1228,7 +1260,9 @@ export function generateDeepLifeReport(
       marsBalanceHeadline,
       marsBalanceExplanation,
       goldenRelationshipRule: isNe ? dkPortrait.relationshipAdviceNe : dkPortrait.relationshipAdviceEn,
-      sourceCitation: 'Jaimini Upadesha Sutras (Upapada & Darakaraka) • BPHS Ch. 24 • Phaladeepika Ch. 7 & 8',
+      sourceCitation: isNe
+        ? 'जैमिनी उपदेश सूत्र (उपपद र दाराकारक) • बृहत् पाराशर अ. २४ • फलदीपिका अ. ७ र ८'
+        : 'Jaimini Upadesha Sutras (Upapada & Darakaraka) • BPHS Ch. 24 • Phaladeepika Ch. 7 & 8',
     },
     wellnessBlueprint: {
       dominantDosha,
@@ -1241,7 +1275,9 @@ export function generateDeepLifeReport(
       foodAndHydrationTip: isNe ? dGuide.dailyFoodHabitNe : dGuide.dailyFoodHabitEn,
       movementAndSleepTip: isNe ? dGuide.movementAndSleepNe : dGuide.movementAndSleepEn,
       sixthHouseResilienceNote,
-      sourceCitation: 'Dr. David Frawley (Ayurvedic Astrology) • Varahamihira’s Brihat Jataka Ch. 1 & 2',
+      sourceCitation: isNe
+        ? 'आयुर्वेदिक ज्योतिष (डा. डेभिड फ्रली) • वराहमिहिरकृत बृहत् जातक अ. १ र २'
+        : 'Dr. David Frawley (Ayurvedic Astrology) • Varahamihira’s Brihat Jataka Ch. 1 & 2',
     },
     maturityMilestones,
     liveSkyAndSubPeriods: {
@@ -1265,7 +1301,9 @@ export function generateDeepLifeReport(
       moorthiExplanation,
       activeMahadashaLabel: `${mahaLabel} (${vedicReport.activeMahadasha.startDate} -> ${vedicReport.activeMahadasha.endDate})`,
       subPeriods,
-      sourceCitation: 'Mantreshwara’s Phaladeepika (Ch. 26 Gochara) • Traditional Moorthi Nirnaya • BPHS Vimshottari',
+      sourceCitation: isNe
+        ? 'मन्त्रेश्वरकृत फलदीपिका (अ. २६ गोचर) • शास्त्रीय मूर्ति निर्णय • पाराशरी विंशोत्तरी दशा'
+        : 'Mantreshwara’s Phaladeepika (Ch. 26 Gochara) • Traditional Moorthi Nirnaya • BPHS Vimshottari',
     },
     deepPlanetCards,
     vargaHarmonics,
@@ -1281,11 +1319,15 @@ export function generateDeepLifeReport(
     panchapakshi,
     loShuGrid,
     deepNumerology: {
-      lifePathHeadline: `Life Path #${lpFinal} (${numerologyReport.lifePath.trail}) — ${
-        isNe ? lpGuide.titleNe : lpGuide.titleEn
-      }`,
+      lifePathHeadline: isNe
+        ? `जीवन मार्ग अंक #${lpFinal} (${numerologyReport.lifePath.trail
+            .replace('Karmic Debt', 'ऋणानुबन्ध अंक')
+            .replace('Master', 'मास्टर अंक')}) — ${lpGuide.titleNe}`
+        : `Life Path #${lpFinal} (${numerologyReport.lifePath.trail}) — ${lpGuide.titleEn}`,
       lifePathDeepNarrative: isNe ? lpGuide.deepMeaningNe : lpGuide.deepMeaningEn,
-      compoundTitle: cheiroTarget.titleEn,
+      compoundTitle: isNe
+        ? localizeCheiroCompoundTitleNe(reduceToCheiro(lpCompound), cheiroTarget.titleEn)
+        : cheiroTarget.titleEn,
       compoundNarrative: isNe ? cheiroTarget.meaningNe : cheiroTarget.meaningEn,
       maturityNumberLabel: `#${numerologyReport.maturity.final} (${
         isNe ? matGuide.titleNe : matGuide.titleEn
@@ -1302,9 +1344,11 @@ export function generateDeepLifeReport(
           : t('Complete 1–9 Name Spectrum', 'पूर्ण १–९ नाम-अंक सन्तुलन'),
       karmicLessonsItems,
       pinnacleRoadmap,
-      sourceCitation: `Cheiro’s Book of Numbers (Ch. 3 Compound Keynotes) • Hans Decoz (${
-        DECOZ_COLORS[numerologyReport.personalYear.singleDigit]?.name || 'World Numerology'
-      })`,
+      sourceCitation: isNe
+        ? 'चेइरो बुक अफ नम्बर्स (अ. ३ संयुक्त अंक) • हान्स डेकोज विश्व अंक ज्योतिष'
+        : `Cheiro’s Book of Numbers (Ch. 3 Compound Keynotes) • Hans Decoz (${
+            DECOZ_COLORS[numerologyReport.personalYear.singleDigit]?.name || 'World Numerology'
+          })`,
     },
     bibliography: REPORT_BOOK_BIBLIOGRAPHY,
   };

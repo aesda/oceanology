@@ -1016,7 +1016,7 @@ export function computeTajikaVarshaphala(
   const vLordHouse = varsheshwaraPlanetInVarsha?.house || 1;
 
   const varsheshwaraGuidance = isNe
-    ? `वर्षेश्वर (Year Lord) ${vLordLabel} वार्षिक कुण्डलीको भाव ${vLordHouse} (${vLordSign}) मा स्थित छ—यो वर्ष ${vLordLabel} को कारकत्व (अनुशासन, विवेक र सन्तुलित संवाद) अपनाउँदा वार्षिक लक्ष्यहरू सहजै सफल हुन्छन्।`
+    ? `वर्षेश्वर ${vLordLabel} वार्षिक कुण्डलीको भाव ${vLordHouse} (${vLordSign}) मा स्थित छ—यो वर्ष ${vLordLabel} को कारकत्व (अनुशासन, विवेक र सन्तुलित संवाद) अपनाउँदा वार्षिक लक्ष्यहरू सहजै सफल हुन्छन्।`
     : `Your Varsheshwara (Solar Return Year Lord) is ${vLordLabel}, placed in Annual House ${vLordHouse} (${vLordSign})—leaning into ${vLordLabel}’s constructive qualities unlocks the smoothest breakthroughs of your ${solarReturnYear}–${solarReturnYear + 1} solar year.`;
 
   const utcIso = varshaChart.utcDate.toISOString();
@@ -1025,7 +1025,7 @@ export function computeTajikaVarshaphala(
     solarReturnYear,
     completedAge,
     varshaPraveshDateIso: utcIso.slice(0, 10),
-    varshaPraveshUtcTime: `${utcIso.slice(11, 16)} UTC`,
+    varshaPraveshUtcTime: isNe ? `${utcIso.slice(11, 16)} विश्व समय` : `${utcIso.slice(11, 16)} UTC`,
     varshaLagnaSign: trSign(varshaLagnaObj.name, lang),
     varshaLagnaLord: trPlanet(varshaLagnaObj.ruler, lang),
     munthaSign: trSign(munthaSignObj.name, lang),

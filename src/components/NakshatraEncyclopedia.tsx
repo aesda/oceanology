@@ -19,6 +19,10 @@ import {
   STANDARD_27_NAKSHATRAS,
 } from '../data/nakshatraCodex';
 import {
+  buildNepaliPadaExpression,
+  getNepaliNakshatraEntry,
+} from '../data/nepaliReportCodex';
+import {
   EmptyStateCard,
   KpiStatCard,
   SegmentedTabs,
@@ -128,6 +132,7 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
 
   const activeTreatise: NakshatraTreatise =
     ALL_NAKSHATRA_TREATISES[selectedIdx] || ALL_NAKSHATRA_TREATISES[0];
+  const activeNakNe = getNepaliNakshatraEntry(activeTreatise.index);
   const activeOccupants = natalOccupantsByNak[activeTreatise.index] || [];
 
   const verdictBadgeTone = (verdict: string): SemanticTone => {
@@ -649,31 +654,36 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
               <div className="space-y-5">
                 <div className="obs-panel p-5 space-y-2">
                   <div className="text-sm font-bold text-[var(--accent)]">
-                    Moon in {activeTreatise.name} (Birth Star Emotional Nature)
+                    {t(
+                      `Moon in ${activeTreatise.name} (Birth Star Emotional Nature)`,
+                      `चन्द्रमा ${activeNakNe.nameNe} नक्षत्रमा (जन्म नक्षत्र भावनात्मक स्वभाव)`
+                    )}
                   </div>
                   <p className="text-base text-[var(--text)] leading-relaxed">
-                    {activeTreatise.moonPortrait}
+                    {lang === 'ne' ? activeNakNe.moonPortraitNe : activeTreatise.moonPortrait}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="obs-panel p-5 space-y-2">
-                    <div className="text-sm font-bold text-[var(--text)]">
-                      Rising Sign (Ascendant) in {activeTreatise.name}
+                {lang === 'en' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="obs-panel p-5 space-y-2">
+                      <div className="text-sm font-bold text-[var(--text)]">
+                        Rising Sign (Ascendant) in {activeTreatise.name}
+                      </div>
+                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                        {activeTreatise.ascendantPortrait}
+                      </p>
                     </div>
-                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                      {activeTreatise.ascendantPortrait}
-                    </p>
-                  </div>
-                  <div className="obs-panel p-5 space-y-2">
-                    <div className="text-sm font-bold text-[var(--text)]">
-                      Natal Sun in {activeTreatise.name}
+                    <div className="obs-panel p-5 space-y-2">
+                      <div className="text-sm font-bold text-[var(--text)]">
+                        Natal Sun in {activeTreatise.name}
+                      </div>
+                      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                        {activeTreatise.sunPortrait}
+                      </p>
                     </div>
-                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                      {activeTreatise.sunPortrait}
-                    </p>
                   </div>
-                </div>
+                )}
 
                 {/* Gaze & Lost Object Detail */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -718,9 +728,11 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                 {/* Vocations & Shadow Trap */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                   <div className="space-y-2">
-                    <div className="text-xs font-bold text-[var(--text)]">Aligned Vocations</div>
+                    <div className="text-xs font-bold text-[var(--text)]">
+                      {t('Aligned Vocations', 'अनुकूल पेशा र कर्म क्षेत्रहरू')}
+                    </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {activeTreatise.vocations.map((v) => (
+                      {(lang === 'ne' ? activeNakNe.vocationsNe : activeTreatise.vocations).map((v) => (
                         <span
                           key={v}
                           className="px-2.5 py-1 rounded-md text-xs bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)]"
@@ -734,10 +746,10 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                   <div className="obs-panel p-3.5 space-y-1">
                     <div className="text-xs font-bold text-[var(--crimson)] flex items-center gap-1.5">
                       <ShieldAlert className="w-3.5 h-3.5" />
-                      <span>Evolutionary Shadow Trap</span>
+                      <span>{t('Evolutionary Shadow Trap', 'सजग रहनुपर्ने सूक्ष्म पक्ष')}</span>
                     </div>
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                      {activeTreatise.shadowTrap}
+                      {lang === 'ne' ? activeNakNe.shadowTrapNe : activeTreatise.shadowTrap}
                     </p>
                   </div>
                 </div>
@@ -751,20 +763,33 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                   <div key={p.pada} className="obs-panel p-5 space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-base font-bold text-[var(--text)]">
-                        Pada {p.pada} — {p.navamshaSign} Navamsha
+                        {t(
+                          `Pada ${p.pada} — ${p.navamshaSign} Navamsha`,
+                          `चरण ${p.pada} — ${trSign(p.navamshaSign, 'ne')} नवांश`
+                        )}
                       </div>
                       <span className="px-2.5 py-0.5 rounded bg-[var(--accent-bg)] text-[var(--accent)] font-mono text-xs font-semibold">
-                        Sound: {p.bijaSound}
+                        {t('Sound:', 'नामाक्षर:')} {p.bijaSound.split('(')[0].trim()}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-[var(--text-muted)]">
                       <span>{p.degreeRange}</span>
                       <span>•</span>
-                      <span>D9 Ruler: {p.navamshaRuler}</span>
-                      {p.specialTag && <StatusBadge tone="info" label={p.specialTag} />}
+                      <span>
+                        {t(`D9 Ruler: ${p.navamshaRuler}`, `नवांश स्वामी: ${trPlanet(p.navamshaRuler, 'ne')}`)}
+                      </span>
+                      {p.specialTag && lang === 'en' && <StatusBadge tone="info" label={p.specialTag} />}
                     </div>
                     <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                      {p.expression}
+                      {lang === 'ne'
+                        ? buildNepaliPadaExpression(
+                            activeTreatise.index,
+                            p.pada,
+                            p.navamshaSign,
+                            p.navamshaRuler,
+                            p.specialTag
+                          )
+                        : p.expression}
                     </p>
                   </div>
                 ))}
@@ -797,29 +822,33 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[var(--border)]">
                   <div className="obs-panel p-5 space-y-2.5">
                     <div className="text-sm font-bold text-[var(--sage)]">
-                      Best Activities Under This Star
+                      {t('Best Activities Under This Star', 'यस नक्षत्रमा सर्वोत्तम शुभ कार्यहरू')}
                     </div>
                     <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
-                      {activeTreatise.auspiciousWorks.map((w, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-[var(--sage)] shrink-0 mt-0.5" />
-                          <span>{w}</span>
-                        </li>
-                      ))}
+                      {(lang === 'ne' ? activeNakNe.auspiciousWorksNe : activeTreatise.auspiciousWorks).map(
+                        (w, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-[var(--sage)] shrink-0 mt-0.5" />
+                            <span>{w}</span>
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
 
                   <div className="obs-panel p-5 space-y-2.5">
                     <div className="text-sm font-bold text-[var(--crimson)]">
-                      Activities Best Postponed
+                      {t('Activities Best Postponed', 'यस नक्षत्रमा वर्जित / सार्नुपर्ने कार्यहरू')}
                     </div>
                     <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
-                      {activeTreatise.inauspiciousWorks.map((w, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <XCircle className="w-4 h-4 text-[var(--crimson)] shrink-0 mt-0.5" />
-                          <span>{w}</span>
-                        </li>
-                      ))}
+                      {(lang === 'ne' ? activeNakNe.inauspiciousWorksNe : activeTreatise.inauspiciousWorks).map(
+                        (w, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <XCircle className="w-4 h-4 text-[var(--crimson)] shrink-0 mt-0.5" />
+                            <span>{w}</span>
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -873,16 +902,19 @@ export const NakshatraEncyclopedia: React.FC<Props> = ({
                 <div className="obs-panel p-5 space-y-2">
                   <div className="text-sm font-bold text-[var(--sage)] flex items-center gap-1.5">
                     <Trees className="w-4 h-4" />
-                    <span>Sacred Tree, Mantra &amp; Practical Daily Habit</span>
+                    <span>
+                      {t('Sacred Tree, Mantra & Practical Daily Habit', 'पवित्र वृक्ष, वैदिक मन्त्र र दैनिक उपाय')}
+                    </span>
                   </div>
                   <div className="text-sm text-[var(--text)] font-semibold">
-                    Sacred Tree: {activeTreatise.sacredTree}
+                    {t('Sacred Tree:', 'पवित्र वृक्ष:')}{' '}
+                    {lang === 'ne' ? activeNakNe.sacredTreeNe : activeTreatise.sacredTree}
                   </div>
                   <div className="text-sm font-mono text-[var(--accent)]">
-                    {activeTreatise.vedicMantra}
+                    {lang === 'ne' ? activeNakNe.vedicMantraNe : activeTreatise.vedicMantra}
                   </div>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                    {activeTreatise.behavioralUpaya}
+                    {lang === 'ne' ? activeNakNe.behavioralUpayaNe : activeTreatise.behavioralUpaya}
                   </p>
                 </div>
               </div>
